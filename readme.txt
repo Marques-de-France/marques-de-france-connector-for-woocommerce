@@ -9,7 +9,7 @@ Requires Plugins: woocommerce
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Official WooCommerce plugin for Marques de France partners. Tracks attributed sales, syncs revenue, and generates a Google Merchant feed.
+Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform.
 
 == Description ==
 

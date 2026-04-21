@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Marques de France
  * Plugin URI:  https://www.marques-de-france.fr
- * Description: Connect your WooCommerce store to the Marques de France directory. Tracks attributed sales, generates a Google Merchant product feed, and syncs data to the MDF platform.
+ * Description: Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform.
  * Version:     1.0.0
  * Author:      Marques de France
  * Author URI:  https://www.marques-de-france.fr
