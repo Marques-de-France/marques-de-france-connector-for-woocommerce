@@ -106,20 +106,23 @@ class MDF_WC_Attribution {
 			}
 		}
 
-		// Determine attribution source
+		// Determine attribution source — each signal is checked independently,
+		// mirroring the Shopify tracker (attributedViaRef || utm || referrer).
+		// $attributed is NOT required as a gate: mdf_* cookies/session values are
+		// only ever written by the MDF tracker, which already verified the signal.
 		$source = '';
-		if ( $attributed === 'true' || $attributed === '1' ) {
-			if ( $landing_ref ) {
-				$source = 'mdf_ref';
-			} elseif (
-				( $utm_source   && strpos( $utm_source,   'marques-de-france' ) !== false ) ||
-				( $utm_medium   && strpos( $utm_medium,   'marques-de-france' ) !== false ) ||
-				( $utm_campaign && strpos( $utm_campaign, 'marques-de-france' ) !== false )
-			) {
-				$source = 'utm';
-			} elseif ( $referring && strpos( $referring, 'marques-de-france.fr' ) !== false ) {
-				$source = 'mdf_referral';
-			}
+		if ( $landing_ref ) {
+			$source = 'mdf_ref';
+		} elseif (
+			( $utm_source   && strpos( $utm_source,   'marques-de-france' ) !== false ) ||
+			( $utm_medium   && strpos( $utm_medium,   'marques-de-france' ) !== false ) ||
+			( $utm_campaign && strpos( $utm_campaign, 'marques-de-france' ) !== false )
+		) {
+			$source = 'utm';
+		} elseif ( $referring && strpos( $referring, 'marques-de-france.fr' ) !== false ) {
+			// Referrer alone is sufficient — no $attributed cookie required.
+			// This covers: AJAX stamp failed, cookies blocked by adblocker, etc.
+			$source = 'mdf_referral';
 		} elseif ( $referring ) {
 			$source = 'referral';
 		}
