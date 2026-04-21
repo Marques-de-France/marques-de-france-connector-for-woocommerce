@@ -125,6 +125,13 @@ class MDF_WC_Tracker {
 		}
 
 		$this->set_session( self::KEY_REFERRING, esc_url_raw( $referer ) );
+
+		// If the referrer is marques-de-france.fr, mark this session as attributed
+		// so checkout can detect referral-based attribution even without UTM params.
+		$referer_host = wp_parse_url( $referer, PHP_URL_HOST );
+		if ( $referer_host && strpos( $referer_host, 'marques-de-france.fr' ) !== false ) {
+			$this->set_session( self::KEY_ATTRIBUTED, '1' );
+		}
 	}
 
 	// ---------------------------------------------------------------------------

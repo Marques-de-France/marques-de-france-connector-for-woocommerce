@@ -60,7 +60,11 @@
 		var utmTerm     = getParam( params, 'utm_term' );
 
 		// Only attribute if this visit originates from Marques de France.
-		var isAttributed = utmSource === MDF_SOURCE;
+		// Attribution signal 1: utm_source=marques-de-france
+		// Attribution signal 2: document.referrer contains marques-de-france.fr (direct link, no UTM)
+		var referrerUrl  = document.referrer || '';
+		var isMdfReferrer = referrerUrl.indexOf( 'marques-de-france.fr' ) !== -1;
+		var isAttributed = utmSource === MDF_SOURCE || ( ! utmSource && isMdfReferrer );
 
 		if ( mdfWcConfig.debug === 'true' ) {
 			console.log( '[MDF Tracker] utm_source=' + utmSource + ' attributed=' + isAttributed );
@@ -75,7 +79,6 @@
 		if ( isAttributed && ! alreadyAttributed ) {
 			// Landing page = full current URL (before any redirect).
 			var landingUrl  = window.location.href;
-			var referrerUrl = document.referrer || '';
 
 			// Persist in cookies so they survive page refreshes.
 			setCookie( 'mdf_attributed',    '1',         COOKIE_TTL_DAYS );
