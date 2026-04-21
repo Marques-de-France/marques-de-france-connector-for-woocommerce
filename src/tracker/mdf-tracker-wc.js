@@ -60,14 +60,21 @@
 		var utmTerm     = getParam( params, 'utm_term' );
 
 		// Only attribute if this visit originates from Marques de France.
-		// Attribution signal 1: utm_source=marques-de-france
-		// Attribution signal 2: document.referrer contains marques-de-france.fr (direct link, no UTM)
-		var referrerUrl  = document.referrer || '';
+		// Signal 1 (utm):      utm_source / utm_medium / utm_campaign contains MDF_SOURCE
+		// Signal 2 (ref):      ?ref= or ?landing_ref= contains MDF_SOURCE
+		// Signal 3 (referrer): document.referrer contains 'marques-de-france.fr'
+		var referrerUrl   = document.referrer || '';
+		var refParam      = getParam( params, 'ref' ) || getParam( params, 'landing_ref' );
+		var isMdfUtm      = ( utmSource.indexOf( MDF_SOURCE ) !== -1 ) ||
+		                    ( utmMedium.indexOf( MDF_SOURCE ) !== -1 ) ||
+		                    ( utmCampaign.indexOf( MDF_SOURCE ) !== -1 );
+		var isMdfRef      = refParam.indexOf( MDF_SOURCE ) !== -1;
 		var isMdfReferrer = referrerUrl.indexOf( 'marques-de-france.fr' ) !== -1;
-		var isAttributed = utmSource === MDF_SOURCE || ( ! utmSource && isMdfReferrer );
+
+		var isAttributed  = isMdfUtm || isMdfRef || isMdfReferrer;
 
 		if ( mdfWcConfig.debug === 'true' ) {
-			console.log( '[MDF Tracker] utm_source=' + utmSource + ' attributed=' + isAttributed );
+			console.log( '[MDF Tracker] utm=' + isMdfUtm + ' ref=' + isMdfRef + ' referrer=' + isMdfReferrer + ' attributed=' + isAttributed );
 		}
 
 		// -----------------------------------------------------------------------
@@ -87,9 +94,9 @@
 			setCookie( 'mdf_utm_campaign',  utmCampaign, COOKIE_TTL_DAYS );
 			setCookie( 'mdf_utm_content',   utmContent,  COOKIE_TTL_DAYS );
 			setCookie( 'mdf_utm_term',      utmTerm,     COOKIE_TTL_DAYS );
-			setCookie( 'mdf_landing_site',  landingUrl,  COOKIE_TTL_DAYS );
-			setCookie( 'mdf_referring_site',referrerUrl, COOKIE_TTL_DAYS );
-			setCookie( 'mdf_landing_ref',   utmSource,   COOKIE_TTL_DAYS );
+			setCookie( 'mdf_landing_site',  landingUrl,            COOKIE_TTL_DAYS );
+			setCookie( 'mdf_referring_site',referrerUrl,           COOKIE_TTL_DAYS );
+			setCookie( 'mdf_landing_ref',   refParam || utmSource, COOKIE_TTL_DAYS );
 
 			// Stamp the WooCommerce session via AJAX.
 			stampSession( {
@@ -101,7 +108,7 @@
 				mdf_utm_term:      utmTerm,
 				mdf_landing_site:  landingUrl,
 				mdf_referring_site:referrerUrl,
-				mdf_landing_ref:   utmSource,
+				mdf_landing_ref:   refParam || utmSource,
 			} );
 		} else if ( ! isAttributed && alreadyAttributed ) {
 			// Visitor returning without UTMs but cookie is still live.

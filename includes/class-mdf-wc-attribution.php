@@ -111,7 +111,11 @@ class MDF_WC_Attribution {
 		if ( $attributed === 'true' || $attributed === '1' ) {
 			if ( $landing_ref ) {
 				$source = 'mdf_ref';
-			} elseif ( $utm_source ) {
+			} elseif (
+				( $utm_source   && strpos( $utm_source,   'marques-de-france' ) !== false ) ||
+				( $utm_medium   && strpos( $utm_medium,   'marques-de-france' ) !== false ) ||
+				( $utm_campaign && strpos( $utm_campaign, 'marques-de-france' ) !== false )
+			) {
 				$source = 'utm';
 			} elseif ( $referring && strpos( $referring, 'marques-de-france.fr' ) !== false ) {
 				$source = 'mdf_referral';
