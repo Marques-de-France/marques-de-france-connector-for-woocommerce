@@ -181,10 +181,11 @@ class MDF_WC_Attribution {
 		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
 
 		// Idempotency: check if this order is already recorded
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$existing = $wpdb->get_var(
 			$wpdb->prepare( "SELECT id FROM `{$table}` WHERE order_id = %s LIMIT 1", (string) $order->get_id() )
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( $existing ) {
 			return;

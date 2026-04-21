@@ -190,10 +190,11 @@ class MDF_WC_Hub_Client {
 		// Only update if we have a local record (non-attributed orders are not in the Hub)
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$local = $wpdb->get_var(
 			$wpdb->prepare( "SELECT id FROM `{$table}` WHERE order_id = %s LIMIT 1", (string) $order_id )
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		if ( ! $local ) {
 			return;
@@ -206,6 +207,7 @@ class MDF_WC_Hub_Client {
 		);
 
 		if ( ! is_wp_error( $response ) && wp_remote_retrieve_response_code( $response ) < 400 ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->update(
 				$table,
 				[ 'status' => $status ],
@@ -272,6 +274,7 @@ class MDF_WC_Hub_Client {
 
 	private function mark_synced( string $order_id ) {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
 			$wpdb->prefix . 'mdf_wc_sales',
 			[ 'hub_synced' => 1 ],

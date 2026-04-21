@@ -273,13 +273,14 @@ class MDF_WC_Admin {
 			$table     = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
 			$threshold = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$count = (int) $wpdb->get_var(
 				$wpdb->prepare(
 					"SELECT COUNT(*) FROM `{$table}` WHERE hub_synced = 0 AND status = 'confirmed' AND created_at <= %s",
 					$threshold
 				)
 			);
+			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			set_transient( 'mdf_wc_unsynced_notice_count', $count, 10 * MINUTE_IN_SECONDS );
 		}
@@ -360,7 +361,7 @@ class MDF_WC_Admin {
 		$from_dt = $date_from . ' 00:00:00';
 		$to_dt   = $date_to   . ' 23:59:59';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT created_at, amount FROM `{$table}` WHERE status = 'confirmed' AND created_at BETWEEN %s AND %s ORDER BY created_at ASC",
@@ -368,6 +369,7 @@ class MDF_WC_Admin {
 				$to_dt
 			)
 		);
+		// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		// Aggregate by granularity
 		$map = [];
