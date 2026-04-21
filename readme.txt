@@ -1,6 +1,6 @@
 === Marques de France ===
 Contributors: marquesdefrance
-Tags: woocommerce, sales attribution, product feed, google merchant
+Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 6.9
 Stable tag: 1.0.0
@@ -19,7 +19,7 @@ Once installed and configured, this plugin:
 
 * **Tracks attributed sales** — detects when a customer arrives via the Marques de France directory and records the resulting sale in your WooCommerce store.
 * **Syncs revenue to the MDF Hub** — automatically sends attributed order data (amounts, UTM parameters, attribution signals) to the Marques de France platform so your partner dashboard stays up to date.
-* **Generates a Google Merchant feed** — exposes a product feed endpoint compatible with Google Merchant Center, giving Marques de France the data it needs to showcase your products.
+* **Generates a product feed** — exposes a product feed endpoint compatible with the Marques de France platform, giving Marques de France the data it needs to showcase your products.
 * **WooCommerce admin dashboard** — adds a dedicated admin panel with sales analytics, a product feed preview, and Hub connection status.
 
 **Requirements**
@@ -100,6 +100,6 @@ Initial release.
 * Sales attribution tracking via UTM parameters and referrer signals.
 * Automatic order sync to the Marques de France Hub with immediate + retry (Action Scheduler) strategy.
 * Order cancellation and refund status propagation to the Hub.
-* Google Merchant-compatible product feed REST endpoint (token-gated).
+* Product feed REST endpoint (token-gated).
 * React-powered WooCommerce admin dashboard with sales analytics chart, product feed preview, and Hub connection status.
 * French (fr_FR) translation included for all admin UI strings.
