@@ -241,12 +241,12 @@ msgid "Enter my activation code"
 msgstr "Saisir mon code d'activation"
 
 #: build/index.js:1
-msgid "Token saved — store connected."
-msgstr "Token enregistré — boutique connectée."
+msgid "Token saved. Store connected."
+msgstr "Token enregistré. Boutique connectée."
 
 #: build/index.js:1
-msgid "Token saved but connection failed — please check your access code."
-msgstr "Token enregistré mais la connexion a échoué — vérifiez votre code d’accès."
+msgid "Token saved but connection failed. Please check your access code."
+msgstr "Token enregistré mais la connexion a échoué. Vérifiez votre code d'accès."
 
 #: build/index.js:1
 msgid "Token saved but connection check failed."

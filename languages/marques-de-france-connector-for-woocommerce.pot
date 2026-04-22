@@ -219,11 +219,11 @@ msgid "Enter my activation code"
 msgstr ""
 
 #: build/index.js:1
-msgid "Token saved — store connected."
+msgid "Token saved. Store connected."
 msgstr ""
 
 #: build/index.js:1
-msgid "Token saved but connection failed — please check your access code."
+msgid "Token saved but connection failed. Please check your access code."
 msgstr ""
 
 #: build/index.js:1
