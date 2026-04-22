@@ -213,6 +213,26 @@ msgid "Plugin not configured. Please go to "
 msgstr "Plugin non configuré. Rendez-vous dans les "
 
 #: build/index.js:1
+msgid "Welcome to Marques de France"
+msgstr "Bienvenue sur Marques de France"
+
+#: build/index.js:1
+msgid "Store registered"
+msgstr "Boutique enregistrée"
+
+#: build/index.js:1
+msgid "Enter your activation code"
+msgstr "Saisir votre code d'activation"
+
+#: build/index.js:1
+msgid "Your store has been successfully registered. Our team will send you your activation code by email — it may take a few hours. Once received, enter it in the Settings tab to complete the setup."
+msgstr "Votre boutique a bien été enregistrée. Notre équipe va vous envoyer votre code d'activation par email — cela peut prendre quelques heures. Une fois reçu, saisissez-le dans l'onglet Paramètres pour finaliser la configuration."
+
+#: build/index.js:1
+msgid "Enter my activation code →"
+msgstr "Saisir mon code d'activation →"
+
+#: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
 msgid " and enter your Secure Token."
 msgstr " pour saisir votre Token sécurisé."
