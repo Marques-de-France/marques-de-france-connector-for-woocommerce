@@ -209,8 +209,13 @@ msgstr "Mensuel"
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
-msgid "Plugin not configured. Please go to Settings and enter your Secure Token."
-msgstr "Plugin non configuré. Rendez-vous dans les Paramètres pour saisir votre Token sécurisé."
+msgid "Plugin not configured. Please go to "
+msgstr "Plugin non configuré. Rendez-vous dans les "
+
+#: build/index.js:1
+#: src/admin/pages/Dashboard.js:88
+msgid " and enter your Secure Token."
+msgstr " pour saisir votre Token sécurisé."
 
 #: build/index.js:1
 #: src/admin/pages/Sales.js:75

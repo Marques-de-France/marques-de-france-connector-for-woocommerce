@@ -187,7 +187,12 @@ msgstr ""
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
-msgid "Plugin not configured. Please go to Settings and enter your Secure Token."
+msgid "Plugin not configured. Please go to "
+msgstr ""
+
+#: build/index.js:1
+#: src/admin/pages/Dashboard.js:88
+msgid " and enter your Secure Token."
 msgstr ""
 
 #: build/index.js:1

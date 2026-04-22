@@ -176,12 +176,13 @@ class MDF_WC_Admin {
 			'mdf-wc-admin',
 			'mdfWcAdmin',
 			[
-				'restUrl'    => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
-				'nonce'      => wp_create_nonce( 'wp_rest' ),
-				'feedUrl'    => esc_url_raw( rest_url( 'mdf-wc/v1/feed' ) ),
-				'token'      => ( $hook === $settings_hook ) ? MDF_WC_Settings::get_secure_token() : '',
-				'configured' => MDF_WC_Settings::is_configured(),
-				'siteUrl'    => home_url(),
+				'restUrl'     => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
+				'nonce'       => wp_create_nonce( 'wp_rest' ),
+				'feedUrl'     => esc_url_raw( rest_url( 'mdf-wc/v1/feed' ) ),
+				'token'       => ( $hook === $settings_hook ) ? MDF_WC_Settings::get_secure_token() : '',
+				'configured'  => MDF_WC_Settings::is_configured(),
+				'siteUrl'     => home_url(),
+				'settingsUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
 			]
 		);
 
