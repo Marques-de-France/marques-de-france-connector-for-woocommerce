@@ -70,7 +70,7 @@ class MDF_WC_Settings {
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'default'           => '',
-				'show_in_rest'      => true,
+			'show_in_rest'      => false, // Never expose token via WP REST /wp/v2/settings
 			]
 		);
 	}

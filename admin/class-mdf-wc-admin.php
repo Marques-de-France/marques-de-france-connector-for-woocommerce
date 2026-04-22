@@ -170,7 +170,8 @@ class MDF_WC_Admin {
 			$asset['version']
 		);
 
-		// Pass data to JS
+		// Pass data to JS — token only injected on the Settings page to limit exposure
+		$settings_hook = 'marques-de-france_page_' . self::MENU_SLUG . '-settings';
 		wp_localize_script(
 			'mdf-wc-admin',
 			'mdfWcAdmin',
@@ -178,7 +179,7 @@ class MDF_WC_Admin {
 				'restUrl'    => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
 				'nonce'      => wp_create_nonce( 'wp_rest' ),
 				'feedUrl'    => esc_url_raw( rest_url( 'mdf-wc/v1/feed' ) ),
-				'token'      => MDF_WC_Settings::get_secure_token(),
+				'token'      => ( $hook === $settings_hook ) ? MDF_WC_Settings::get_secure_token() : '',
 				'configured' => MDF_WC_Settings::is_configured(),
 				'siteUrl'    => home_url(),
 			]
@@ -499,7 +500,7 @@ class MDF_WC_Admin {
 
 		$response = wp_remote_get( $hub_url . '/api/wc/status', [
 			'timeout'   => 8,
-			'sslverify' => ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ),
+			'sslverify' => ( strpos( MDF_WC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 			'headers'   => [
 				'X-MDF-Token' => $token,
 				'X-MDF-Shop'  => $site_url,

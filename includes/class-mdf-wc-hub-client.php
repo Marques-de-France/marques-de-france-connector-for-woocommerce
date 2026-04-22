@@ -237,7 +237,7 @@ class MDF_WC_Hub_Client {
 
 		$response = wp_remote_post( $url, [
 			'timeout'     => $timeout,
-			'sslverify'   => ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ),
+			'sslverify'   => ( strpos( MDF_WC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 			'headers'     => [
 				'Content-Type' => 'application/json',
 				'X-MDF-Token'  => $this->token,

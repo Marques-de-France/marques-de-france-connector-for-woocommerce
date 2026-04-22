@@ -114,7 +114,7 @@ class MDF_WC_Activator {
 			$hub_url . '/api/wc/self-register',
 			[
 				'timeout'   => 10,
-				'sslverify' => ! ( defined( 'WP_DEBUG' ) && WP_DEBUG ),
+				'sslverify' => ( strpos( MDF_WC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 				'headers'   => [ 'Content-Type' => 'application/json' ],
 				'body'      => wp_json_encode( [ 'siteUrl' => $site_url ] ),
 			]
