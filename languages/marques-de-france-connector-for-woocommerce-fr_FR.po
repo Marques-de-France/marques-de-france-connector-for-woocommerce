@@ -242,15 +242,15 @@ msgstr "Saisir mon code d'activation"
 
 #: build/index.js:1
 msgid "Token saved. Store connected."
-msgstr "Token enregistré. Boutique connectée."
+msgstr "Code d'accès enregistré. Boutique connectée."
 
 #: build/index.js:1
 msgid "Token saved but connection failed. Please check your access code."
-msgstr "Token enregistré mais la connexion a échoué. Vérifiez votre code d'accès."
+msgstr "Code d'accès enregistré mais la connexion a échoué. Vérifiez votre code d'accès."
 
 #: build/index.js:1
 msgid "Token saved but connection check failed."
-msgstr "Token enregistré mais la vérification de connexion a échoué."
+msgstr "Code d'accès enregistré mais la vérification de connexion a échoué."
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
