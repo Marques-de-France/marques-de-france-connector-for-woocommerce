@@ -251,6 +251,28 @@ class MDF_WC_Admin {
 				'per_page' => [ 'type' => 'integer', 'default' => 50, 'sanitize_callback' => 'absint' ],
 			],
 		] ) );
+
+		// POST /wp-json/mdf-wc/v1/admin/settings — save secure token
+		register_rest_route( self::REST_NAMESPACE, '/admin/settings', [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'permission_callback' => function () {
+				return current_user_can( self::CAPABILITY );
+			},
+			'args' => [
+				'mdf_wc_secure_token' => [
+					'type'              => 'string',
+					'required'          => true,
+					'sanitize_callback' => 'sanitize_text_field',
+				],
+			],
+			'callback' => [ $this, 'rest_save_settings' ],
+		] );
+	}
+
+	public function rest_save_settings( WP_REST_Request $request ): WP_REST_Response {
+		$token = $request->get_param( 'mdf_wc_secure_token' );
+		update_option( 'mdf_wc_secure_token', $token );
+		return new WP_REST_Response( [ 'success' => true ], 200 );
 	}
 
 	// ── REST Callbacks ──────────────────────────────────────────────────────────
