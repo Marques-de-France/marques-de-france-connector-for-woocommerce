@@ -241,6 +241,18 @@ msgid "Enter my activation code"
 msgstr "Saisir mon code d'activation"
 
 #: build/index.js:1
+msgid "Token saved — store connected."
+msgstr "Token enregistré — boutique connectée."
+
+#: build/index.js:1
+msgid "Token saved but connection failed — please check your access code."
+msgstr "Token enregistré mais la connexion a échoué — vérifiez votre code d’accès."
+
+#: build/index.js:1
+msgid "Token saved but connection check failed."
+msgstr "Token enregistré mais la vérification de connexion a échoué."
+
+#: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
 msgid " and enter your Secure Token."
 msgstr " pour saisir votre Token sécurisé."
