@@ -94,9 +94,9 @@
 			setCookie( 'mdf_utm_campaign',  utmCampaign, COOKIE_TTL_DAYS );
 			setCookie( 'mdf_utm_content',   utmContent,  COOKIE_TTL_DAYS );
 			setCookie( 'mdf_utm_term',      utmTerm,     COOKIE_TTL_DAYS );
-			setCookie( 'mdf_landing_site',  landingUrl,            COOKIE_TTL_DAYS );
-			setCookie( 'mdf_referring_site',referrerUrl,           COOKIE_TTL_DAYS );
-			setCookie( 'mdf_landing_ref',   refParam || utmSource, COOKIE_TTL_DAYS );
+			setCookie( 'mdf_landing_site',  landingUrl,  COOKIE_TTL_DAYS );
+			setCookie( 'mdf_referring_site',referrerUrl, COOKIE_TTL_DAYS );
+			setCookie( 'mdf_landing_ref',   refParam,    COOKIE_TTL_DAYS );
 
 			// Stamp the WooCommerce session via AJAX.
 			stampSession( {
@@ -108,7 +108,7 @@
 				mdf_utm_term:      utmTerm,
 				mdf_landing_site:  landingUrl,
 				mdf_referring_site:referrerUrl,
-				mdf_landing_ref:   refParam || utmSource,
+				mdf_landing_ref:   refParam,
 			} );
 		} else if ( ! isAttributed && alreadyAttributed ) {
 			// Visitor returning without UTMs but cookie is still live.
