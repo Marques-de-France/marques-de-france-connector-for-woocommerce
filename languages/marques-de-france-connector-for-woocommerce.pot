@@ -191,7 +191,7 @@ msgid "Plugin not configured. Please go to "
 msgstr ""
 
 #: build/index.js:1
-msgid "Welcome to Marques de France"
+msgid "Activate your store"
 msgstr ""
 
 #: build/index.js:1
@@ -203,11 +203,19 @@ msgid "Enter your activation code"
 msgstr ""
 
 #: build/index.js:1
-msgid "Your store has been successfully registered. Our team will send you your activation code by email — it may take a few hours. Once received, enter it in the Settings tab to complete the setup."
+msgid "Your store has been successfully registered. Our team will send you your activation code by email, it may take a few hours. Once received, enter it in the "
 msgstr ""
 
 #: build/index.js:1
-msgid "Enter my activation code →"
+msgid "Settings tab"
+msgstr ""
+
+#: build/index.js:1
+msgid " to complete the setup."
+msgstr ""
+
+#: build/index.js:1
+msgid "Enter my activation code"
 msgstr ""
 
 #: build/index.js:1
