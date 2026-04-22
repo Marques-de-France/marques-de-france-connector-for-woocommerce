@@ -129,6 +129,16 @@ class MDF_WC_Activator {
 
 		$code = wp_remote_retrieve_response_code( $response );
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		// If the hub returned the existing token and the local option is empty
+		// (e.g. after a plugin delete + reinstall), restore it automatically.
+		if ( ! empty( $body['secureToken'] ) && '' === get_option( 'mdf_wc_secure_token', '' ) ) {
+			update_option( 'mdf_wc_secure_token', sanitize_text_field( $body['secureToken'] ) );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[MDF-WC] Secure token restored from Hub on activation.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			}
+		}
+
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[MDF-WC] Hub self-registration: HTTP ' . $code . ' — ' . ( $body['message'] ?? 'unexpected response' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
