@@ -170,8 +170,7 @@ class MDF_WC_Admin {
 			$asset['version']
 		);
 
-		// Pass data to JS — token only injected on the Settings page to limit exposure
-		$settings_hook = 'marques-de-france_page_' . self::MENU_SLUG . '-settings';
+		// Pass data to JS
 		wp_localize_script(
 			'mdf-wc-admin',
 			'mdfWcAdmin',
@@ -179,7 +178,7 @@ class MDF_WC_Admin {
 				'restUrl'     => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
 				'nonce'       => wp_create_nonce( 'wp_rest' ),
 				'feedUrl'     => esc_url_raw( rest_url( 'mdf-wc/v1/feed' ) ),
-				'token'       => ( $hook === $settings_hook ) ? MDF_WC_Settings::get_secure_token() : '',
+				'token'       => MDF_WC_Settings::get_secure_token(),
 				'configured'  => MDF_WC_Settings::is_configured(),
 				'siteUrl'     => home_url(),
 				'settingsUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
