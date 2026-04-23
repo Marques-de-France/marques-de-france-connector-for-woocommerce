@@ -11,7 +11,7 @@
  * Text Domain: marques-de-france-connector-for-woocommerce
  * Domain Path: /languages
  * Requires at least: 6.5
- * Tested up to:      6.9
+ * Tested up to:      6.8
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
  *

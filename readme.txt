@@ -2,7 +2,7 @@
 Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
-Tested up to: 6.9
+Tested up to: 6.8
 Stable tag: 1.0.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
