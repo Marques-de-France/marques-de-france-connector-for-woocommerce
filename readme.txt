@@ -2,14 +2,14 @@
 Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
-Tested up to: 6.8
+Tested up to: 6.9
 Stable tag: 1.0.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform.
+Connect your WooCommerce store to Marques de France. Track attributed sales, generate a product feed, and sync data to the MDF platform.
 
 == Description ==
 
@@ -27,6 +27,11 @@ Once installed and configured, this plugin:
 * An active partner account on [marques-de-france.fr](https://www.marques-de-france.fr)
 * A Secure Token provided by Marques de France (entered in the plugin settings)
 * WooCommerce 8.0 or later
+
+**Source Code**
+
+The full source code including unminified JavaScript is available on GitHub:
+[https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce](https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce)
 
 == Installation ==
 
@@ -50,8 +55,10 @@ This plugin communicates with the **Marques de France Hub** — a service operat
 
 **Data sent**: site URL, WooCommerce order ID, order number, order amount, currency, and optional marketing attribution signals (UTM source, medium, campaign, content, term, landing page, referrer). No personal customer data (names, addresses, emails) is ever transmitted.
 
-By installing and activating this plugin, you agree to the Marques de France privacy policy:
-[https://www.marques-de-france.fr/politique-de-confidentialite-et-donnees-personnelles/](https://www.marques-de-france.fr/politique-de-confidentialite-et-donnees-personnelles/)
+**Service terms and privacy**:
+
+* Terms of Use: [https://www.marques-de-france.fr/cgv/](https://www.marques-de-france.fr/cgv/)
+* Privacy Policy: [https://www.marques-de-france.fr/politique-de-confidentialite-et-donnees-personnelles/](https://www.marques-de-france.fr/politique-de-confidentialite-et-donnees-personnelles/)
 
 == Frequently Asked Questions ==
 
@@ -79,7 +86,7 @@ The feed is available at `/wp-json/mdf-wc/v1/feed?token=YOUR_SECURE_TOKEN`. The 
 
 Yes. Add the following to your `wp-config.php`:
 
-`define( 'MDF_WC_HUB_URL', 'https://your-dev-tunnel.example.com' );`
+`define( 'MDF_CFORWC_HUB_URL', 'https://your-dev-tunnel.example.com' );`
 
 == Screenshots ==
 

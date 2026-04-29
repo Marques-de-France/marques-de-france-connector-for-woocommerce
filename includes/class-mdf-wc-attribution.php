@@ -18,14 +18,14 @@
  *   'mdf_referral' if referring_site matches marques-de-france.fr
  *   'referral'     otherwise
  *
- * @package MDF_WC_Connector
+ * @package MDF_CFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_WC_Attribution {
+class MDF_CFORWC_Attribution {
 
 	// Order meta keys
 	const META_ATTRIBUTED      = '_mdf_attributed';
@@ -65,7 +65,7 @@ class MDF_WC_Attribution {
 	// ---------------------------------------------------------------------------
 
 	private function read_signal( string $session_key, string $cookie_name ): string {
-		$tracker = MDF_WC_Tracker::get_instance();
+		$tracker = MDF_CFORWC_Tracker::get_instance();
 
 		// WC session (most reliable — set by AJAX stamp)
 		$value = $tracker->get_session( $session_key );
@@ -86,17 +86,17 @@ class MDF_WC_Attribution {
 	 * Returns an array with all keys, empty strings when a signal is absent.
 	 */
 	public function collect_signals(): array {
-		$attributed    = $this->read_signal( MDF_WC_Tracker::KEY_ATTRIBUTED,   'mdf_attributed' );
-		$utm_source    = $this->read_signal( MDF_WC_Tracker::KEY_UTM_SOURCE,    'mdf_utm_source' );
-		$utm_medium    = $this->read_signal( MDF_WC_Tracker::KEY_UTM_MEDIUM,    'mdf_utm_medium' );
-		$utm_campaign  = $this->read_signal( MDF_WC_Tracker::KEY_UTM_CAMPAIGN,  'mdf_utm_campaign' );
-		$utm_content   = $this->read_signal( MDF_WC_Tracker::KEY_UTM_CONTENT,   'mdf_utm_content' );
-		$utm_term      = $this->read_signal( MDF_WC_Tracker::KEY_UTM_TERM,      'mdf_utm_term' );
-		$landing_site  = $this->read_signal( MDF_WC_Tracker::KEY_LANDING_SITE,  'mdf_landing_site' );
-		$landing_ref   = $this->read_signal( MDF_WC_Tracker::KEY_LANDING_REF,   'mdf_landing_ref' );
+		$attributed    = $this->read_signal( MDF_CFORWC_Tracker::KEY_ATTRIBUTED,   'mdf_attributed' );
+		$utm_source    = $this->read_signal( MDF_CFORWC_Tracker::KEY_UTM_SOURCE,    'mdf_utm_source' );
+		$utm_medium    = $this->read_signal( MDF_CFORWC_Tracker::KEY_UTM_MEDIUM,    'mdf_utm_medium' );
+		$utm_campaign  = $this->read_signal( MDF_CFORWC_Tracker::KEY_UTM_CAMPAIGN,  'mdf_utm_campaign' );
+		$utm_content   = $this->read_signal( MDF_CFORWC_Tracker::KEY_UTM_CONTENT,   'mdf_utm_content' );
+		$utm_term      = $this->read_signal( MDF_CFORWC_Tracker::KEY_UTM_TERM,      'mdf_utm_term' );
+		$landing_site  = $this->read_signal( MDF_CFORWC_Tracker::KEY_LANDING_SITE,  'mdf_landing_site' );
+		$landing_ref   = $this->read_signal( MDF_CFORWC_Tracker::KEY_LANDING_REF,   'mdf_landing_ref' );
 
 		// Signal 5 (referring site): session → cookie → server-side HTTP_REFERER
-		$referring = $this->read_signal( MDF_WC_Tracker::KEY_REFERRING, 'mdf_referring_site' );
+		$referring = $this->read_signal( MDF_CFORWC_Tracker::KEY_REFERRING, 'mdf_referring_site' );
 		if ( '' === $referring && ! empty( $_SERVER['HTTP_REFERER'] ) ) {
 			$raw_referer   = esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			$referer_host  = wp_parse_url( $raw_referer, PHP_URL_HOST );
@@ -174,7 +174,7 @@ class MDF_WC_Attribution {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Hook: record local sale in wp_mdf_wc_sales
+	// Hook: record local sale in wp_mdf_cforwc_sales
 	// ---------------------------------------------------------------------------
 
 	public function record_local_sale( WC_Order $order ) {
@@ -185,7 +185,7 @@ class MDF_WC_Attribution {
 		}
 
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
 
 		// Idempotency: check if this order is already recorded
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -224,7 +224,7 @@ class MDF_WC_Attribution {
 
 		// Trigger Hub sync
 		if ( $wpdb->insert_id ) {
-			$hub_client = new MDF_WC_Hub_Client();
+			$hub_client = new MDF_CFORWC_Hub_Client();
 			$hub_client->sync_sale( $order );
 		}
 	}

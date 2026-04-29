@@ -2,16 +2,16 @@
 /**
  * Plugin Activator
  *
- * Creates the wp_mdf_wc_sales table on activation.
+ * Creates the wp_mdf_cforwc_sales table on activation.
  *
- * @package MDF_WC_Connector
+ * @package MDF_CFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_WC_Activator {
+class MDF_CFORWC_Activator {
 
 	public static function activate() {
 		self::create_tables();
@@ -23,7 +23,7 @@ class MDF_WC_Activator {
 	private static function create_tables() {
 		global $wpdb;
 
-		$table_name      = $wpdb->prefix . 'mdf_wc_sales';
+		$table_name      = $wpdb->prefix . 'mdf_cforwc_sales';
 		$charset_collate = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
@@ -57,17 +57,17 @@ class MDF_WC_Activator {
 		dbDelta( $sql );
 
 		// Store the DB version for future migrations
-		update_option( 'mdf_wc_db_version', MDF_WC_DB_VERSION );
+		update_option( 'mdf_cforwc_db_version', MDF_CFORWC_DB_VERSION );
 	}
 
 	private static function schedule_actions() {
 		// Schedule the hourly flush of unsynced sales via Action Scheduler
 		if ( function_exists( 'as_has_scheduled_action' ) &&
-			! as_has_scheduled_action( 'mdf_wc_flush_unsynced_sales', [], 'mdf-wc' ) ) {
+			! as_has_scheduled_action( 'mdf_cforwc_flush_unsynced_sales', [], 'mdf-wc' ) ) {
 			as_schedule_recurring_action(
 				time() + HOUR_IN_SECONDS,
 				HOUR_IN_SECONDS,
-				'mdf_wc_flush_unsynced_sales',
+				'mdf_cforwc_flush_unsynced_sales',
 				[],
 				'mdf-wc'
 			);
@@ -76,14 +76,14 @@ class MDF_WC_Activator {
 
 	/**
 	 * Run schema migrations without a full deactivation/reactivation cycle.
-	 * Called from mdf_wc_init() whenever the stored DB version differs from MDF_WC_DB_VERSION.
+	 * Called from mdf_cforwc_init() whenever the stored DB version differs from MDF_CFORWC_DB_VERSION.
 	 *
 	 * dbDelta() handles new tables well but is unreliable for adding columns to existing tables.
 	 * We use explicit ALTER TABLE … ADD COLUMN IF NOT EXISTS for new columns instead.
 	 */
 	public static function maybe_upgrade() {
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
 
 		// Add hub_sync_attempts column (introduced in DB version 1.1.0).
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
@@ -93,7 +93,7 @@ class MDF_WC_Activator {
 		}
 		// phpcs:enable
 
-		update_option( 'mdf_wc_db_version', MDF_WC_DB_VERSION );
+		update_option( 'mdf_cforwc_db_version', MDF_CFORWC_DB_VERSION );
 	}
 
 	/**
@@ -107,14 +107,14 @@ class MDF_WC_Activator {
 	 * deleted Hub entries are recreated automatically.
 	 */
 	private static function register_with_hub() {
-		$hub_url  = rtrim( MDF_WC_HUB_URL, '/' );
+		$hub_url  = rtrim( MDF_CFORWC_HUB_URL, '/' );
 		$site_url = home_url();
 
 		$response = wp_remote_post(
 			$hub_url . '/api/wc/self-register',
 			[
 				'timeout'   => 10,
-				'sslverify' => ( strpos( MDF_WC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+				'sslverify' => ( strpos( MDF_CFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 				'headers'   => [ 'Content-Type' => 'application/json' ],
 				'body'      => wp_json_encode( [ 'siteUrl' => $site_url ] ),
 			]
@@ -132,8 +132,8 @@ class MDF_WC_Activator {
 
 		// If the hub returned the existing token and the local option is empty
 		// (e.g. after a plugin delete + reinstall), restore it automatically.
-		if ( ! empty( $body['secureToken'] ) && '' === get_option( 'mdf_wc_secure_token', '' ) ) {
-			update_option( 'mdf_wc_secure_token', sanitize_text_field( $body['secureToken'] ) );
+		if ( ! empty( $body['secureToken'] ) && '' === get_option( 'mdf_cforwc_secure_token', '' ) ) {
+			update_option( 'mdf_cforwc_secure_token', sanitize_text_field( $body['secureToken'] ) );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[MDF-WC] Secure token restored from Hub on activation.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}

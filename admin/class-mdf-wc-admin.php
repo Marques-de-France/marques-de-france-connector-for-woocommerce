@@ -11,14 +11,14 @@
  *
  * Menu slug: marques-de-france-connector-for-woocommerce
  *
- * @package MDF_WC_Connector
+ * @package MDF_CFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_WC_Admin {
+class MDF_CFORWC_Admin {
 
 	const MENU_SLUG         = 'marques-de-france-connector-for-woocommerce';
 	const CAPABILITY        = 'manage_woocommerce';
@@ -49,8 +49,8 @@ class MDF_WC_Admin {
 		add_action( 'add_meta_boxes', [ $this, 'register_order_metabox' ] );
 		add_action( 'woocommerce_process_shop_order_meta', [ $this, 'save_order_metabox' ] );
 
-		// Settings page: delegate to MDF_WC_Settings for WP Settings API
-		$settings = MDF_WC_Settings::get_instance();
+		// Settings page: delegate to MDF_CFORWC_Settings for WP Settings API
+		$settings = MDF_CFORWC_Settings::get_instance();
 		$settings->register();
 	}
 
@@ -66,7 +66,7 @@ class MDF_WC_Admin {
 			self::CAPABILITY,
 			self::MENU_SLUG,
 			[ $this, 'render_page_dashboard' ],
-			MDF_WC_PLUGIN_URL . 'admin/images/marques-de-france.ico',
+			MDF_CFORWC_PLUGIN_URL . 'admin/images/marques-de-france.ico',
 			56
 		);
 
@@ -147,7 +147,7 @@ class MDF_WC_Admin {
 			return;
 		}
 
-		$asset_file = MDF_WC_PLUGIN_DIR . 'build/index.asset.php';
+		$asset_file = MDF_CFORWC_PLUGIN_DIR . 'build/index.asset.php';
 
 		if ( ! file_exists( $asset_file ) ) {
 			return;
@@ -157,7 +157,7 @@ class MDF_WC_Admin {
 
 		wp_enqueue_script(
 			'mdf-wc-admin',
-			MDF_WC_PLUGIN_URL . 'build/index.js',
+			MDF_CFORWC_PLUGIN_URL . 'build/index.js',
 			$asset['dependencies'],
 			$asset['version'],
 			true
@@ -165,7 +165,7 @@ class MDF_WC_Admin {
 
 		wp_enqueue_style(
 			'mdf-wc-admin',
-			MDF_WC_PLUGIN_URL . 'build/style-index.css',
+			MDF_CFORWC_PLUGIN_URL . 'build/style-index.css',
 			[ 'wp-components' ],
 			$asset['version']
 		);
@@ -178,8 +178,8 @@ class MDF_WC_Admin {
 				'restUrl'     => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
 				'nonce'       => wp_create_nonce( 'wp_rest' ),
 				'feedUrl'     => esc_url_raw( rest_url( 'mdf-wc/v1/feed' ) ),
-				'token'       => MDF_WC_Settings::get_secure_token(),
-				'configured'  => MDF_WC_Settings::is_configured(),
+				'token'       => MDF_CFORWC_Settings::get_secure_token(),
+				'configured'  => MDF_CFORWC_Settings::is_configured(),
 				'siteUrl'     => home_url(),
 				'settingsUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
 			]
@@ -189,7 +189,7 @@ class MDF_WC_Admin {
 		wp_set_script_translations(
 			'mdf-wc-admin',
 			'marques-de-france-connector-for-woocommerce',
-			MDF_WC_PLUGIN_DIR . 'languages/'
+			MDF_CFORWC_PLUGIN_DIR . 'languages/'
 		);
 	}
 
@@ -258,7 +258,7 @@ class MDF_WC_Admin {
 				return current_user_can( self::CAPABILITY );
 			},
 			'args' => [
-				'mdf_wc_secure_token' => [
+				'mdf_cforwc_secure_token' => [
 					'type'              => 'string',
 					'required'          => true,
 					'sanitize_callback' => 'sanitize_text_field',
@@ -269,8 +269,8 @@ class MDF_WC_Admin {
 	}
 
 	public function rest_save_settings( WP_REST_Request $request ): WP_REST_Response {
-		$token = $request->get_param( 'mdf_wc_secure_token' );
-		update_option( 'mdf_wc_secure_token', $token );
+		$token = $request->get_param( 'mdf_cforwc_secure_token' );
+		update_option( 'mdf_cforwc_secure_token', $token );
 		return new WP_REST_Response( [ 'success' => true ], 200 );
 	}
 
@@ -281,7 +281,7 @@ class MDF_WC_Admin {
 	 * to sync to the MDF Hub for more than 24 hours.
 	 *
 	 * Result is cached in a transient (10 min) to avoid a DB query on every
-	 * admin page load. The transient is cleared by MDF_WC_Hub_Client::mark_synced()
+	 * admin page load. The transient is cleared by MDF_CFORWC_Hub_Client::mark_synced()
 	 * so the notice disappears as soon as all rows are resolved.
 	 */
 	public function render_unsynced_notice() {
@@ -289,11 +289,11 @@ class MDF_WC_Admin {
 			return;
 		}
 
-		$count = get_transient( 'mdf_wc_unsynced_notice_count' );
+		$count = get_transient( 'mdf_cforwc_unsynced_notice_count' );
 
 		if ( false === $count ) {
 			global $wpdb;
-			$table     = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
+			$table     = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
 			$threshold = gmdate( 'Y-m-d H:i:s', time() - DAY_IN_SECONDS );
 
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -305,7 +305,7 @@ class MDF_WC_Admin {
 			);
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-			set_transient( 'mdf_wc_unsynced_notice_count', $count, 10 * MINUTE_IN_SECONDS );
+			set_transient( 'mdf_cforwc_unsynced_notice_count', $count, 10 * MINUTE_IN_SECONDS );
 		}
 
 		if ( ! $count ) {
@@ -335,7 +335,7 @@ class MDF_WC_Admin {
 
 	public function rest_stats() {
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$total     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
@@ -367,13 +367,13 @@ class MDF_WC_Admin {
 			'currency'        => get_woocommerce_currency(),
 			'monthRevenue'    => $month_rev,
 			'monthSales'      => $month_count,
-			'configured'      => MDF_WC_Settings::is_configured(),
+			'configured'      => MDF_CFORWC_Settings::is_configured(),
 		] );
 	}
 
 	public function rest_analytics( WP_REST_Request $request ) {
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
 
 		$date_from   = $request->get_param( 'dateFrom' ) ?: gmdate( 'Y-m-01', strtotime( '-11 months' ) );
 		$date_to     = $request->get_param( 'dateTo' )   ?: gmdate( 'Y-m-t' ); // end of current month
@@ -433,7 +433,7 @@ class MDF_WC_Admin {
 
 	public function rest_sales( WP_REST_Request $request ) {
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_wc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
 
 		$page      = max( 1, (int) $request->get_param( 'page' ) );
 		$per_page  = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
@@ -505,15 +505,15 @@ class MDF_WC_Admin {
 	}
 
 	public function rest_hub_status() {
-		if ( ! MDF_WC_Settings::is_configured() ) {
+		if ( ! MDF_CFORWC_Settings::is_configured() ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[MDF-WC] hub-status: not configured (token is empty)' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}
 			return rest_ensure_response( [ 'connected' => false, 'reason' => 'not_configured' ] );
 		}
 
-		$hub_url  = MDF_WC_Settings::get_hub_url();
-		$token    = MDF_WC_Settings::get_secure_token();
+		$hub_url  = MDF_CFORWC_Settings::get_hub_url();
+		$token    = MDF_CFORWC_Settings::get_secure_token();
 		$site_url = home_url();
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -522,7 +522,7 @@ class MDF_WC_Admin {
 
 		$response = wp_remote_get( $hub_url . '/api/wc/status', [
 			'timeout'   => 8,
-			'sslverify' => ( strpos( MDF_WC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+			'sslverify' => ( strpos( MDF_CFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 			'headers'   => [
 				'X-MDF-Token' => $token,
 				'X-MDF-Shop'  => $site_url,
@@ -696,7 +696,7 @@ class MDF_WC_Admin {
 			: 'shop_order';
 
 		add_meta_box(
-			'mdf_wc_attribution',
+			'mdf_cforwc_attribution',
 			__( 'Marques de France – Attribution', 'marques-de-france-connector-for-woocommerce' ),
 			[ $this, 'render_order_metabox' ],
 			$screen,
@@ -715,7 +715,7 @@ class MDF_WC_Admin {
 			return;
 		}
 
-		$attr = MDF_WC_Attribution::get_order_attribution( $order );
+		$attr = MDF_CFORWC_Attribution::get_order_attribution( $order );
 
 		// Only render for MDF-attributed orders
 		if ( $attr['attributed'] !== '1' || empty( $attr['source'] ) ) {
