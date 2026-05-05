@@ -14,6 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MDFCFORWC_Activator {
 
 	public static function activate() {
+		// The autoloader is registered in mdfcforwc_init() (plugins_loaded, priority 20),
+		// which has NOT fired yet at activation time. Require dependencies explicitly.
+		require_once MDFCFORWC_PLUGIN_DIR . 'includes/class-mdf-wc-settings.php';
+
 		self::create_tables();
 		self::schedule_actions();
 		self::register_with_hub();
