@@ -99,6 +99,7 @@ Yes. Add the following to your `wp-config.php`:
 
 = 1.0.0 =
 Initial release.
+Initial release.
 
 == Changelog ==
 
