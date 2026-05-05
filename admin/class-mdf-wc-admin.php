@@ -550,51 +550,40 @@ class MDFCFORWC_Admin {
 		$sort_d    = $request->get_param( 'sortDir' );
 
 		$valid_fields = [ 'created_at', 'amount', 'order_id', 'status' ];
-		// Whitelist-validated then esc_sql() for explicit SQL safety signal.
 		$sort_field   = esc_sql( in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at' );
-		$sort_dir     = $sort_d === 'asc' ? 'ASC' : 'DESC';
+		$sort_dir     = esc_sql( $sort_d === 'asc' ? 'ASC' : 'DESC' );
 
-		$where  = '1=1';
-		$params = [];
+		// Build WHERE clause — each condition is prepared individually so the
+		// assembled $where_sql string is already fully escaped and safe to interpolate.
+		$clauses = [];
 
 		if ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded' ], true ) ) {
-			$where   .= ' AND status = %s';
-			$params[] = $status;
+			$clauses[] = $wpdb->prepare( 'status = %s', $status );
 		}
 
 		if ( $search ) {
-			$where     .= ' AND (order_id LIKE %s OR order_number LIKE %s)';
-			$like       = '%' . $wpdb->esc_like( $search ) . '%';
-			$params[]   = $like;
-			$params[]   = $like;
+			$like      = '%' . $wpdb->esc_like( $search ) . '%';
+			$clauses[] = $wpdb->prepare( '(order_id LIKE %s OR order_number LIKE %s)', $like, $like );
 		}
 
 		if ( $date_from ) {
-			$where   .= ' AND created_at >= %s';
-			$params[] = $date_from . ' 00:00:00';
+			$clauses[] = $wpdb->prepare( 'created_at >= %s', sanitize_text_field( $date_from ) . ' 00:00:00' );
 		}
 
 		if ( $date_to ) {
-			$where   .= ' AND created_at <= %s';
-			$params[] = $date_to . ' 23:59:59';
+			$clauses[] = $wpdb->prepare( 'created_at <= %s', sanitize_text_field( $date_to ) . ' 23:59:59' );
 		}
 
+		$where_sql = $clauses ? 'WHERE ' . implode( ' AND ', $clauses ) : '';
+
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		if ( $params ) {
-			$total = (int) $wpdb->get_var(
-				$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where}", ...$params ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-			);
-			$rows  = $wpdb->get_results(
-				$wpdb->prepare( "SELECT * FROM `{$table}` WHERE {$where} ORDER BY {$sort_field} {$sort_dir} LIMIT %d OFFSET %d", ...array_merge( $params, [ $per_page, $offset ] ) ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
-				ARRAY_A
-			);
-		} else {
-			$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE 1=1", [] ) ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-			$rows  = $wpdb->get_results(
-				$wpdb->prepare( "SELECT * FROM `{$table}` WHERE 1=1 ORDER BY {$sort_field} {$sort_dir} LIMIT %d OFFSET %d", $per_page, $offset ),
-				ARRAY_A
-			);
-		}
+		$total = (int) $wpdb->get_var(
+			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` {$where_sql}" ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		);
+		$rows  = $wpdb->get_results(
+			$wpdb->prepare( "SELECT * FROM `{$table}` {$where_sql} ORDER BY `{$sort_field}` {$sort_dir} LIMIT %d OFFSET %d", $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			ARRAY_A
+		);
 		// phpcs:enable
 
 		return rest_ensure_response( [
