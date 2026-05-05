@@ -159,30 +159,55 @@ class MDFCFORWC_Activator {
 	 * @return int Number of rows newly inserted.
 	 */
 	public static function backfill_from_orders(): int {
-		if ( ! function_exists( 'wc_get_orders' ) ) {
+		if ( ! function_exists( 'wc_get_order' ) ) {
 			return 0;
 		}
 
 		global $wpdb;
 		$table = $wpdb->prefix . 'mdfcforwc_sales';
 
-		$orders = wc_get_orders(
-			[
-				'limit'      => -1,
-				'return'     => 'objects',
-				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					[
-						'key'     => '_mdf_source',
-						'value'   => [ 'mdf_ref', 'utm', 'mdf_referral' ],
-						'compare' => 'IN',
-					],
-				],
-			]
-		);
+		// Resolve attributed order IDs via a direct DB query so we never rely on
+		// meta_query (unsupported with HPOS) or wc_get_orders() return type quirks.
+		// Support both HPOS (wp_wc_orders_meta) and legacy CPT (wp_postmeta).
+		$valid_sources  = [ 'mdf_ref', 'utm', 'mdf_referral' ];
+		$placeholders   = implode( ',', array_fill( 0, count( $valid_sources ), '%s' ) );
+
+		$hpos_table  = $wpdb->prefix . 'wc_orders_meta';
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
+		$hpos_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$hpos_table}'" ) === $hpos_table;
+
+		if ( $hpos_exists ) {
+			$order_ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT DISTINCT order_id FROM `{$hpos_table}` WHERE meta_key = '_mdf_source' AND meta_value IN ({$placeholders})",
+					...$valid_sources
+				)
+			);
+		} else {
+			$order_ids = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT DISTINCT post_id FROM `{$wpdb->postmeta}` WHERE meta_key = '_mdf_source' AND meta_value IN ({$placeholders})",
+					...$valid_sources
+				)
+			);
+		}
+		// phpcs:enable
+
+		if ( empty( $order_ids ) ) {
+			return 0;
+		}
 
 		$inserted = 0;
 
-		foreach ( $orders as $order ) {
+		foreach ( $order_ids as $order_id ) {
+			// Load each order individually — avoids type issues with wc_get_orders().
+			$order = wc_get_order( (int) $order_id );
+
+			// Skip refunds, failed lookups, or any non-order object.
+			if ( ! $order instanceof WC_Order ) {
+				continue;
+			}
+
 			$order_id = (string) $order->get_id();
 
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared

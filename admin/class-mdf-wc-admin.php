@@ -385,19 +385,17 @@ class MDFCFORWC_Admin {
 		}
 
 		// Only show if there are attributed WC orders to restore.
-		if ( ! function_exists( 'wc_get_orders' ) ) {
-			return;
+		// Use a direct DB query — meta_query is not supported with HPOS.
+		global $wpdb;
+		$hpos_table  = $wpdb->prefix . 'wc_orders_meta';
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$hpos_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$hpos_table}'" ) === $hpos_table;
+		if ( $hpos_exists ) {
+			$attributed = $wpdb->get_var( "SELECT order_id FROM `{$hpos_table}` WHERE meta_key = '_mdf_source' LIMIT 1" );
+		} else {
+			$attributed = $wpdb->get_var( "SELECT post_id FROM `{$wpdb->postmeta}` WHERE meta_key = '_mdf_source' LIMIT 1" );
 		}
-
-		$attributed = wc_get_orders(
-			[
-				'limit'      => 1,
-				'return'     => 'ids',
-				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					[ 'key' => '_mdf_source', 'compare' => 'EXISTS' ],
-				],
-			]
-		);
+		// phpcs:enable
 
 		if ( empty( $attributed ) ) {
 			update_option( 'mdfcforwc_backfill_done', '1' ); // Nothing to restore.
