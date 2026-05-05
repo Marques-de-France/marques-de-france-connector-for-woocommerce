@@ -553,35 +553,45 @@ class MDFCFORWC_Admin {
 		$sort_field   = esc_sql( in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at' );
 		$sort_dir     = esc_sql( $sort_d === 'asc' ? 'ASC' : 'DESC' );
 
-		// Build WHERE clause — each condition is prepared individually so the
-		// assembled $where_sql string is already fully escaped and safe to interpolate.
-		$clauses = [];
-
-		if ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded' ], true ) ) {
-			$clauses[] = $wpdb->prepare( 'status = %s', $status );
-		}
-
-		if ( $search ) {
-			$like      = '%' . $wpdb->esc_like( $search ) . '%';
-			$clauses[] = $wpdb->prepare( '(order_id LIKE %s OR order_number LIKE %s)', $like, $like );
-		}
-
-		if ( $date_from ) {
-			$clauses[] = $wpdb->prepare( 'created_at >= %s', sanitize_text_field( $date_from ) . ' 00:00:00' );
-		}
-
-		if ( $date_to ) {
-			$clauses[] = $wpdb->prepare( 'created_at <= %s', sanitize_text_field( $date_to ) . ' 23:59:59' );
-		}
-
-		$where_sql = $clauses ? 'WHERE ' . implode( ' AND ', $clauses ) : '';
+		// Use conditional-flag placeholders so the WHERE clause is a static SQL
+		// literal — no dynamic variable is ever interpolated into the query string.
+		$status_active    = ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded' ], true ) ) ? 1 : 0;
+		$status_val       = $status_active ? $status : '';
+		$search_active    = $search ? 1 : 0;
+		$like_val         = $search ? '%' . $wpdb->esc_like( $search ) . '%' : '';
+		$date_from_active = $date_from ? 1 : 0;
+		$date_from_val    = $date_from_active ? sanitize_text_field( $date_from ) . ' 00:00:00' : '';
+		$date_to_active   = $date_to ? 1 : 0;
+		$date_to_val      = $date_to_active ? sanitize_text_field( $date_to ) . ' 23:59:59' : '';
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$total = (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` {$where_sql}" ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where_sql is composed exclusively of $wpdb->prepare() outputs
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM `{$table}`
+				WHERE ( %d = 0 OR status = %s )
+				  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
+				  AND ( %d = 0 OR created_at >= %s )
+				  AND ( %d = 0 OR created_at <= %s )",
+				$status_active, $status_val,
+				$search_active, $like_val, $like_val,
+				$date_from_active, $date_from_val,
+				$date_to_active, $date_to_val
+			)
 		);
-		$rows  = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` {$where_sql} ORDER BY `{$sort_field}` {$sort_dir} LIMIT %d OFFSET %d", $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where_sql is composed exclusively of $wpdb->prepare() outputs
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM `{$table}`
+				WHERE ( %d = 0 OR status = %s )
+				  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
+				  AND ( %d = 0 OR created_at >= %s )
+				  AND ( %d = 0 OR created_at <= %s )
+				ORDER BY `{$sort_field}` {$sort_dir} LIMIT %d OFFSET %d",
+				$status_active, $status_val,
+				$search_active, $like_val, $like_val,
+				$date_from_active, $date_from_val,
+				$date_to_active, $date_to_val,
+				$per_page, $offset
+			),
 			ARRAY_A
 		);
 		// phpcs:enable
