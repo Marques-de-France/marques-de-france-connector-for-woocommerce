@@ -21,10 +21,11 @@ class MDFCFORWC_Activator {
 		self::create_tables();
 		self::schedule_actions();
 		self::register_with_hub();
-		// Attempt a silent backfill from the Hub on activation (table may be fresh after reinstall).
-		// Only runs if the plugin is already configured (token known). Idempotent — no truncate.
+		// Truncate and refill from Hub on every activation.
+		// This guarantees a clean state after reinstalls (stale rows from previous
+		// installs are wiped). Only runs if the plugin is already configured.
 		if ( MDFCFORWC_Settings::is_configured() ) {
-			$count = self::backfill_from_hub( false );
+			$count = self::backfill_from_hub( true ); // truncate_first = true
 			if ( $count >= 0 ) {
 				update_option( 'mdfcforwc_backfill_done', '1' );
 			}
