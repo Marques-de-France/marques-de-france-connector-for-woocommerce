@@ -3,20 +3,20 @@
  * Plugin Settings
  *
  * Registers and manages settings stored in wp_options:
- *  - mdf_cforwc_secure_token — secureToken issued by the MDF Hub (the only field merchants fill in)
+ *  - mdfcforwc_secure_token — secureToken issued by the MDF Hub (the only field merchants fill in)
  *
  * Listing ID is set directly in the Hub DB by MDF after registration.
- * Hub URL is resolved from the MDF_CFORWC_HUB_URL PHP constant (defined in the main plugin file).
+ * Hub URL is resolved from the MDFCFORWC_HUB_URL PHP constant (defined in the main plugin file).
  * Developers can override it for local testing in wp-config.php.
  *
- * @package MDF_CFORWC_Connector
+ * @package MDFCFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_CFORWC_Settings {
+class MDFCFORWC_Settings {
 
 	private static ?self $instance = null;
 
@@ -34,15 +34,15 @@ class MDF_CFORWC_Settings {
 	// ---------------------------------------------------------------------------
 
 	public static function get_secure_token(): string {
-		return (string) get_option( 'mdf_cforwc_secure_token', '' );
+		return (string) get_option( 'mdfcforwc_secure_token', '' );
 	}
 
 	/**
-	 * Hub URL: always resolved from the MDF_CFORWC_HUB_URL constant.
+	 * Hub URL: always resolved from the MDFCFORWC_HUB_URL constant.
 	 * Default: https://flux.marques-de-france.fr
 	 */
 	public static function get_hub_url(): string {
-		return rtrim( MDF_CFORWC_HUB_URL, '/' );
+		return rtrim( MDFCFORWC_HUB_URL, '/' );
 	}
 
 	public static function is_configured(): bool {
@@ -63,8 +63,8 @@ class MDF_CFORWC_Settings {
 
 	public function register_settings() {
 		register_setting(
-			'mdf_cforwc_settings_group',
-			'mdf_cforwc_secure_token',
+			'mdfcforwc_settings_group',
+			'mdfcforwc_secure_token',
 			[
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',

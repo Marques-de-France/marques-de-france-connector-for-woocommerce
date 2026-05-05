@@ -7,21 +7,21 @@
  * Sync strategy:
  *   1. Primary: immediate wp_remote_post() at `woocommerce_thankyou` (timeout 5s).
  *   2. Fallback: if the HTTP request fails, schedule an async Action Scheduler retry.
- *   3. Safety-net: `mdf_cforwc_flush_unsynced_sales` AS recurring action (hourly) catches
+ *   3. Safety-net: `mdfcforwc_flush_unsynced_sales` AS recurring action (hourly) catches
  *      any sales that slipped through (e.g. server restart, Hub downtime).
  *
  * Status sync:
  *   When an order is cancelled or refunded, send a status update to the Hub
  *   so the MDF dashboard reflects the correct revenue.
  *
- * @package MDF_CFORWC_Connector
+ * @package MDFCFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_CFORWC_Hub_Client {
+class MDFCFORWC_Hub_Client {
 
 	const SYNC_TIMEOUT = 5; // seconds for immediate sync
 
@@ -30,9 +30,9 @@ class MDF_CFORWC_Hub_Client {
 	private string $token;
 
 	public function __construct() {
-		$this->hub_url  = MDF_CFORWC_Settings::get_hub_url();
+		$this->hub_url  = MDFCFORWC_Settings::get_hub_url();
 		$this->site_url = home_url();
-		$this->token    = MDF_CFORWC_Settings::get_secure_token();
+		$this->token    = MDFCFORWC_Settings::get_secure_token();
 
 		$this->register_action_scheduler_hooks();
 	}
@@ -43,10 +43,10 @@ class MDF_CFORWC_Hub_Client {
 
 	private function register_action_scheduler_hooks() {
 		// Retry single sale
-		add_action( 'mdf_cforwc_retry_hub_sync', [ $this, 'as_retry_sale' ] );
+		add_action( 'mdfcforwc_retry_hub_sync', [ $this, 'as_retry_sale' ] );
 
 		// Hourly flush of all unsynced sales
-		add_action( 'mdf_cforwc_flush_unsynced_sales', [ $this, 'flush_unsynced_sales' ] );
+		add_action( 'mdfcforwc_flush_unsynced_sales', [ $this, 'flush_unsynced_sales' ] );
 
 		// Order status transitions → Hub status update
 		add_action( 'woocommerce_order_status_cancelled', [ $this, 'on_order_cancelled' ] );
@@ -54,7 +54,7 @@ class MDF_CFORWC_Hub_Client {
 	}
 
 	// ---------------------------------------------------------------------------
-	// Immediate sync (called from MDF_CFORWC_Attribution after recording local sale)
+	// Immediate sync (called from MDFCFORWC_Attribution after recording local sale)
 	// ---------------------------------------------------------------------------
 
 	/**
@@ -62,11 +62,11 @@ class MDF_CFORWC_Hub_Client {
 	 * On failure, schedules an AS retry.
 	 */
 	public function sync_sale( WC_Order $order ) {
-		if ( ! MDF_CFORWC_Settings::is_configured() ) {
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
 			return;
 		}
 
-		$attribution = MDF_CFORWC_Attribution::get_order_attribution( $order );
+		$attribution = MDFCFORWC_Attribution::get_order_attribution( $order );
 
 		$payload = [
 			'shopUrl'           => $this->site_url,
@@ -123,12 +123,12 @@ class MDF_CFORWC_Hub_Client {
 	 * Skips rows that have reached the max attempt threshold (dead letter).
 	 */
 	public function flush_unsynced_sales() {
-		if ( ! MDF_CFORWC_Settings::is_configured() ) {
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
 			return;
 		}
 
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// Exclude dead-lettered rows (>= 5 failed attempts).
@@ -183,13 +183,13 @@ class MDF_CFORWC_Hub_Client {
 	}
 
 	private function update_sale_status( $order_id, string $status ) {
-		if ( ! MDF_CFORWC_Settings::is_configured() ) {
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
 			return;
 		}
 
 		// Only update if we have a local record (non-attributed orders are not in the Hub)
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdf_cforwc_sales' );
+		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$local = $wpdb->get_var(
 			$wpdb->prepare( "SELECT id FROM `{$table}` WHERE order_id = %s LIMIT 1", (string) $order_id )
@@ -237,7 +237,7 @@ class MDF_CFORWC_Hub_Client {
 
 		$response = wp_remote_post( $url, [
 			'timeout'     => $timeout,
-			'sslverify'   => ( strpos( MDF_CFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+			'sslverify'   => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 			'headers'     => [
 				'Content-Type' => 'application/json',
 				'X-MDF-Token'  => $this->token,
@@ -265,24 +265,24 @@ class MDF_CFORWC_Hub_Client {
 		}
 
 		// Check if a retry is already scheduled for this order
-		if ( as_has_scheduled_action( 'mdf_cforwc_retry_hub_sync', [ (int) $order_id ], 'mdf-wc' ) ) {
+		if ( as_has_scheduled_action( 'mdfcforwc_retry_hub_sync', [ (int) $order_id ], 'mdf-wc' ) ) {
 			return;
 		}
 
-		as_enqueue_async_action( 'mdf_cforwc_retry_hub_sync', [ (int) $order_id ], 'mdf-wc' );
+		as_enqueue_async_action( 'mdfcforwc_retry_hub_sync', [ (int) $order_id ], 'mdf-wc' );
 	}
 
 	private function mark_synced( string $order_id ) {
 		global $wpdb;
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
-			$wpdb->prefix . 'mdf_cforwc_sales',
+			$wpdb->prefix . 'mdfcforwc_sales',
 			[ 'hub_synced' => 1 ],
 			[ 'order_id' => $order_id ],
 			[ '%d' ],
 			[ '%s' ]
 		);
 		// Invalidate the admin notice cache so the notice disappears immediately.
-		delete_transient( 'mdf_cforwc_unsynced_notice_count' );
+		delete_transient( 'mdfcforwc_unsynced_notice_count' );
 	}
 }

@@ -15,14 +15,14 @@
  *   ?token=<secureToken>  — same token stored in plugin settings.
  *   No user auth required — the token itself gates access.
  *
- * @package MDF_CFORWC_Connector
+ * @package MDFCFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_CFORWC_Feed {
+class MDFCFORWC_Feed {
 
 	private static ?self $instance = null;
 
@@ -83,7 +83,7 @@ class MDF_CFORWC_Feed {
 		$page     = max( 1, $request->get_param( 'page' ) );
 
 		// Token gate — constant-time comparison
-		$stored_token = MDF_CFORWC_Settings::get_secure_token();
+		$stored_token = MDFCFORWC_Settings::get_secure_token();
 		if ( '' === $stored_token ) {
 			return new WP_Error( 'not_configured', 'Plugin not configured.', [ 'status' => 503 ] );
 		}

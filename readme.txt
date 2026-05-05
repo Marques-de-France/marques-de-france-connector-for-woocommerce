@@ -86,7 +86,7 @@ The feed is available at `/wp-json/mdfcforwc/v1/feed?token=YOUR_SECURE_TOKEN`. T
 
 Yes. Add the following to your `wp-config.php`:
 
-`define( 'MDF_CFORWC_HUB_URL', 'https://your-dev-tunnel.example.com' );`
+`define( 'MDFCFORWC_HUB_URL', 'https://your-dev-tunnel.example.com' );`
 
 == Screenshots ==
 

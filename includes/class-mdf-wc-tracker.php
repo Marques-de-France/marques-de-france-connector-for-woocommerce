@@ -12,14 +12,14 @@
  *   4. AJAX action `mdfcforwc_stamp_session` copies the attribution into the WC session
  *      so checkout can read it without relying solely on cookies.
  *
- * @package MDF_CFORWC_Connector
+ * @package MDFCFORWC_Connector
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class MDF_CFORWC_Tracker {
+class MDFCFORWC_Tracker {
 
 	// WC session keys
 	const KEY_ATTRIBUTED    = 'mdf_attributed';
@@ -65,16 +65,16 @@ class MDF_CFORWC_Tracker {
 	// ---------------------------------------------------------------------------
 
 	public function enqueue_tracker() {
-		$settings = MDF_CFORWC_Settings::get_instance();
-		if ( ! MDF_CFORWC_Settings::is_configured() ) {
+		$settings = MDFCFORWC_Settings::get_instance();
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
 			return;
 		}
 
 		wp_enqueue_script(
 			'mdfcforwc-tracker',
-			MDF_CFORWC_PLUGIN_URL . 'src/tracker/mdf-tracker-wc.js',
+			MDFCFORWC_PLUGIN_URL . 'src/tracker/mdf-tracker-wc.js',
 			[],
-			MDF_CFORWC_VERSION,
+			MDFCFORWC_VERSION,
 			true
 		);
 
