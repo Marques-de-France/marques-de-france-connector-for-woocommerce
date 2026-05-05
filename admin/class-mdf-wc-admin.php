@@ -44,6 +44,8 @@ class MDFCFORWC_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_dashboard' ] );
 		add_action( 'rest_api_init', [ $this, 'register_rest_routes' ] );
 		add_action( 'admin_notices', [ $this, 'render_unsynced_notice' ] );
+		add_action( 'admin_notices', [ $this, 'render_backfill_notice' ] );
+		add_action( 'admin_post_mdfcforwc_backfill', [ $this, 'handle_backfill' ] );
 
 		// WooCommerce order metabox — support both HPOS and legacy meta boxes
 		add_action( 'add_meta_boxes', [ $this, 'register_order_metabox' ] );
@@ -329,6 +331,112 @@ class MDFCFORWC_Admin {
 			esc_url( $settings_url )
 		);
 		echo '</p></div>';
+	}
+
+	/**
+	 * Show a one-time admin notice (on MDF admin pages) when the sales table may
+	 * be missing historical data — e.g. after an uninstall / reinstall cycle.
+	 * The notice disappears once the backfill has been run.
+	 */
+	public function render_backfill_notice() {
+		if ( ! current_user_can( self::CAPABILITY ) ) {
+			return;
+		}
+
+		// Notice only on MDF plugin pages.
+		$screen = get_current_screen();
+		if ( ! $screen ) {
+			return;
+		}
+
+		$mdf_pages = [
+			'toplevel_page_' . self::MENU_SLUG,
+			'marques-de-france_page_' . self::MENU_SLUG . '-feed',
+			'marques-de-france_page_' . self::MENU_SLUG . '-sales',
+			'marques-de-france_page_' . self::MENU_SLUG . '-settings',
+		];
+
+		if ( ! in_array( $screen->id, $mdf_pages, true ) ) {
+			return;
+		}
+
+		// Show success banner after a completed backfill.
+		$backfill_count = get_transient( 'mdfcforwc_backfill_result' );
+		if ( false !== $backfill_count ) {
+			delete_transient( 'mdfcforwc_backfill_result' );
+			echo '<div class="notice notice-success is-dismissible"><p>';
+			printf(
+				/* translators: %d: number of sales restored */
+				esc_html( _n(
+					'Marques de France: %d sale restored from WooCommerce order history.',
+					'Marques de France: %d sales restored from WooCommerce order history.',
+					(int) $backfill_count,
+					'marques-de-france-connector-for-woocommerce'
+				) ),
+				absint( $backfill_count )
+			);
+			echo '</p></div>';
+			return;
+		}
+
+		// Show the restore button only when backfill has not been run yet.
+		if ( get_option( 'mdfcforwc_backfill_done' ) ) {
+			return;
+		}
+
+		// Only show if there are attributed WC orders to restore.
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return;
+		}
+
+		$attributed = wc_get_orders(
+			[
+				'limit'      => 1,
+				'return'     => 'ids',
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[ 'key' => '_mdf_source', 'compare' => 'EXISTS' ],
+				],
+			]
+		);
+
+		if ( empty( $attributed ) ) {
+			update_option( 'mdfcforwc_backfill_done', '1' ); // Nothing to restore.
+			return;
+		}
+
+		echo '<div class="notice notice-warning">';
+		echo '<p><strong>' . esc_html__( 'Marques de France', 'marques-de-france-connector-for-woocommerce' ) . '</strong> — ';
+		echo esc_html__( 'Historical sales may be missing from the Sales screen (e.g. after a plugin reinstall). Click below to restore them from your WooCommerce order history.', 'marques-de-france-connector-for-woocommerce' );
+		echo '</p>';
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-bottom:10px">';
+		echo '<input type="hidden" name="action" value="mdfcforwc_backfill" />';
+		wp_nonce_field( 'mdfcforwc_backfill', 'mdfcforwc_backfill_nonce' );
+		echo '<button type="submit" class="button button-primary">';
+		echo esc_html__( 'Restore historical sales', 'marques-de-france-connector-for-woocommerce' );
+		echo '</button>';
+		echo '</form>';
+		echo '</div>';
+	}
+
+	/**
+	 * Handle the "Restore historical sales" form submission.
+	 */
+	public function handle_backfill() {
+		check_admin_referer( 'mdfcforwc_backfill', 'mdfcforwc_backfill_nonce' );
+
+		if ( ! current_user_can( self::CAPABILITY ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'marques-de-france-connector-for-woocommerce' ) );
+		}
+
+		require_once MDFCFORWC_PLUGIN_DIR . 'includes/class-mdf-wc-activator.php';
+		$count = MDFCFORWC_Activator::backfill_from_orders();
+
+		update_option( 'mdfcforwc_backfill_done', '1' );
+		set_transient( 'mdfcforwc_backfill_result', $count, MINUTE_IN_SECONDS );
+
+		$redirect = wp_get_referer() ?: admin_url( 'admin.php?page=' . self::MENU_SLUG . '-sales' );
+		wp_safe_redirect( esc_url_raw( $redirect ) );
+		exit;
 	}
 
 	// ── REST Callbacks ──────────────────────────────────────────────────────────

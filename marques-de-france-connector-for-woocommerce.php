@@ -55,6 +55,8 @@ function mdfcforwc_deactivate() {
 	if ( function_exists( 'as_unschedule_all_actions' ) ) {
 		as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' );
 	}
+	// Reset backfill flag so it re-runs on next activation (handles reinstalls).
+	delete_option( 'mdfcforwc_backfill_done' );
 }
 
 // ---------------------------------------------------------------------------

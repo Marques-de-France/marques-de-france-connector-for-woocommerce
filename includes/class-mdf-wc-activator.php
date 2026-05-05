@@ -17,6 +17,8 @@ class MDFCFORWC_Activator {
 		self::create_tables();
 		self::schedule_actions();
 		self::register_with_hub();
+		self::backfill_from_orders(); // Restore historical sales after (re-)activation.
+		update_option( 'mdfcforwc_backfill_done', '1' );
 		flush_rewrite_rules();
 	}
 
@@ -142,5 +144,99 @@ class MDFCFORWC_Activator {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[MDF-WC] Hub self-registration: HTTP ' . $code . ' — ' . ( $body['message'] ?? 'unexpected response' ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
+	}
+
+	/**
+	 * Backfill wp_mdfcforwc_sales from existing WooCommerce order meta.
+	 *
+	 * Runs on every (re-)activation to restore historical sales that were recorded
+	 * as WC order meta (_mdf_source, _mdf_signals_json, etc.) but may be missing
+	 * from the local sales table (e.g. after an uninstall/reinstall cycle).
+	 *
+	 * The insert is idempotent: orders already present in the table are skipped.
+	 * Orders already synced to the Hub are marked hub_synced = 1 to avoid re-sending.
+	 *
+	 * @return int Number of rows newly inserted.
+	 */
+	public static function backfill_from_orders(): int {
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return 0;
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'mdfcforwc_sales';
+
+		$orders = wc_get_orders(
+			[
+				'limit'      => -1,
+				'return'     => 'objects',
+				'meta_query' => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					[
+						'key'     => '_mdf_source',
+						'value'   => [ 'mdf_ref', 'utm', 'mdf_referral' ],
+						'compare' => 'IN',
+					],
+				],
+			]
+		);
+
+		$inserted = 0;
+
+		foreach ( $orders as $order ) {
+			$order_id = (string) $order->get_id();
+
+			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$existing = $wpdb->get_var(
+				$wpdb->prepare( "SELECT id FROM `{$table}` WHERE order_id = %s LIMIT 1", $order_id )
+			);
+			// phpcs:enable
+
+			if ( $existing ) {
+				continue; // Already recorded — skip.
+			}
+
+			$wc_status = $order->get_status();
+			if ( in_array( $wc_status, [ 'cancelled', 'failed' ], true ) ) {
+				$status = 'cancelled';
+			} elseif ( 'refunded' === $wc_status ) {
+				$status = 'refunded';
+			} else {
+				$status = 'confirmed';
+			}
+
+			$date_created = $order->get_date_created();
+			$created_at   = $date_created ? $date_created->date( 'Y-m-d H:i:s' ) : current_time( 'mysql' );
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+			$result = $wpdb->insert(
+				$table,
+				[
+					'order_id'           => $order_id,
+					'order_number'       => $order->get_order_number(),
+					'amount'             => (float) $order->get_total(),
+					'currency'           => $order->get_currency(),
+					'attribution_source' => $order->get_meta( '_mdf_source' ),
+					'signals_json'       => $order->get_meta( '_mdf_signals_json' ) ?: null,
+					'utm_source'         => $order->get_meta( '_mdf_utm_source' ),
+					'utm_medium'         => $order->get_meta( '_mdf_utm_medium' ),
+					'utm_campaign'       => $order->get_meta( '_mdf_utm_campaign' ),
+					'utm_content'        => $order->get_meta( '_mdf_utm_content' ),
+					'utm_term'           => $order->get_meta( '_mdf_utm_term' ),
+					'landing_site'       => $order->get_meta( '_mdf_landing_site' ),
+					'referring_site'     => $order->get_meta( '_mdf_referring_site' ),
+					'landing_ref'        => $order->get_meta( '_mdf_landing_ref' ),
+					'status'             => $status,
+					'hub_synced'         => 1, // Already in Hub DB — do not re-sync.
+					'created_at'         => $created_at,
+				],
+				[ '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ]
+			);
+
+			if ( false !== $result ) {
+				$inserted++;
+			}
+		}
+
+		return $inserted;
 	}
 }
