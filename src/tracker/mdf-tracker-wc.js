@@ -8,7 +8,7 @@
  * Runs on every frontend page load. First-touch attribution: existing cookies / session
  * values are never overwritten.
  *
- * Requires: mdfWcConfig.ajaxUrl, mdfWcConfig.nonce (injected via wp_localize_script)
+ * Requires: mdfcforwcConfig.ajaxUrl, mdfcforwcConfig.nonce (injected via wp_localize_script)
  */
 ( function () {
 	'use strict';
@@ -48,7 +48,7 @@
 
 	function init() {
 		// Skip if WC config is not available (should not happen, but be safe).
-		if ( typeof mdfWcConfig === 'undefined' || ! mdfWcConfig.ajaxUrl ) {
+		if ( typeof mdfcforwcConfig === 'undefined' || ! mdfcforwcConfig.ajaxUrl ) {
 			return;
 		}
 
@@ -73,7 +73,7 @@
 
 		var isAttributed  = isMdfUtm || isMdfRef || isMdfReferrer;
 
-		if ( mdfWcConfig.debug === 'true' ) {
+		if ( mdfcforwcConfig.debug === 'true' ) {
 			console.log( '[MDF Tracker] utm=' + isMdfUtm + ' ref=' + isMdfRef + ' referrer=' + isMdfReferrer + ' attributed=' + isAttributed );
 		}
 
@@ -133,8 +133,8 @@
 
 	function stampSession( data ) {
 		var body = new URLSearchParams();
-		body.set( 'action', 'mdf_stamp_session' );
-		body.set( 'nonce',  mdfWcConfig.nonce );
+		body.set( 'action', 'mdfcforwc_stamp_session' );
+		body.set( 'nonce',  mdfcforwcConfig.nonce );
 
 		for ( var key in data ) {
 			if ( data[ key ] ) {
@@ -142,7 +142,7 @@
 			}
 		}
 
-		fetch( mdfWcConfig.ajaxUrl, {
+		fetch( mdfcforwcConfig.ajaxUrl, {
 			method:      'POST',
 			credentials: 'same-origin',
 			headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -150,12 +150,12 @@
 		} )
 		.then( function ( res ) { return res.json(); } )
 		.then( function ( json ) {
-			if ( mdfWcConfig.debug === 'true' ) {
+			if ( mdfcforwcConfig.debug === 'true' ) {
 				console.log( '[MDF Tracker] Session stamped:', json );
 			}
 		} )
 		.catch( function ( err ) {
-			if ( mdfWcConfig.debug === 'true' ) {
+			if ( mdfcforwcConfig.debug === 'true' ) {
 				console.warn( '[MDF Tracker] Stamp error:', err );
 			}
 		} );

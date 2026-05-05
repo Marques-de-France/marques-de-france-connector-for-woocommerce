@@ -80,7 +80,7 @@ Yes. Go to **Marques de France → Dashboard** in WP Admin. The dashboard shows 
 
 = Where is the product feed URL? =
 
-The feed is available at `/wp-json/mdf-wc/v1/feed?token=YOUR_SECURE_TOKEN`. The Settings page in WP Admin displays the exact URL for your store.
+The feed is available at `/wp-json/mdfcforwc/v1/feed?token=YOUR_SECURE_TOKEN`. The Settings page in WP Admin displays the exact URL for your store.
 
 = Can I override the Hub URL for local development? =
 

@@ -9,7 +9,7 @@
  *   1. JS tracker detects attribution on page load (querystring, referrer).
  *   2. JS tracker writes 9 cookies (30-day TTL, SameSite=Lax).
  *   3. On every page load, `template_redirect` captures HTTP_REFERER server-side.
- *   4. AJAX action `mdf_stamp_session` copies the attribution into the WC session
+ *   4. AJAX action `mdfcforwc_stamp_session` copies the attribution into the WC session
  *      so checkout can read it without relying solely on cookies.
  *
  * @package MDF_CFORWC_Connector
@@ -52,8 +52,8 @@ class MDF_CFORWC_Tracker {
 		add_action( 'template_redirect', [ $this, 'capture_referer_server_side' ] );
 
 		// AJAX: authenticated + non-authenticated users (works for guests)
-		add_action( 'wp_ajax_mdf_stamp_session',        [ $this, 'ajax_stamp_session' ] );
-		add_action( 'wp_ajax_nopriv_mdf_stamp_session', [ $this, 'ajax_stamp_session' ] );
+		add_action( 'wp_ajax_mdfcforwc_stamp_session',        [ $this, 'ajax_stamp_session' ] );
+		add_action( 'wp_ajax_nopriv_mdfcforwc_stamp_session', [ $this, 'ajax_stamp_session' ] );
 
 		// Re-stamp from cookies on checkout init (safety net if AJAX stamp was missed)
 		add_action( 'woocommerce_before_checkout_form', [ $this, 'resync_session_from_cookies' ] );
@@ -71,7 +71,7 @@ class MDF_CFORWC_Tracker {
 		}
 
 		wp_enqueue_script(
-			'mdf-wc-tracker',
+			'mdfcforwc-tracker',
 			MDF_CFORWC_PLUGIN_URL . 'src/tracker/mdf-tracker-wc.js',
 			[],
 			MDF_CFORWC_VERSION,
@@ -80,11 +80,11 @@ class MDF_CFORWC_Tracker {
 
 		// Inject runtime config for the JS tracker
 		wp_localize_script(
-			'mdf-wc-tracker',
-			'mdfWcConfig',
+			'mdfcforwc-tracker',
+			'mdfcforwcConfig',
 			[
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'mdf_stamp_nonce' ),
+				'nonce'   => wp_create_nonce( 'mdfcforwc_stamp_nonce' ),
 				'debug'   => defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false',
 			]
 		);
@@ -140,7 +140,7 @@ class MDF_CFORWC_Tracker {
 
 	public function ajax_stamp_session() {
 		// Verify nonce — protects against CSRF from cross-origin requests
-		if ( ! check_ajax_referer( 'mdf_stamp_nonce', 'nonce', false ) ) {
+		if ( ! check_ajax_referer( 'mdfcforwc_stamp_nonce', 'nonce', false ) ) {
 			wp_send_json_error( [ 'message' => 'Invalid nonce.' ], 403 );
 			return;
 		}

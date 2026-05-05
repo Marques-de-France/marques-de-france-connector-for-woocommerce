@@ -4,7 +4,7 @@
  *
  * Exposes a Google Merchant-compatible RSS 2.0 product feed via a WP REST endpoint.
  *
- * Endpoint: GET /wp-json/mdf-wc/v1/feed?token=<secureToken>
+ * Endpoint: GET /wp-json/mdfcforwc/v1/feed?token=<secureToken>
  *
  * Feed format:
  *   RSS 2.0 with Google Merchant Center (g:) namespace extensions.
@@ -46,7 +46,7 @@ class MDF_CFORWC_Feed {
 
 	public function register_routes() {
 		register_rest_route(
-			'mdf-wc/v1',
+			'mdfcforwc/v1',
 			'/feed',
 			[
 				'methods'             => WP_REST_Server::READABLE,

@@ -22,7 +22,7 @@ class MDF_CFORWC_Admin {
 
 	const MENU_SLUG         = 'marques-de-france-connector-for-woocommerce';
 	const CAPABILITY        = 'manage_woocommerce';
-	const REST_NAMESPACE    = 'mdf-wc/v1';
+	const REST_NAMESPACE    = 'mdfcforwc/v1';
 
 	private static ?self $instance = null;
 
@@ -156,7 +156,7 @@ class MDF_CFORWC_Admin {
 		$asset = require $asset_file;
 
 		wp_enqueue_script(
-			'mdf-wc-admin',
+			'mdfcforwc-admin',
 			MDF_CFORWC_PLUGIN_URL . 'build/index.js',
 			$asset['dependencies'],
 			$asset['version'],
@@ -164,7 +164,7 @@ class MDF_CFORWC_Admin {
 		);
 
 		wp_enqueue_style(
-			'mdf-wc-admin',
+			'mdfcforwc-admin',
 			MDF_CFORWC_PLUGIN_URL . 'build/style-index.css',
 			[ 'wp-components' ],
 			$asset['version']
@@ -172,12 +172,12 @@ class MDF_CFORWC_Admin {
 
 		// Pass data to JS
 		wp_localize_script(
-			'mdf-wc-admin',
-			'mdfWcAdmin',
+			'mdfcforwc-admin',
+			'mdfcforwcAdmin',
 			[
 				'restUrl'     => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
 				'nonce'       => wp_create_nonce( 'wp_rest' ),
-				'feedUrl'     => esc_url_raw( rest_url( 'mdf-wc/v1/feed' ) ),
+				'feedUrl'     => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
 				'token'       => MDF_CFORWC_Settings::get_secure_token(),
 				'configured'  => MDF_CFORWC_Settings::is_configured(),
 				'siteUrl'     => home_url(),
@@ -185,9 +185,9 @@ class MDF_CFORWC_Admin {
 			]
 		);
 
-		// Enable JS translations (loads languages/mdf-wc-admin-{locale}-{hash}.json)
+		// Enable JS translations (loads languages/mdfcforwc-admin-{locale}-{hash}.json)
 		wp_set_script_translations(
-			'mdf-wc-admin',
+			'mdfcforwc-admin',
 			'marques-de-france-connector-for-woocommerce',
 			MDF_CFORWC_PLUGIN_DIR . 'languages/'
 		);
@@ -205,12 +205,12 @@ class MDF_CFORWC_Admin {
 			},
 		];
 
-		// GET /wp-json/mdf-wc/v1/admin/stats
+		// GET /wp-json/mdfcforwc/v1/admin/stats
 		register_rest_route( self::REST_NAMESPACE, '/admin/stats', array_merge( $args, [
 			'callback' => [ $this, 'rest_stats' ],
 		] ) );
 
-		// GET /wp-json/mdf-wc/v1/admin/analytics?dateFrom=&dateTo=&granularity=
+		// GET /wp-json/mdfcforwc/v1/admin/analytics?dateFrom=&dateTo=&granularity=
 		register_rest_route( self::REST_NAMESPACE, '/admin/analytics', array_merge( $args, [
 			'callback' => [ $this, 'rest_analytics' ],
 			'args'     => [
@@ -220,7 +220,7 @@ class MDF_CFORWC_Admin {
 			],
 		] ) );
 
-		// GET /wp-json/mdf-wc/v1/admin/sales?page=&per_page=&status=&search=
+		// GET /wp-json/mdfcforwc/v1/admin/sales?page=&per_page=&status=&search=
 		register_rest_route( self::REST_NAMESPACE, '/admin/sales', array_merge( $args, [
 			'callback' => [ $this, 'rest_sales' ],
 			'args'     => [
@@ -235,12 +235,12 @@ class MDF_CFORWC_Admin {
 			],
 		] ) );
 
-		// GET /wp-json/mdf-wc/v1/admin/hub-status (ping Hub)
+		// GET /wp-json/mdfcforwc/v1/admin/hub-status (ping Hub)
 		register_rest_route( self::REST_NAMESPACE, '/admin/hub-status', array_merge( $args, [
 			'callback' => [ $this, 'rest_hub_status' ],
 		] ) );
 
-		// GET /wp-json/mdf-wc/v1/admin/products
+		// GET /wp-json/mdfcforwc/v1/admin/products
 		register_rest_route( self::REST_NAMESPACE, '/admin/products', array_merge( $args, [
 			'callback' => [ $this, 'rest_products' ],
 			'args'     => [
@@ -251,7 +251,7 @@ class MDF_CFORWC_Admin {
 			],
 		] ) );
 
-		// POST /wp-json/mdf-wc/v1/admin/settings — save secure token
+		// POST /wp-json/mdfcforwc/v1/admin/settings — save secure token
 		register_rest_route( self::REST_NAMESPACE, '/admin/settings', [
 			'methods'             => WP_REST_Server::CREATABLE,
 			'permission_callback' => function () {
@@ -446,7 +446,8 @@ class MDF_CFORWC_Admin {
 		$sort_d    = $request->get_param( 'sortDir' );
 
 		$valid_fields = [ 'created_at', 'amount', 'order_id', 'status' ];
-		$sort_field   = in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at';
+		// Whitelist-validated then esc_sql() for explicit SQL safety signal.
+		$sort_field   = esc_sql( in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at' );
 		$sort_dir     = $sort_d === 'asc' ? 'ASC' : 'DESC';
 
 		$where  = '1=1';
@@ -474,26 +475,22 @@ class MDF_CFORWC_Admin {
 			$params[] = $date_to . ' 23:59:59';
 		}
 
-		$base_sql = "FROM `{$table}` WHERE {$where}";
-
-		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		if ( $params ) {
-			$count_sql = $wpdb->prepare( "SELECT COUNT(*) {$base_sql}", ...$params );
-			$data_sql  = $wpdb->prepare(
-				"SELECT * {$base_sql} ORDER BY {$sort_field} {$sort_dir} LIMIT %d OFFSET %d",
-				...array_merge( $params, [ $per_page, $offset ] )
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE {$where}", ...$params ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+			);
+			$rows  = $wpdb->get_results(
+				$wpdb->prepare( "SELECT * FROM `{$table}` WHERE {$where} ORDER BY {$sort_field} {$sort_dir} LIMIT %d OFFSET %d", ...array_merge( $params, [ $per_page, $offset ] ) ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber
+				ARRAY_A
 			);
 		} else {
-			$count_sql = "SELECT COUNT(*) FROM `{$table}` WHERE 1=1";
-			$data_sql  = $wpdb->prepare(
-				"SELECT * FROM `{$table}` WHERE 1=1 ORDER BY {$sort_field} {$sort_dir} LIMIT %d OFFSET %d",
-				$per_page,
-				$offset
+			$total = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE 1=1", [] ) ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$rows  = $wpdb->get_results(
+				$wpdb->prepare( "SELECT * FROM `{$table}` WHERE 1=1 ORDER BY {$sort_field} {$sort_dir} LIMIT %d OFFSET %d", $per_page, $offset ),
+				ARRAY_A
 			);
 		}
-
-		$total = (int) $wpdb->get_var( $count_sql );
-		$rows  = $wpdb->get_results( $data_sql, ARRAY_A );
 		// phpcs:enable
 
 		return rest_ensure_response( [
