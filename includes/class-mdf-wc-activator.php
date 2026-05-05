@@ -17,8 +17,14 @@ class MDFCFORWC_Activator {
 		self::create_tables();
 		self::schedule_actions();
 		self::register_with_hub();
-		self::backfill_from_orders(); // Restore historical sales after (re-)activation.
-		update_option( 'mdfcforwc_backfill_done', '1' );
+		// Attempt a silent backfill from the Hub on activation (table may be fresh after reinstall).
+		// Only runs if the plugin is already configured (token known). Idempotent — no truncate.
+		if ( MDFCFORWC_Settings::is_configured() ) {
+			$count = self::backfill_from_hub( false );
+			if ( $count >= 0 ) {
+				update_option( 'mdfcforwc_backfill_done', '1' );
+			}
+		}
 		flush_rewrite_rules();
 	}
 
@@ -147,114 +153,136 @@ class MDFCFORWC_Activator {
 	}
 
 	/**
-	 * Backfill wp_mdfcforwc_sales from existing WooCommerce order meta.
+	 * Backfill wp_mdfcforwc_sales from the MDF Hub API.
 	 *
-	 * Runs on every (re-)activation to restore historical sales that were recorded
-	 * as WC order meta (_mdf_source, _mdf_signals_json, etc.) but may be missing
-	 * from the local sales table (e.g. after an uninstall/reinstall cycle).
+	 * The Hub is the authoritative source of truth: it holds only sales that were
+	 * genuinely attributed to Marques de France for THIS store.
 	 *
-	 * The insert is idempotent: orders already present in the table are skipped.
-	 * Orders already synced to the Hub are marked hub_synced = 1 to avoid re-sending.
-	 *
-	 * @return int Number of rows newly inserted.
+	 * @param bool $truncate_first  When true, clears the local table before importing
+	 *                              (used by the admin "Restore" button to wipe bad data).
+	 *                              When false (default, activation), the insert is
+	 *                              idempotent — already-present orders are skipped.
+	 * @return int  Number of rows inserted, or -1 on Hub communication error.
 	 */
-	public static function backfill_from_orders(): int {
-		if ( ! function_exists( 'wc_get_order' ) ) {
-			return 0;
+	public static function backfill_from_hub( bool $truncate_first = false ): int {
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
+			return -1;
 		}
 
+		$hub_url  = rtrim( MDFCFORWC_Settings::get_hub_url(), '/' );
+		$token    = MDFCFORWC_Settings::get_secure_token();
+		$site_url = home_url();
+
+		// ---------------------------------------------------------------------------
+		// Fetch all sales pages from the Hub before touching the local DB.
+		// ---------------------------------------------------------------------------
+		$all_sales = [];
+		$page      = 1;
+		$limit     = 100;
+
+		do {
+			$url = add_query_arg(
+				[ 'page' => $page, 'limit' => $limit, 'sortField' => 'createdAt', 'sortDir' => 'asc' ],
+				$hub_url . '/api/wc/sales'
+			);
+
+			$response = wp_remote_get(
+				$url,
+				[
+					'timeout'   => 20,
+					'sslverify' => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+					'headers'   => [
+						'X-MDF-Token' => $token,
+						'X-MDF-Shop'  => $site_url,
+					],
+				]
+			);
+
+			if ( is_wp_error( $response ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[MDF-WC] backfill_from_hub error: ' . $response->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				}
+				return -1;
+			}
+
+			$code = wp_remote_retrieve_response_code( $response );
+			if ( 200 !== $code ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					error_log( '[MDF-WC] backfill_from_hub HTTP ' . $code . ': ' . wp_remote_retrieve_body( $response ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				}
+				return -1;
+			}
+
+			$data  = json_decode( wp_remote_retrieve_body( $response ), true );
+			$batch = $data['sales'] ?? [];
+			$total = (int) ( $data['total'] ?? 0 );
+
+			$all_sales = array_merge( $all_sales, $batch );
+			$page++;
+		} while ( count( $batch ) === $limit && count( $all_sales ) < $total );
+
+		// ---------------------------------------------------------------------------
+		// Write to the local DB.
+		// ---------------------------------------------------------------------------
 		global $wpdb;
-		$table = $wpdb->prefix . 'mdfcforwc_sales';
-
-		// Resolve attributed order IDs via a direct DB query so we never rely on
-		// meta_query (unsupported with HPOS) or wc_get_orders() return type quirks.
-		// Support both HPOS (wp_wc_orders_meta) and legacy CPT (wp_postmeta).
-		$valid_sources  = [ 'mdf_ref', 'utm', 'mdf_referral' ];
-		$placeholders   = implode( ',', array_fill( 0, count( $valid_sources ), '%s' ) );
-
-		$hpos_table  = $wpdb->prefix . 'wc_orders_meta';
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared
-		$hpos_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$hpos_table}'" ) === $hpos_table;
-
-		if ( $hpos_exists ) {
-			$order_ids = $wpdb->get_col(
-				$wpdb->prepare(
-					"SELECT DISTINCT order_id FROM `{$hpos_table}` WHERE meta_key = '_mdf_source' AND meta_value IN ({$placeholders})",
-					...$valid_sources
-				)
-			);
-		} else {
-			$order_ids = $wpdb->get_col(
-				$wpdb->prepare(
-					"SELECT DISTINCT post_id FROM `{$wpdb->postmeta}` WHERE meta_key = '_mdf_source' AND meta_value IN ({$placeholders})",
-					...$valid_sources
-				)
-			);
-		}
-		// phpcs:enable
-
-		if ( empty( $order_ids ) ) {
-			return 0;
-		}
-
+		$table    = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 		$inserted = 0;
 
-		foreach ( $order_ids as $order_id ) {
-			// Load each order individually — avoids type issues with wc_get_orders().
-			$order = wc_get_order( (int) $order_id );
+		if ( $truncate_first ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$wpdb->query( "TRUNCATE TABLE `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
 
-			// Skip refunds, failed lookups, or any non-order object.
-			if ( ! $order instanceof WC_Order ) {
+		foreach ( $all_sales as $sale ) {
+			$order_id = (string) ( $sale['orderId'] ?? '' );
+			if ( ! $order_id ) {
 				continue;
 			}
 
-			$order_id = (string) $order->get_id();
-
-			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			$existing = $wpdb->get_var(
-				$wpdb->prepare( "SELECT id FROM `{$table}` WHERE order_id = %s LIMIT 1", $order_id )
-			);
-			// phpcs:enable
-
-			if ( $existing ) {
-				continue; // Already recorded — skip.
+			if ( ! $truncate_first ) {
+				// Idempotency check — skip if already present.
+				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$existing = $wpdb->get_var(
+					$wpdb->prepare( "SELECT id FROM `{$table}` WHERE order_id = %s LIMIT 1", $order_id )
+				);
+				// phpcs:enable
+				if ( $existing ) {
+					continue;
+				}
 			}
 
-			$wc_status = $order->get_status();
-			if ( in_array( $wc_status, [ 'cancelled', 'failed' ], true ) ) {
-				$status = 'cancelled';
-			} elseif ( 'refunded' === $wc_status ) {
-				$status = 'refunded';
+			$hub_status = $sale['status'] ?? 'confirmed';
+			if ( in_array( $hub_status, [ 'cancelled', 'failed' ], true ) ) {
+				$local_status = 'cancelled';
+			} elseif ( 'refunded' === $hub_status ) {
+				$local_status = 'refunded';
 			} else {
-				$status = 'confirmed';
+				$local_status = 'confirmed';
 			}
 
-			$date_created = $order->get_date_created();
-			$created_at   = $date_created ? $date_created->date( 'Y-m-d H:i:s' ) : current_time( 'mysql' );
+			// Convert ISO 8601 timestamp to MySQL datetime.
+			$created_at = current_time( 'mysql' );
+			if ( ! empty( $sale['createdAt'] ) ) {
+				$dt = date_create( $sale['createdAt'] );
+				if ( $dt ) {
+					$created_at = $dt->format( 'Y-m-d H:i:s' );
+				}
+			}
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 			$result = $wpdb->insert(
 				$table,
 				[
 					'order_id'           => $order_id,
-					'order_number'       => $order->get_order_number(),
-					'amount'             => (float) $order->get_total(),
-					'currency'           => $order->get_currency(),
-					'attribution_source' => $order->get_meta( '_mdf_source' ),
-					'signals_json'       => $order->get_meta( '_mdf_signals_json' ) ?: null,
-					'utm_source'         => $order->get_meta( '_mdf_utm_source' ),
-					'utm_medium'         => $order->get_meta( '_mdf_utm_medium' ),
-					'utm_campaign'       => $order->get_meta( '_mdf_utm_campaign' ),
-					'utm_content'        => $order->get_meta( '_mdf_utm_content' ),
-					'utm_term'           => $order->get_meta( '_mdf_utm_term' ),
-					'landing_site'       => $order->get_meta( '_mdf_landing_site' ),
-					'referring_site'     => $order->get_meta( '_mdf_referring_site' ),
-					'landing_ref'        => $order->get_meta( '_mdf_landing_ref' ),
-					'status'             => $status,
-					'hub_synced'         => 1, // Already in Hub DB — do not re-sync.
+					'order_number'       => sanitize_text_field( $sale['orderName'] ?? $order_id ),
+					'amount'             => (float) ( $sale['amount'] ?? 0 ),
+					'currency'           => sanitize_text_field( $sale['currency'] ?? 'EUR' ),
+					'attribution_source' => sanitize_text_field( $sale['attributionSource'] ?? '' ),
+					'status'             => $local_status,
+					'hub_synced'         => 1,
 					'created_at'         => $created_at,
 				],
-				[ '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ]
+				[ '%s', '%s', '%f', '%s', '%s', '%s', '%d', '%s' ]
 			);
 
 			if ( false !== $result ) {
@@ -263,5 +291,13 @@ class MDFCFORWC_Activator {
 		}
 
 		return $inserted;
+	}
+
+	/**
+	 * @deprecated Use backfill_from_hub() instead.
+	 * Kept as an alias so any external callers do not break.
+	 */
+	public static function backfill_from_orders(): int {
+		return self::backfill_from_hub( false );
 	}
 }

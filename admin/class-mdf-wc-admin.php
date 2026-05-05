@@ -360,57 +360,50 @@ class MDFCFORWC_Admin {
 			return;
 		}
 
-		// Show success banner after a completed backfill.
-		$backfill_count = get_transient( 'mdfcforwc_backfill_result' );
-		if ( false !== $backfill_count ) {
+		// Show success/error banner after a completed backfill.
+		$backfill_result = get_transient( 'mdfcforwc_backfill_result' );
+		if ( false !== $backfill_result ) {
 			delete_transient( 'mdfcforwc_backfill_result' );
-			echo '<div class="notice notice-success is-dismissible"><p>';
-			printf(
-				/* translators: %d: number of sales restored */
-				esc_html( _n(
-					'Marques de France: %d sale restored from WooCommerce order history.',
-					'Marques de France: %d sales restored from WooCommerce order history.',
-					(int) $backfill_count,
-					'marques-de-france-connector-for-woocommerce'
-				) ),
-				absint( $backfill_count )
-			);
-			echo '</p></div>';
+			if ( 'error' === $backfill_result ) {
+				echo '<div class="notice notice-error is-dismissible"><p>';
+				echo '<strong>' . esc_html__( 'Marques de France', 'marques-de-france-connector-for-woocommerce' ) . '</strong> — ';
+				echo esc_html__( 'Could not reach the MDF Hub. Check your connection settings and try again.', 'marques-de-france-connector-for-woocommerce' );
+				echo '</p></div>';
+			} else {
+				echo '<div class="notice notice-success is-dismissible"><p>';
+				printf(
+					/* translators: %d: number of sales restored */
+					esc_html( _n(
+						'Marques de France: %d sale restored from the MDF Hub.',
+						'Marques de France: %d sales restored from the MDF Hub.',
+						(int) $backfill_result,
+						'marques-de-france-connector-for-woocommerce'
+					) ),
+					absint( $backfill_result )
+				);
+				echo '</p></div>';
+			}
 			return;
 		}
 
-		// Show the restore button only when backfill has not been run yet.
-		if ( get_option( 'mdfcforwc_backfill_done' ) ) {
-			return;
-		}
-
-		// Only show if there are attributed WC orders to restore.
-		// Use a direct DB query — meta_query is not supported with HPOS.
-		global $wpdb;
-		$hpos_table  = $wpdb->prefix . 'wc_orders_meta';
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$hpos_exists = $wpdb->get_var( "SHOW TABLES LIKE '{$hpos_table}'" ) === $hpos_table;
-		if ( $hpos_exists ) {
-			$attributed = $wpdb->get_var( "SELECT order_id FROM `{$hpos_table}` WHERE meta_key = '_mdf_source' LIMIT 1" );
-		} else {
-			$attributed = $wpdb->get_var( "SELECT post_id FROM `{$wpdb->postmeta}` WHERE meta_key = '_mdf_source' LIMIT 1" );
-		}
-		// phpcs:enable
-
-		if ( empty( $attributed ) ) {
-			update_option( 'mdfcforwc_backfill_done', '1' ); // Nothing to restore.
+		// Show the restore button if:
+		//  - Plugin is configured (Hub token known), AND
+		//  - The backfill has not been explicitly run yet.
+		// We do NOT check WC order meta here — that had HPOS compatibility issues and
+		// is no longer the source of truth. The Hub is.
+		if ( get_option( 'mdfcforwc_backfill_done' ) || ! MDFCFORWC_Settings::is_configured() ) {
 			return;
 		}
 
 		echo '<div class="notice notice-warning">';
 		echo '<p><strong>' . esc_html__( 'Marques de France', 'marques-de-france-connector-for-woocommerce' ) . '</strong> — ';
-		echo esc_html__( 'Historical sales may be missing from the Sales screen (e.g. after a plugin reinstall). Click below to restore them from your WooCommerce order history.', 'marques-de-france-connector-for-woocommerce' );
+		echo esc_html__( 'Sales data may be out of sync (e.g. after a plugin reinstall). Click below to restore from the MDF Hub — this will replace the local sales table with the Hub\'s records.', 'marques-de-france-connector-for-woocommerce' );
 		echo '</p>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-bottom:10px">';
 		echo '<input type="hidden" name="action" value="mdfcforwc_backfill" />';
 		wp_nonce_field( 'mdfcforwc_backfill', 'mdfcforwc_backfill_nonce' );
 		echo '<button type="submit" class="button button-primary">';
-		echo esc_html__( 'Restore historical sales', 'marques-de-france-connector-for-woocommerce' );
+		echo esc_html__( 'Restore sales from Hub', 'marques-de-france-connector-for-woocommerce' );
 		echo '</button>';
 		echo '</form>';
 		echo '</div>';
@@ -427,10 +420,15 @@ class MDFCFORWC_Admin {
 		}
 
 		require_once MDFCFORWC_PLUGIN_DIR . 'includes/class-mdf-wc-activator.php';
-		$count = MDFCFORWC_Activator::backfill_from_orders();
+		// truncate_first = true: wipes the local table then repopulates from Hub.
+		$count = MDFCFORWC_Activator::backfill_from_hub( true );
 
-		update_option( 'mdfcforwc_backfill_done', '1' );
-		set_transient( 'mdfcforwc_backfill_result', $count, MINUTE_IN_SECONDS );
+		if ( $count >= 0 ) {
+			update_option( 'mdfcforwc_backfill_done', '1' );
+			set_transient( 'mdfcforwc_backfill_result', $count, MINUTE_IN_SECONDS );
+		} else {
+			set_transient( 'mdfcforwc_backfill_result', 'error', MINUTE_IN_SECONDS );
+		}
 
 		$redirect = wp_get_referer() ?: admin_url( 'admin.php?page=' . self::MENU_SLUG . '-sales' );
 		wp_safe_redirect( esc_url_raw( $redirect ) );
