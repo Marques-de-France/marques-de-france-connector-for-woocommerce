@@ -578,10 +578,10 @@ class MDFCFORWC_Admin {
 
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$total = (int) $wpdb->get_var(
-			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` {$where_sql}" ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` {$where_sql}" ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where_sql is composed exclusively of $wpdb->prepare() outputs
 		);
 		$rows  = $wpdb->get_results(
-			$wpdb->prepare( "SELECT * FROM `{$table}` {$where_sql} ORDER BY `{$sort_field}` {$sort_dir} LIMIT %d OFFSET %d", $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$wpdb->prepare( "SELECT * FROM `{$table}` {$where_sql} ORDER BY `{$sort_field}` {$sort_dir} LIMIT %d OFFSET %d", $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,PluginCheck.Security.DirectDB.UnescapedDBParameter -- $where_sql is composed exclusively of $wpdb->prepare() outputs
 			ARRAY_A
 		);
 		// phpcs:enable
