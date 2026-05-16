@@ -200,32 +200,37 @@ class MDFCFORWC_Admin {
 	// ---------------------------------------------------------------------------
 
 	public function register_rest_routes() {
-		$args = [
+		// GET /wp-json/mdfcforwc/v1/admin/stats
+		register_rest_route( self::REST_NAMESPACE, '/admin/stats', [
 			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_stats' ],
 			'permission_callback' => function () {
 				return current_user_can( self::CAPABILITY );
 			},
-		];
-
-		// GET /wp-json/mdfcforwc/v1/admin/stats
-		register_rest_route( self::REST_NAMESPACE, '/admin/stats', array_merge( $args, [
-			'callback' => [ $this, 'rest_stats' ],
-		] ) );
+		] );
 
 		// GET /wp-json/mdfcforwc/v1/admin/analytics?dateFrom=&dateTo=&granularity=
-		register_rest_route( self::REST_NAMESPACE, '/admin/analytics', array_merge( $args, [
-			'callback' => [ $this, 'rest_analytics' ],
-			'args'     => [
+		register_rest_route( self::REST_NAMESPACE, '/admin/analytics', [
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_analytics' ],
+			'permission_callback' => function () {
+				return current_user_can( self::CAPABILITY );
+			},
+			'args' => [
 				'dateFrom'    => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
 				'dateTo'      => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
 				'granularity' => [ 'type' => 'string', 'default' => 'day', 'enum' => [ 'day', 'month' ] ],
 			],
-		] ) );
+		] );
 
 		// GET /wp-json/mdfcforwc/v1/admin/sales?page=&per_page=&status=&search=
-		register_rest_route( self::REST_NAMESPACE, '/admin/sales', array_merge( $args, [
-			'callback' => [ $this, 'rest_sales' ],
-			'args'     => [
+		register_rest_route( self::REST_NAMESPACE, '/admin/sales', [
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_sales' ],
+			'permission_callback' => function () {
+				return current_user_can( self::CAPABILITY );
+			},
+			'args' => [
 				'page'     => [ 'type' => 'integer', 'default' => 1 ],
 				'per_page' => [ 'type' => 'integer', 'default' => 25 ],
 				'status'   => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
@@ -235,23 +240,31 @@ class MDFCFORWC_Admin {
 				'sortField'=> [ 'type' => 'string', 'default' => 'created_at' ],
 				'sortDir'  => [ 'type' => 'string', 'default' => 'desc', 'enum' => [ 'asc', 'desc' ] ],
 			],
-		] ) );
+		] );
 
 		// GET /wp-json/mdfcforwc/v1/admin/hub-status (ping Hub)
-		register_rest_route( self::REST_NAMESPACE, '/admin/hub-status', array_merge( $args, [
-			'callback' => [ $this, 'rest_hub_status' ],
-		] ) );
+		register_rest_route( self::REST_NAMESPACE, '/admin/hub-status', [
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_hub_status' ],
+			'permission_callback' => function () {
+				return current_user_can( self::CAPABILITY );
+			},
+		] );
 
 		// GET /wp-json/mdfcforwc/v1/admin/products
-		register_rest_route( self::REST_NAMESPACE, '/admin/products', array_merge( $args, [
-			'callback' => [ $this, 'rest_products' ],
-			'args'     => [
+		register_rest_route( self::REST_NAMESPACE, '/admin/products', [
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_products' ],
+			'permission_callback' => function () {
+				return current_user_can( self::CAPABILITY );
+			},
+			'args' => [
 				'search'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
 				'sort'     => [ 'type' => 'string',  'default' => 'name-asc' ],
 				'page'     => [ 'type' => 'integer', 'default' => 1,  'sanitize_callback' => 'absint' ],
 				'per_page' => [ 'type' => 'integer', 'default' => 50, 'sanitize_callback' => 'absint' ],
 			],
-		] ) );
+		] );
 
 		// POST /wp-json/mdfcforwc/v1/admin/settings — save secure token
 		register_rest_route( self::REST_NAMESPACE, '/admin/settings', [
@@ -537,7 +550,8 @@ class MDFCFORWC_Admin {
 
 	public function rest_sales( WP_REST_Request $request ) {
 		global $wpdb;
-		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
+		// Raw table name — %i placeholder (WP 6.2+) backtick-quotes it safely.
+		$table_name = $wpdb->prefix . 'mdfcforwc_sales';
 
 		$page      = max( 1, (int) $request->get_param( 'page' ) );
 		$per_page  = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
@@ -549,12 +563,12 @@ class MDFCFORWC_Admin {
 		$sort_f    = $request->get_param( 'sortField' );
 		$sort_d    = $request->get_param( 'sortDir' );
 
+		// Whitelist-validate sort column; %i will backtick-quote it — no interpolation.
 		$valid_fields = [ 'created_at', 'amount', 'order_id', 'status' ];
-		$sort_field   = esc_sql( in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at' );
-		$sort_dir     = esc_sql( $sort_d === 'asc' ? 'ASC' : 'DESC' );
+		$sort_col     = in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at';
+		$sort_asc     = ( $sort_d === 'asc' );
 
-		// Use conditional-flag placeholders so the WHERE clause is a static SQL
-		// literal — no dynamic variable is ever interpolated into the query string.
+		// Conditional-flag WHERE params — all user values handled by %d/%s placeholders.
 		$status_active    = ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded' ], true ) ) ? 1 : 0;
 		$status_val       = $status_active ? $status : '';
 		$search_active    = $search ? 1 : 0;
@@ -564,36 +578,61 @@ class MDFCFORWC_Admin {
 		$date_to_active   = $date_to ? 1 : 0;
 		$date_to_val      = $date_to_active ? sanitize_text_field( $date_to ) . ' 23:59:59' : '';
 
-		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 		$total = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM `{$table}`
+				'SELECT COUNT(*) FROM %i
 				WHERE ( %d = 0 OR status = %s )
 				  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
 				  AND ( %d = 0 OR created_at >= %s )
-				  AND ( %d = 0 OR created_at <= %s )",
+				  AND ( %d = 0 OR created_at <= %s )',
+				$table_name,
 				$status_active, $status_val,
 				$search_active, $like_val, $like_val,
 				$date_from_active, $date_from_val,
 				$date_to_active, $date_to_val
 			)
 		);
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT * FROM `{$table}`
-				WHERE ( %d = 0 OR status = %s )
-				  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-				  AND ( %d = 0 OR created_at >= %s )
-				  AND ( %d = 0 OR created_at <= %s )
-				ORDER BY `{$sort_field}` {$sort_dir} LIMIT %d OFFSET %d",
-				$status_active, $status_val,
-				$search_active, $like_val, $like_val,
-				$date_from_active, $date_from_val,
-				$date_to_active, $date_to_val,
-				$per_page, $offset
-			),
-			ARRAY_A
-		);
+
+		// Two static query templates (ASC / DESC) keep the direction keyword as a
+		// SQL literal. %i (WP 6.2+) handles table name and sort column safely.
+		$where_params = [
+			$table_name,
+			$status_active, $status_val,
+			$search_active, $like_val, $like_val,
+			$date_from_active, $date_from_val,
+			$date_to_active, $date_to_val,
+			$sort_col,
+			$per_page, $offset,
+		];
+
+		if ( $sort_asc ) {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i
+					WHERE ( %d = 0 OR status = %s )
+					  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
+					  AND ( %d = 0 OR created_at >= %s )
+					  AND ( %d = 0 OR created_at <= %s )
+					ORDER BY %i ASC LIMIT %d OFFSET %d',
+					...$where_params
+				),
+				ARRAY_A
+			);
+		} else {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					'SELECT * FROM %i
+					WHERE ( %d = 0 OR status = %s )
+					  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
+					  AND ( %d = 0 OR created_at >= %s )
+					  AND ( %d = 0 OR created_at <= %s )
+					ORDER BY %i DESC LIMIT %d OFFSET %d',
+					...$where_params
+				),
+				ARRAY_A
+			);
+		}
 		// phpcs:enable
 
 		return rest_ensure_response( [
