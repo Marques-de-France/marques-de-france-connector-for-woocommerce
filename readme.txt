@@ -13,37 +13,52 @@ Connect your WooCommerce store to Marques de France. Track attributed sales, gen
 
 == Description ==
 
-**Marques de France** is the official plugin for partner stores listed in the [Marques de France](https://www.marques-de-france.fr) directory — a curated platform showcasing authentic French brands.
+**Marques de France** is the official plugin for WooCommerce stores listed in the [Marques de France](https://www.marques-de-france.fr) directory, a curated platform showcasing authentic French brands.
 
-Once installed and configured, this plugin:
+Once activated, the plugin works silently in the background to connect your store to the Marques de France platform. No ongoing configuration needed.
 
-* **Tracks attributed sales** — detects when a customer arrives via the Marques de France directory and records the resulting sale in your WooCommerce store.
-* **Syncs revenue to the MDF Hub** — automatically sends attributed order data (amounts, UTM parameters, attribution signals) to the Marques de France platform so your partner dashboard stays up to date.
-* **Generates a product feed** — exposes a product feed endpoint compatible with the Marques de France platform, giving Marques de France the data it needs to showcase your products.
-* **WooCommerce admin dashboard** — adds a dedicated admin panel with sales analytics, a product feed preview, and Hub connection status.
+= What the plugin does =
 
-**Requirements**
+**Tracks attributed sales**
+When a customer clicks on your listing in Marques de France (site et app mobile) and completes a purchase on your store, the plugin automatically records the sale and reports it to Marques de France. It works across multiple visits: if someone browses, leaves, and comes back within 30 days, the attribution is still credited to your listing.
 
-* An active partner account on [marques-de-france.fr](https://www.marques-de-france.fr)
-* A Secure Token provided by Marques de France (entered in the plugin settings)
+**Keeps your revenue data accurate**
+Every attributed order is synced to Marques de France in real time. If a customer cancels or gets a refund, the platform is updated automatically so your revenue figures always stay accurate.
+
+**Generates your product feed**
+The plugin gives Marques de France access to your product catalog through a secure, token-protected endpoint. This powers the product listings displayed to visitors browsing your brand on the platform.
+
+**WooCommerce admin dashboard**
+A dedicated panel in your WooCommerce admin lets you monitor your connection status, view attributed revenue over time, and preview exactly which products are shared with Marques de France.
+
+= What is and is not tracked =
+
+The plugin tracks which orders originated from a Marques de France visit, using the same URL parameter technology as Google Analytics (utm_source, utm_medium, etc.). Attribution is stored for 30 days using first-touch logic: the first traffic source gets the credit.
+
+No personal data is ever shared with Marques de France. Only the order number, amount, currency, and source attribution are transmitted. Customer names, email addresses, phone numbers, and shipping addresses are never collected or sent.
+
+= Requirements =
+
+* A brand listed on [marques-de-france.fr](https://www.marques-de-france.fr)
+* A Secure Token provided by Marques de France (configured in the plugin settings)
 * WooCommerce 8.0 or later
 
-**Source Code**
+= Source Code =
 
 The full source code including unminified JavaScript is available on GitHub:
 [https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce](https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce)
 
 == Installation ==
 
-1. Upload the plugin folder to `/wp-content/plugins/` or install via **WP Admin → Plugins → Add New → Upload Plugin**.
-2. Activate the plugin through **WP Admin → Plugins**.
-3. Navigate to **Marques de France → Settings** in your WP admin sidebar.
+1. Upload the plugin folder to `/wp-content/plugins/` or install via WP Admin > Plugins > Add New > Upload Plugin or search the plugin from the store via WP Admin > Plugins > And search "Marques de France".
+2. Activate the plugin through **WP Admin > Plugins**.
+3. Navigate to **Marques de France > Settings** in your WP admin sidebar.
 4. Enter the **Secure Token** provided by Marques de France.
 5. Click **Save**. The plugin will automatically connect to the MDF Hub and begin tracking attributed sales.
 
 == External Services ==
 
-This plugin communicates with the **Marques de France Hub** — a service operated by Marques de France.
+This plugin communicates with **Marques de France**, a service operated by Marques de France.
 
 **Service endpoint**: `https://flux.marques-de-france.fr`
 
@@ -74,19 +89,11 @@ Only sales that can be attributed to a visit originating from the Marques de Fra
 
 Order totals, currency, order ID, and marketing attribution signals (UTM parameters, landing page, referrer). No personal customer data is transmitted.
 
+For more details on how tracking works, see our [tracking FAQ](https://www.marques-de-france.fr/faq-category/suivi-et-tracking/).
+
 = Can I test the connection? =
 
-Yes. Go to **Marques de France → Dashboard** in WP Admin. The dashboard shows the current Hub connection status and a summary of attributed sales and revenue.
-
-= Where is the product feed URL? =
-
-The feed is available at `/wp-json/mdfcforwc/v1/feed?token=YOUR_SECURE_TOKEN`. The Settings page in WP Admin displays the exact URL for your store.
-
-= Can I override the Hub URL for local development? =
-
-Yes. Add the following to your `wp-config.php`:
-
-`define( 'MDFCFORWC_HUB_URL', 'https://your-dev-tunnel.example.com' );`
+Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows the current connection status with Marques de France and a summary of attributed sales and revenue.
 
 == Screenshots ==
 
