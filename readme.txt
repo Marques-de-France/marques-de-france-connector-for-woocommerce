@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -108,6 +108,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 Initial release.
 
 == Changelog ==
+
+= 1.0.1 =
+* Fix: frontend tracker script missing from deployed package (MIME type error on page load).
 
 = 1.0.0 =
 * Initial release.
