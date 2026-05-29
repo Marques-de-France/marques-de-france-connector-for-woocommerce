@@ -118,16 +118,19 @@ class MDFCFORWC_Feed {
 	// ---------------------------------------------------------------------------
 
 	private function get_feed_products( int $per_page, int $page ): array {
-		$args = [
-			'status'         => 'publish',
-			'virtual'        => false,
-			'type'           => [ 'simple', 'variable', 'grouped' ],
-			'limit'          => $per_page,
-			'page'           => $page,
-			'paginate'       => false,
-			'stock_status'   => 'instock',
+		// WC 10.7+ auto-injects a product_type tax_query via wc_get_products(), which
+		// excludes any type not registered in wc_get_product_types() (e.g. composite
+		// from WooCommerce Composite Products by SomewhereWarm). Using WP_Query
+		// directly on post_type=product bypasses that restriction entirely.
+		$wp_query = new WP_Query( [
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
 			'tax_query'      => [
 				[
 					'taxonomy' => 'product_tag',
@@ -135,13 +138,27 @@ class MDFCFORWC_Feed {
 					'terms'    => 'marques-de-france',
 				],
 			],
-		];
-
-		$products = wc_get_products( $args );
+		] );
 
 		$items = [];
 
-		foreach ( $products as $product ) {
+		foreach ( $wp_query->posts as $post_id ) {
+			$product = wc_get_product( $post_id );
+
+			if ( ! $product ) {
+				continue;
+			}
+
+			// Skip virtual products (checked via WC method, not meta query).
+			if ( $product->is_virtual() ) {
+				continue;
+			}
+
+			// Skip out-of-stock products (checked via WC method, not meta query).
+			if ( ! $product->is_in_stock() ) {
+				continue;
+			}
+
 			if ( $product->is_type( 'variable' ) ) {
 				// Collect all in-stock purchasable variations first
 				$valid_variations = [];
@@ -202,8 +219,8 @@ class MDFCFORWC_Feed {
 			'title'               => $title,
 			'parent_title'        => $title,
 			'parent_link'         => $link,
-			'description'         => wp_strip_all_tags( $product->get_description() ?: $product->get_short_description() ),
-			'short_description'   => wp_strip_all_tags( $product->get_short_description() ),
+			'description'         => $this->sanitize_rich_html( $product->get_description() ?: $product->get_short_description() ),
+			'short_description'   => $this->sanitize_rich_html( $product->get_short_description() ),
 			'link'                => $link,
 			'image'               => $image_url,
 			'additional_images'   => $additional_images,
@@ -212,18 +229,25 @@ class MDFCFORWC_Feed {
 			'sale_price'          => $product->get_sale_price(),
 			'currency'            => get_woocommerce_currency(),
 			'sku'                 => $product->get_sku(),
-			'availability'        => $product->is_in_stock() ? 'in stock' : 'out of stock',
-			'condition'           => 'new',
-			'category'            => $category,
-			'brand'               => $this->get_product_brand( $product->get_id() ),
-			'gtin'                => $gtin,
-			'mpn'                 => $mpn,
-			'tags'                => $tags,
-			'color'               => '',
-			'identifier_exists'   => ! empty( $gtin ) || ! empty( $mpn ),
+			'availability'            => 'onbackorder' === $product->get_stock_status() ? 'preorder' : ( $product->is_in_stock() ? 'in stock' : 'out of stock' ),
+			'availability_date'       => 'onbackorder' === $product->get_stock_status() && $product->get_date_created() ? $product->get_date_created()->date( DateTime::ATOM ) : '',
+			'condition'               => 'new',
+			'category'                => $category,
+			'brand'                   => $this->get_product_brand( $product->get_id() ),
+			'gtin'                    => $gtin,
+			'mpn'                     => $mpn,
+			'tags'                    => $tags,
+			'color'                   => '',
+			'size'                    => '',
+			'gender'                  => $this->infer_gender_from_product( $product->get_id() ),
+			'age_group'               => $this->infer_age_group_from_product( $product->get_id() ),
+			'google_product_category' => $this->get_google_product_category( $category ),
+			'shipping'                => $this->get_shipping_block(),
+			'identifier_exists'       => ! empty( $gtin ) || ! empty( $mpn ),
 			'has_variants'        => false,
 			'is_cheapest_variant' => true,
 			'woo_product_type'    => $product->get_type(),
+			'mdf_product_type'    => in_array( $product->get_type(), [ 'variable', 'external' ], true ) ? $product->get_type() : 'external',
 			'attributes'          => $this->get_product_attributes( $product ),
 			'item_group_id'       => (string) $product->get_id(),
 			'shipping_weight'     => $product->get_weight() ? ( $product->get_weight() . ' ' . get_option( 'woocommerce_weight_unit' ) ) : '',
@@ -272,8 +296,8 @@ class MDFCFORWC_Feed {
 			'title'               => $title,
 			'parent_title'        => $parent->get_name(),
 			'parent_link'         => $link,
-			'description'         => wp_strip_all_tags( $parent->get_description() ?: $parent->get_short_description() ),
-			'short_description'   => wp_strip_all_tags( $parent->get_short_description() ),
+			'description'         => $this->sanitize_rich_html( $parent->get_description() ?: $parent->get_short_description() ),
+			'short_description'   => $this->sanitize_rich_html( $parent->get_short_description() ),
 			'link'                => $link,
 			'image'               => $image_url,
 			'additional_images'   => $additional_images,
@@ -282,18 +306,25 @@ class MDFCFORWC_Feed {
 			'sale_price'          => $variation->get_sale_price(),
 			'currency'            => get_woocommerce_currency(),
 			'sku'                 => $variation->get_sku() ?: ( $parent->get_sku() . '-' . $variation->get_id() ),
-			'availability'        => $variation->is_in_stock() ? 'in stock' : 'out of stock',
-			'condition'           => 'new',
-			'category'            => $category,
-			'brand'               => $this->get_product_brand( $parent->get_id() ),
-			'gtin'                => $gtin,
-			'mpn'                 => $mpn,
-			'tags'                => $tags,
-			'color'               => $this->get_variation_color( $variation ),
-			'identifier_exists'   => ! empty( $gtin ) || ! empty( $mpn ),
+			'availability'            => 'onbackorder' === $variation->get_stock_status() ? 'preorder' : ( $variation->is_in_stock() ? 'in stock' : 'out of stock' ),
+			'availability_date'       => 'onbackorder' === $variation->get_stock_status() && $parent->get_date_created() ? $parent->get_date_created()->date( DateTime::ATOM ) : '',
+			'condition'               => 'new',
+			'category'                => $category,
+			'brand'                   => $this->get_product_brand( $parent->get_id() ),
+			'gtin'                    => $gtin,
+			'mpn'                     => $mpn,
+			'tags'                    => $tags,
+			'color'                   => $this->get_variation_color( $variation ),
+			'size'                    => $this->get_variation_size( $variation ),
+			'gender'                  => $this->infer_gender_from_product( $parent->get_id() ),
+			'age_group'               => $this->infer_age_group_from_product( $parent->get_id() ),
+			'google_product_category' => $this->get_google_product_category( $category ),
+			'shipping'                => $this->get_shipping_block(),
+			'identifier_exists'       => ! empty( $gtin ) || ! empty( $mpn ),
 			'has_variants'        => true,
 			'is_cheapest_variant' => $is_cheapest,
 			'woo_product_type'    => 'variable',
+			'mdf_product_type'    => 'variable',
 			'attributes'          => $this->get_variation_attributes_list( $variation ),
 			'item_group_id'       => (string) $parent->get_id(),
 			'shipping_weight'     => ( $variation->get_weight() ?: $parent->get_weight() ) ? ( ( $variation->get_weight() ?: $parent->get_weight() ) . ' ' . get_option( 'woocommerce_weight_unit' ) ) : '',
@@ -313,23 +344,28 @@ class MDFCFORWC_Feed {
 		$shop_name = get_bloginfo( 'name' );
 		$shop_url  = esc_url( home_url() );
 
+		// Filter out zero-price items before counting — Google rejects them
+		$valid_products = array_values( array_filter( $products, function( $p ) {
+			$effective_price = $p['regular_price'] !== '' ? (float) $p['regular_price'] : (float) $p['price'];
+			return $effective_price > 0;
+		} ) );
+
+		$total_variants = count( $valid_products );
+		$total_products = count( array_unique( array_column( $valid_products, 'item_group_id' ) ) );
+
 		$xml  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
 		$xml .= '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">' . "\n";
 		$xml .= '  <channel>' . "\n";
 		$xml .= '    <title><![CDATA[Marques de France Product Feed – ' . $shop_name . ']]></title>' . "\n";
 		$xml .= '    <link>' . $shop_url . '</link>' . "\n";
-		$xml .= '    <description><![CDATA[Product feed for Marques de France guide]]></description>' . "\n\n";
+		$xml .= '    <description><![CDATA[Product feed for Marques de France guide]]></description>' . "\n";
+		$xml .= '    <total_products>' . $total_products . '</total_products>' . "\n";
+		$xml .= '    <total_variants>' . $total_variants . '</total_variants>' . "\n\n";
 
-		foreach ( $products as $p ) {
+		foreach ( $valid_products as $p ) {
 			$price         = $p['price'] !== '' ? wc_format_decimal( $p['price'], 2 ) . ' ' . $p['currency'] : '';
 			$regular_price = $p['regular_price'] !== '' ? wc_format_decimal( $p['regular_price'], 2 ) . ' ' . $p['currency'] : $price;
 			$sale_price    = $p['sale_price'] !== '' ? wc_format_decimal( $p['sale_price'], 2 ) . ' ' . $p['currency'] : '';
-
-			// Skip zero-price items — Google rejects them
-			$effective_price = $p['regular_price'] !== '' ? (float) $p['regular_price'] : (float) $p['price'];
-			if ( $effective_price <= 0 ) {
-				continue;
-			}
 
 			$xml .= '    <item>' . "\n";
 			$xml .= '      <g:id>'                  . esc_xml( $p['id'] )                                          . '</g:id>' . "\n";
@@ -363,17 +399,42 @@ class MDFCFORWC_Feed {
 				$xml .= '      <g:product_type><![CDATA[' . $p['category']                                        . ']]></g:product_type>' . "\n";
 			}
 			$xml .= '      <g:availability>'              . esc_xml( $p['availability'] )                         . '</g:availability>' . "\n";
+			if ( $p['availability_date'] ?? '' ) {
+				$xml .= '      <g:availability_date>'     . esc_xml( $p['availability_date'] )                    . '</g:availability_date>' . "\n";
+			}
 			if ( $p['color'] ?? '' ) {
 				$xml .= '      <g:color>'                 . esc_xml( $p['color'] )                                . '</g:color>' . "\n";
 			}
+			if ( $p['size'] ?? '' ) {
+				$xml .= '      <g:size>'                  . esc_xml( $p['size'] )                                 . '</g:size>' . "\n";
+			}
 			if ( ! empty( $p['tags'] ) ) {
 				$xml .= '      <tags>'                    . esc_xml( implode( ', ', $p['tags'] ) )                . '</tags>' . "\n";
+			}
+			if ( ! empty( $p['shipping'] ) ) {
+				$xml .= '      <g:shipping>' . "\n";
+				$xml .= '        <g:country>' . esc_xml( $p['shipping']['country'] ) . '</g:country>' . "\n";
+				if ( $p['shipping']['service'] ?? '' ) {
+					$xml .= '        <g:service>' . esc_xml( $p['shipping']['service'] ) . '</g:service>' . "\n";
+				}
+				$xml .= '        <g:price>' . esc_xml( number_format( (float) $p['shipping']['price'], 2, '.', '' ) . ' ' . $p['shipping']['currency'] ) . '</g:price>' . "\n";
+				$xml .= '      </g:shipping>' . "\n";
 			}
 			$xml .= '      <g:identifier_exists>'         . ( ( $p['identifier_exists'] ?? false ) ? 'yes' : 'no' ) . '</g:identifier_exists>' . "\n";
 			$xml .= '      <is_cheapest_variant>'         . ( ( $p['is_cheapest_variant'] ?? false ) ? '1' : '0' ) . '</is_cheapest_variant>' . "\n";
 			$xml .= '      <has_variants>'                . ( ( $p['has_variants'] ?? false ) ? '1' : '0' )       . '</has_variants>' . "\n";
 			$xml .= '      <woo_product_type>'            . esc_xml( $p['woo_product_type'] ?? '' )               . '</woo_product_type>' . "\n";
+			$xml .= '      <mdf_product_type>'            . esc_xml( $p['mdf_product_type'] ?? '' )               . '</mdf_product_type>' . "\n";
 			$xml .= '      <g:condition>'                 . esc_xml( $p['condition'] )                            . '</g:condition>' . "\n";
+			if ( $p['google_product_category'] ?? '' ) {
+				$xml .= '      <g:google_product_category>' . esc_xml( $p['google_product_category'] )            . '</g:google_product_category>' . "\n";
+			}
+			if ( $p['gender'] ?? '' ) {
+				$xml .= '      <g:gender>'                  . esc_xml( $p['gender'] )                             . '</g:gender>' . "\n";
+			}
+			if ( $p['age_group'] ?? '' ) {
+				$xml .= '      <g:age_group>'               . esc_xml( $p['age_group'] )                          . '</g:age_group>' . "\n";
+			}
 			if ( $p['shipping_weight'] ?? '' ) {
 				$xml .= '      <g:shipping_weight>'           . esc_xml( $p['shipping_weight'] )                    . '</g:shipping_weight>' . "\n";
 			}
@@ -489,6 +550,205 @@ class MDFCFORWC_Feed {
 			$attrs[] = [ 'name' => $label ?: $taxonomy, 'value' => $disp_val ];
 		}
 		return $attrs;
+	}
+
+	/**
+	 * Extracts the size value for a variation by inspecting its attributes
+	 * for any key containing "size", "taille", or "talla".
+	 * Resolves taxonomy slugs to human-readable term names.
+	 */
+	private function get_variation_size( WC_Product_Variation $variation ): string {
+		$size_keys = [ 'size', 'taille', 'talla' ];
+		foreach ( $variation->get_variation_attributes() as $raw_key => $value ) {
+			if ( empty( $value ) ) {
+				continue;
+			}
+			$key = strtolower( str_replace( [ 'attribute_pa_', 'attribute_' ], '', $raw_key ) );
+			if ( ! in_array( $key, $size_keys, true ) ) {
+				continue;
+			}
+			$taxonomy = str_replace( 'attribute_', '', $raw_key );
+			if ( taxonomy_exists( $taxonomy ) ) {
+				$term = get_term_by( 'slug', $value, $taxonomy );
+				return $term ? $term->name : $value;
+			}
+			return $value;
+		}
+		return '';
+	}
+
+	/**
+	 * Infers gender from product attributes (Genre/Gender/Sexe) then from tags.
+	 * Returns "male", "female", "unisex", or "" when unknown.
+	 */
+	private function infer_gender_from_product( int $product_id ): string {
+		$gender_map = [
+			'homme'   => 'male',   'men'    => 'male',   'man'     => 'male',   'masculin' => 'male',   'male'   => 'male',
+			'femme'   => 'female', 'women'  => 'female', 'woman'   => 'female', 'feminin'  => 'female', 'female' => 'female',
+			'unisex'  => 'unisex', 'mixte'  => 'unisex',
+		];
+		$gender_option_keys = [ 'genre', 'gender', 'sexe' ];
+
+		// Check product attributes for a dedicated gender option first.
+		$product = wc_get_product( $product_id );
+		if ( $product ) {
+			foreach ( $product->get_attributes() as $key => $attr ) {
+				$label = strtolower( wc_attribute_label( $key, $product ) );
+				if ( ! in_array( $label, $gender_option_keys, true ) ) {
+					continue;
+				}
+				$values = $attr->is_taxonomy()
+					? wp_get_post_terms( $product_id, $key, [ 'fields' => 'names' ] )
+					: array_map( 'trim', explode( '|', $attr->get_options()[0] ?? '' ) );
+				$raw = strtolower( is_array( $values ) ? ( $values[0] ?? '' ) : '' );
+				if ( isset( $gender_map[ $raw ] ) ) {
+					return $gender_map[ $raw ];
+				}
+			}
+		}
+
+		// Fall back to tag-based inference.
+		$tag_terms = get_the_terms( $product_id, 'product_tag' );
+		if ( $tag_terms && ! is_wp_error( $tag_terms ) ) {
+			foreach ( $tag_terms as $term ) {
+				$key = strtolower( $term->slug );
+				if ( isset( $gender_map[ $key ] ) ) return $gender_map[ $key ];
+				$key = strtolower( $term->name );
+				if ( isset( $gender_map[ $key ] ) ) return $gender_map[ $key ];
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Infers age group from product tags.
+	 * Returns "newborn", "infant", "toddler", "kids", "adult", or "" when unknown.
+	 */
+	private function infer_age_group_from_product( int $product_id ): string {
+		$age_map = [
+			'newborn'  => 'newborn', 'nouveau-ne'  => 'newborn',
+			'infant'   => 'infant',  'bebe'        => 'infant',  'nourrisson' => 'infant',
+			'toddler'  => 'toddler', 'bambin'      => 'toddler',
+			'kids'     => 'kids',    'enfant'      => 'kids',    'child'      => 'kids',
+			'adult'    => 'adult',   'adulte'      => 'adult',
+		];
+		$tag_terms = get_the_terms( $product_id, 'product_tag' );
+		if ( $tag_terms && ! is_wp_error( $tag_terms ) ) {
+			foreach ( $tag_terms as $term ) {
+				$key = strtolower( $term->slug );
+				if ( isset( $age_map[ $key ] ) ) return $age_map[ $key ];
+				$key = strtolower( $term->name );
+				if ( isset( $age_map[ $key ] ) ) return $age_map[ $key ];
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Maps a WooCommerce product category path to a Google Merchant Center
+	 * apparel category string, mirroring the apparelCategoryMap in shopify.js.
+	 * Returns "" when no known apparel mapping is found.
+	 */
+	private function get_google_product_category( string $category ): string {
+		$apparel_map = [
+			't-shirt'    => 'Vêtements', 'tshirt'    => 'Vêtements', 'chemise'  => 'Vêtements',
+			'robe'       => 'Vêtements', 'pantalon'  => 'Vêtements', 'veste'    => 'Vêtements',
+			'manteau'    => 'Vêtements', 'pull'      => 'Vêtements', 'sweat'    => 'Vêtements',
+			'chaussures' => 'Chaussures', 'sneakers' => 'Chaussures', 'bottes'  => 'Chaussures',
+			'casquette'  => 'Accessoires vestimentaires', 'chapeau'  => 'Accessoires vestimentaires',
+			'sac'        => 'Bagages et sacs',            'ceinture' => 'Accessoires vestimentaires',
+		];
+		$lower = strtolower( $category );
+		foreach ( $apparel_map as $keyword => $gmc_category ) {
+			if ( str_contains( $lower, $keyword ) ) {
+				return $gmc_category;
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Returns a structured shipping block for the <g:shipping> feed element.
+	 * Uses MDFCFORWC_FEED_SHIPPING_* constants when defined (e.g. in wp-config.php),
+	 * falling back to sensible defaults (FR / Standard / 0.00 EUR).
+	 *
+	 * Example (wp-config.php):
+	 *   define( 'MDFCFORWC_FEED_SHIPPING_COUNTRY',  'FR' );
+	 *   define( 'MDFCFORWC_FEED_SHIPPING_SERVICE',  'Standard' );
+	 *   define( 'MDFCFORWC_FEED_SHIPPING_PRICE',    0.0 );
+	 *   define( 'MDFCFORWC_FEED_SHIPPING_CURRENCY', 'EUR' );
+	 */
+	private function get_shipping_block(): array {
+		return [
+			'country'  => defined( 'MDFCFORWC_FEED_SHIPPING_COUNTRY' )  ? MDFCFORWC_FEED_SHIPPING_COUNTRY  : 'FR',
+			'service'  => defined( 'MDFCFORWC_FEED_SHIPPING_SERVICE' )  ? MDFCFORWC_FEED_SHIPPING_SERVICE  : 'Standard',
+			'price'    => defined( 'MDFCFORWC_FEED_SHIPPING_PRICE' )    ? (float) MDFCFORWC_FEED_SHIPPING_PRICE    : 0.0,
+			'currency' => defined( 'MDFCFORWC_FEED_SHIPPING_CURRENCY' ) ? MDFCFORWC_FEED_SHIPPING_CURRENCY : get_woocommerce_currency(),
+		];
+	}
+
+	/**
+	 * Convert rich HTML to a clean, feed-safe HTML snippet.
+	 *
+	 * Mirrors the sanitizeRichHtml() function in the Hub's shopify.js connector.
+	 * Preserves structure (p, ul, ol, li) and inline formatting (strong, b, u, em, i, br)
+	 * while stripping everything unsuitable for a product feed: links, emojis, inline
+	 * styles, CSS classes, and any HTML not in the Google Merchant Center allowed subset.
+	 *
+	 * Output is safe for use inside a CDATA section.
+	 *
+	 * @param string $html Raw HTML from WooCommerce (get_description / get_short_description).
+	 * @return string
+	 */
+	private function sanitize_rich_html( string $html ): string {
+		if ( '' === $html ) {
+			return '';
+		}
+
+		// 0. Remove <style>, <script>, <noscript> blocks entirely (tag + content).
+		$html = preg_replace( '/<style[\s\S]*?<\/style>/i', '', $html );
+		$html = preg_replace( '/<script[\s\S]*?<\/script>/i', '', $html );
+		$html = preg_replace( '/<noscript[\s\S]*?<\/noscript>/i', '', $html );
+
+		// 1. Strip ALL attributes from every tag (removes data-*, class, style, href, etc.).
+		$html = preg_replace( '/<(\/?[\w][\w-]*)\b[^>]*>/i', '<$1>', $html );
+
+		// 2. Unwrap <a> links — discard the tag, keep inner text.
+		$html = preg_replace( '/<a>([\s\S]*?)<\/a>/i', '$1', $html );
+
+		// 3. Convert headings to <p><strong>TEXT</strong></p>.
+		$html = preg_replace( '/<h[1-6]>([\s\S]*?)<\/h[1-6]>/i', '<p><strong>$1</strong></p>', $html );
+
+		// 4. Collapse duplicate nested same-tag wrappers
+		//    e.g. <strong><strong>text</strong></strong> → <strong>text</strong>.
+		$html = preg_replace( '/<(strong|b|u|em|i)><\1>/', '<$1>', $html );
+		$html = preg_replace( '/<\/(strong|b|u|em|i)><\/\1>/', '</$1>', $html );
+
+		// 5. Discard block wrapper tags that carry no semantic output (keep p, ul, ol, li).
+		$html = preg_replace( '/<\/?(div|section|article|header|footer)>/i', '', $html );
+
+		// 6. Normalise <br> variants (safety net after step 1).
+		$html = preg_replace( '/<br>/i', '<br>', $html );
+
+		// 7. Strip every remaining tag NOT in the allowed set.
+		//    Allowed: p, ul, ol, li, strong, b, u, em, i, br (opening and closing, no attributes).
+		$html = preg_replace( '/<(?!\/?(?:p|ul|ol|li|strong|b|u|em|i|br)\b)[^>]+>/i', '', $html );
+
+		// 8. Remove emojis (pictographs, misc symbols, regional indicators, variation selectors).
+		$html = preg_replace( '/[\x{1F000}-\x{1FFFF}]/u', '', $html );
+		$html = preg_replace( '/[\x{2600}-\x{27BF}]/u',   '', $html );
+		$html = preg_replace( '/[\x{FE00}-\x{FE0F}]/u',   '', $html );
+		$html = preg_replace( '/\x{200D}/u',               '', $html );
+
+		// 9. Decode HTML entities so the CDATA section contains readable text.
+		$html = html_entity_decode( $html, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+
+		// 10. Remove empty paragraphs left behind by stripped content.
+		$html = preg_replace( '/<p>\s*<\/p>/i', '', $html );
+
+		// 11. Trim.
+		return trim( $html );
 	}
 }
 

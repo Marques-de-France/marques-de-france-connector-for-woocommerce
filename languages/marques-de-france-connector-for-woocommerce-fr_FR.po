@@ -35,7 +35,7 @@ msgstr "https://www.marques-de-france.fr"
 #. Description of the plugin
 #: marques-de-france-connector-for-woocommerce.php
 msgid "Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform."
-msgstr "Connectez votre boutique WooCommerce au guide Marques de France. Suivez les ventes attribuées, génèrez un flux de produits et synchronisez automatiquement les données avec la plateforme."
+msgstr "Connectez votre boutique WooCommerce au guide Marques de France. Suivez les ventes attribuées, générez un flux de produits et synchronisez automatiquement les données avec la plateforme."
 
 #: admin/class-mdf-wc-admin.php:72
 #: admin/class-mdf-wc-admin.php:73
@@ -102,7 +102,7 @@ msgstr "UTM Term"
 
 #: admin/class-mdf-wc-admin.php:473
 msgid "Landing Site"
-msgstr "Page d'arrivée"
+msgstr "Page d’arrivée"
 
 #: admin/class-mdf-wc-admin.php:474
 msgid "Referring Site"
@@ -134,7 +134,7 @@ msgstr "✓ Connecté"
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:108
 msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
-msgstr "✗ Token invalide — veuillez ressaisir votre Token sécurisé dans les Paramètres."
+msgstr "✗ Code d’accès invalide — veuillez ressaisir votre code d’accès dans les Paramètres."
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:109
@@ -154,7 +154,7 @@ msgstr "attribuées"
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:122
 msgid "Total Revenue"
-msgstr "Chiffre d'affaires total"
+msgstr "Chiffre d’affaires total"
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:124
@@ -180,12 +180,12 @@ msgstr "Non synchronisé"
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:135
 msgid "pending Hub sync"
-msgstr "en attente de sync Hub"
+msgstr "en attente de synchronisation"
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js
 msgid "Revenue over time"
-msgstr "Chiffre d'affaires dans le temps"
+msgstr "Chiffre d’affaires dans le temps"
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js
@@ -195,7 +195,7 @@ msgstr "Ventes sur les 12 derniers mois"
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js
 msgid "Revenue"
-msgstr "Chiffre d'affaires"
+msgstr "Chiffre d’affaires"
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js
@@ -210,7 +210,7 @@ msgstr "Mensuel"
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
 msgid "Plugin not configured. Please go to "
-msgstr "Plugin non configuré. Rendez-vous dans les "
+msgstr "Extension non configurée. Rendez-vous dans les "
 
 #: build/index.js:1
 msgid "Activate your store"
@@ -222,11 +222,11 @@ msgstr "Boutique enregistrée"
 
 #: build/index.js:1
 msgid "Enter your activation code"
-msgstr "Saisir votre code d'activation"
+msgstr "Saisir votre code d’activation"
 
 #: build/index.js:1
 msgid "Your store has been successfully registered. Our team will send you your activation code by email, it may take a few hours. Once received, enter it in the "
-msgstr "Votre boutique a bien été enregistrée. Notre équipe va vous envoyer votre code d'activation par email, cela peut prendre quelques heures. Une fois reçu, saisissez-le dans l'onglet "
+msgstr "Votre boutique a bien été enregistrée. Notre équipe va vous envoyer votre code d’activation par email, cela peut prendre quelques heures. Une fois reçu, saisissez-le dans l’onglet "
 
 #: build/index.js:1
 msgid "Settings tab"
@@ -238,24 +238,24 @@ msgstr " pour finaliser la configuration."
 
 #: build/index.js:1
 msgid "Enter my activation code"
-msgstr "Saisir mon code d'activation"
+msgstr "Saisir mon code d’activation"
 
 #: build/index.js:1
 msgid "Token saved. Store connected."
-msgstr "Code d'accès enregistré. Boutique connectée."
+msgstr "Code d’accès enregistré. Boutique connectée."
 
 #: build/index.js:1
 msgid "Token saved but connection failed. Please check your access code."
-msgstr "Code d'accès enregistré mais la connexion a échoué. Vérifiez votre code d'accès."
+msgstr "Code d’accès enregistré mais la connexion a échoué. Vérifiez votre code d’accès."
 
 #: build/index.js:1
 msgid "Token saved but connection check failed."
-msgstr "Code d'accès enregistré mais la vérification de connexion a échoué."
+msgstr "Code d’accès enregistré mais la vérification de connexion a échoué."
 
 #: build/index.js:1
 #: src/admin/pages/Dashboard.js:88
 msgid " and enter your Secure Token."
-msgstr " pour saisir votre Token sécurisé."
+msgstr " pour saisir votre code d’accès."
 
 #: build/index.js:1
 #: src/admin/pages/Sales.js:75
@@ -370,12 +370,12 @@ msgstr "Connexion"
 #: build/index.js:1
 #: src/admin/pages/Settings.js:87
 msgid "Access code"
-msgstr "Code d'accès"
+msgstr "Code d’accès"
 
 #: build/index.js:1
 #: src/admin/pages/Settings.js
 msgid "The access code provided by Marques de France when your store was registered."
-msgstr "Le code d'accès fourni par Marques de France lors de l'enregistrement de votre boutique."
+msgstr "Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."
 
 #: build/index.js:1
 #: src/admin/pages/Settings.js:50
@@ -385,7 +385,7 @@ msgstr "Paramètres enregistrés."
 #: build/index.js:1
 #: src/admin/pages/Settings.js:55
 msgid "Failed to save settings."
-msgstr "Échec de l'enregistrement des paramètres."
+msgstr "Échec de l’enregistrement des paramètres."
 
 #: build/index.js:1
 #: src/admin/pages/Settings.js:102
@@ -400,17 +400,17 @@ msgstr "Flux de produits"
 #: build/index.js:1
 #: src/admin/pages/Settings.js:114
 msgid "Share this URL with Marques de France to enable your product feed in the directory."
-msgstr "Partagez cette URL avec Marques de France pour activer votre flux de produits dans l'annuaire."
+msgstr "Partagez cette URL avec Marques de France pour activer votre flux de produits dans l’annuaire."
 
 #: build/index.js:1
 #: src/admin/pages/Settings.js:119
 msgid "Copied!"
-msgstr "Copié !"
+msgstr "Copié !"
 
 #: build/index.js:1
 #: src/admin/pages/Settings.js:119
 msgid "Copy URL"
-msgstr "Copier l'URL"
+msgstr "Copier l’URL"
 
 #: build/index.js:1
 #: src/admin/pages/Settings.js:122
@@ -445,12 +445,12 @@ msgstr "Nom Z › A"
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "Price: low to high"
-msgstr "Prix : croissant"
+msgstr "Prix : croissant"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "Price: high to low"
-msgstr "Prix : décroissant"
+msgstr "Prix : décroissant"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
@@ -460,7 +460,7 @@ msgstr "Actualiser"
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "How to include products in the feed?"
-msgstr "Comment inclure des produits dans le flux ?"
+msgstr "Comment inclure des produits dans le flux ?"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
@@ -470,22 +470,22 @@ msgstr "Seuls les produits avec la balise"
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "tag appear in the feed and will be listed on Marques de France. Add this tag to any product made in France to include it on Marques de France."
-msgstr "apparaissent dans le flux et seront référencés sur Marques de France. Ajoutez cette balise à tout produit fabriqué en France pour l'inclure sur Marques de France."
+msgstr "apparaissent dans le flux et seront référencés sur Marques de France. Ajoutez cette balise à tout produit fabriqué en France pour l’inclure sur Marques de France."
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "Bulk add tag"
-msgstr "Ajouter l'étiquette en masse"
+msgstr "Ajouter l’étiquette en masse"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "How to do it?"
-msgstr "Comment faire ?"
+msgstr "Comment faire ?"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "How to add the marques-de-france tag?"
-msgstr "Comment ajouter l'étiquette marques-de-france ?"
+msgstr "Comment ajouter l’étiquette marques-de-france ?"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
@@ -510,12 +510,12 @@ msgstr "Ouvrez un produit fabriqué en France."
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "Add the tag"
-msgstr "Ajouter l'étiquette"
+msgstr "Ajouter l’étiquette"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "In the product page, add the tag"
-msgstr "Dans la fiche produit, ajoutez l'étiquette"
+msgstr "Dans la fiche produit, ajoutez l’étiquette"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
@@ -535,12 +535,12 @@ msgstr "Cliquez sur Mettre à jour. Le produit apparaîtra dans le flux."
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "How to bulk edit?"
-msgstr "Comment modifier en masse ?"
+msgstr "Comment modifier en masse ?"
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
 msgid "To add the tag to multiple products at once, select them in the product list, then choose Edit from the Bulk actions dropdown and add the tag in the Tags field."
-msgstr "Pour ajouter l'étiquette à plusieurs produits en même temps, sélectionnez-les dans la liste des produits, puis choisissez Modifier dans le menu Actions groupées et ajoutez l'étiquette dans le champ Étiquettes."
+msgstr "Pour ajouter l’étiquette à plusieurs produits en même temps, sélectionnez-les dans la liste des produits, puis choisissez Modifier dans le menu Actions groupées et ajoutez l’étiquette dans le champ Étiquettes."
 
 #: build/index.js:1
 #: src/admin/pages/Feed.js
@@ -663,7 +663,7 @@ msgstr "Analyse des ventes"
 #: build/index.js:1
 #: src/admin/pages/Sales.js
 msgid "Today"
-msgstr "Aujourd'hui"
+msgstr "Aujourd’hui"
 
 #: build/index.js:1
 #: src/admin/pages/Sales.js
@@ -698,7 +698,7 @@ msgstr "Cette année"
 #: build/index.js:1
 #: src/admin/pages/Sales.js
 msgid "Last year"
-msgstr "L'année dernière"
+msgstr "L’année dernière"
 
 #: build/index.js:1
 #: src/admin/pages/Sales.js

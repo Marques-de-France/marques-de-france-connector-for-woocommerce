@@ -239,9 +239,10 @@ class MDFCFORWC_Hub_Client {
 			'timeout'     => $timeout,
 			'sslverify'   => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 			'headers'     => [
-				'Content-Type' => 'application/json',
-				'X-MDF-Token'  => $this->token,
-				'X-MDF-Shop'   => $this->site_url,
+				'Content-Type'     => 'application/json',
+				'X-MDF-Token'      => $this->token,
+				'X-MDF-Shop'       => $this->site_url,
+				'X-Plugin-Version' => MDFCFORWC_VERSION,
 			],
 			'body'        => wp_json_encode( $body ),
 		] );

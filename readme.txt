@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -108,6 +108,11 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 Initial release.
 
 == Changelog ==
+
+= 1.0.2 =
+* Feature: report plugin version to the Marques de France Hub on each API request via X-Plugin-Version header.
+* Fix: composite products (WooCommerce Composite Products by SomewhereWarm) now appear correctly in the product feed and admin product list. WC 10.7+ auto-injects a product_type tax_query that silently excludes unregistered types; both endpoints now use WP_Query directly to bypass this restriction.
+* Fix: minor French (fr_FR) translation improvements.
 
 = 1.0.1 =
 * Fix: frontend tracker script missing from deployed package (MIME type error on page load).

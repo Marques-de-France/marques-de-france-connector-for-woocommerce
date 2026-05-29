@@ -663,8 +663,9 @@ class MDFCFORWC_Admin {
 			'timeout'   => 8,
 			'sslverify' => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
 			'headers'   => [
-				'X-MDF-Token' => $token,
-				'X-MDF-Shop'  => $site_url,
+				'X-MDF-Token'      => $token,
+				'X-MDF-Shop'       => $site_url,
+				'X-Plugin-Version' => MDFCFORWC_VERSION,
 			],
 		] );
 
@@ -705,48 +706,77 @@ class MDFCFORWC_Admin {
 		$page     = max( 1, (int) $request->get_param( 'page' ) );
 		$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
 
-		// Map sort option to WC-native orderby args (brand has no DB-level sort, falls back to title)
+		// Map sort option to WP_Query args (WC-native 'price' orderby is unavailable
+		// when using WP_Query directly, so price sorts use meta_value_num + _price).
 		$sort_map = [
-			'name-asc'   => [ 'orderby' => 'title', 'order' => 'ASC' ],
-			'name-desc'  => [ 'orderby' => 'title', 'order' => 'DESC' ],
-			'price-asc'  => [ 'orderby' => 'price', 'order' => 'ASC' ],
-			'price-desc' => [ 'orderby' => 'price', 'order' => 'DESC' ],
-			'brand-asc'  => [ 'orderby' => 'title', 'order' => 'ASC' ],
+			'name-asc'   => [ 'orderby' => 'title',          'order' => 'ASC'  ],
+			'name-desc'  => [ 'orderby' => 'title',          'order' => 'DESC' ],
+			'price-asc'  => [ 'orderby' => 'meta_value_num', 'order' => 'ASC',  'meta_key' => '_price' ],
+			'price-desc' => [ 'orderby' => 'meta_value_num', 'order' => 'DESC', 'meta_key' => '_price' ],
+			'brand-asc'  => [ 'orderby' => 'title',          'order' => 'ASC'  ],
 		];
 		$order_args = $sort_map[ $sort ] ?? $sort_map['name-asc'];
 
-		$query_args = [
-			'status'       => 'publish',
-			'virtual'      => false,
-			'type'         => [ 'simple', 'variable', 'grouped' ],
-			'stock_status' => 'instock',
-			'limit'        => $per_page,
-			'page'         => $page,
-			'paginate'     => true,
-			'orderby'      => $order_args['orderby'],
-			'order'        => $order_args['order'],
-			'tag'          => [ 'marques-de-france' ],
+		// Use WP_Query directly: wc_get_products() in WC 10.7+ auto-injects a
+		// product_type tax_query restricted to types registered in wc_get_product_types(),
+		// which silently excludes composite products and other third-party types.
+		$wp_args = [
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
+			'orderby'        => $order_args['orderby'],
+			'order'          => $order_args['order'],
+			'tax_query'      => [
+				[
+					'taxonomy' => 'product_tag',
+					'field'    => 'slug',
+					'terms'    => 'marques-de-france',
+				],
+			],
+			'meta_query'     => [
+				'relation' => 'AND',
+				[
+					'key'     => '_virtual',
+					'value'   => 'yes',
+					'compare' => '!=',
+				],
+				[
+					'key'   => '_stock_status',
+					'value' => 'instock',
+				],
+			],
 		];
 
+		if ( isset( $order_args['meta_key'] ) ) {
+			$wp_args['meta_key'] = $order_args['meta_key'];
+		}
+
 		if ( $search ) {
-			$query_args['s']     = $search;
+			$wp_args['s']              = $search;
 			$this->product_search_term = $search;
 			add_filter( 'posts_search', [ $this, 'extend_product_search_with_sku' ], 10, 2 );
 		}
 
-		$result      = wc_get_products( $query_args );
+		$wp_query = new WP_Query( $wp_args );
 
 		if ( $search ) {
 			remove_filter( 'posts_search', [ $this, 'extend_product_search_with_sku' ], 10 );
 			$this->product_search_term = '';
 		}
-		$wc_products = $result->products;
-		$total       = (int) $result->total;
-		$total_pages = (int) $result->max_num_pages;
+
+		$total       = (int) $wp_query->found_posts;
+		$total_pages = (int) ceil( $total / $per_page );
 
 		$items = [];
 
-		foreach ( $wc_products as $product ) {
+		foreach ( $wp_query->posts as $post ) {
+			$product = wc_get_product( $post->ID );
+
+			if ( ! $product ) {
+				continue;
+			}
+
 			$image_id  = $product->get_image_id();
 			$image_src = $image_id ? wp_get_attachment_image_src( $image_id, 'thumbnail' ) : false;
 			$image     = $image_src ? $image_src[0] : wc_placeholder_img_src();
