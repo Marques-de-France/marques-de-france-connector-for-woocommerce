@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.0.2
+Stable tag: 1.1.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -108,6 +108,10 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 Initial release.
 
 == Changelog ==
+
+= 1.1.0 =
+* Fix: strip HTML tags from product and variation titles in the feed to prevent malformed XML.
+* Fix: expose separate `parent_image` and `variant_image` fields in the feed for simple products and variations; the main image now correctly falls back to the parent image when no variation-specific image is set.
 
 = 1.0.2 =
 * Feature: report plugin version to the Marques de France Hub on each API request via X-Plugin-Version header.

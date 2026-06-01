@@ -210,7 +210,7 @@ class MDFCFORWC_Feed {
 		$tags      = ( $tag_terms && ! is_wp_error( $tag_terms ) ) ? array_map( fn( $t ) => $t->name, $tag_terms ) : [];
 
 		$link  = get_permalink( $product->get_id() );
-		$title = $product->get_name();
+		$title = wp_strip_all_tags( $product->get_name() );
 		$gtin  = (string) $product->get_meta( '_wc_gtin' );
 		$mpn   = $product->get_sku();
 
@@ -223,6 +223,8 @@ class MDFCFORWC_Feed {
 			'short_description'   => $this->sanitize_rich_html( $product->get_short_description() ),
 			'link'                => $link,
 			'image'               => $image_url,
+			'parent_image'        => $image_url,
+			'variant_image'       => '',
 			'additional_images'   => $additional_images,
 			'price'               => $product->get_price(),
 			'regular_price'       => $product->get_regular_price(),
@@ -260,9 +262,15 @@ class MDFCFORWC_Feed {
 	}
 
 	private function normalise_variation( WC_Product_Variation $variation, WC_Product $parent, bool $is_cheapest = false ): array {
-		$image_id  = $variation->get_image_id() ?: $parent->get_image_id();
-		$image_src = $image_id ? wp_get_attachment_image_src( $image_id, 'large' ) : false;
-		$image_url = $image_src ? $image_src[0] : wc_placeholder_img_src();
+		$parent_image_id  = $parent->get_image_id();
+		$parent_image_src = $parent_image_id ? wp_get_attachment_image_src( $parent_image_id, 'large' ) : false;
+		$parent_image_url = $parent_image_src ? $parent_image_src[0] : wc_placeholder_img_src();
+
+		$variant_image_id  = $variation->get_image_id();
+		$variant_image_src = $variant_image_id ? wp_get_attachment_image_src( $variant_image_id, 'large' ) : false;
+		$variant_image_url = $variant_image_src ? $variant_image_src[0] : '';
+
+		$image_url = $variant_image_url ?: $parent_image_url;
 
 		// Additional images from parent gallery (variation image is already the main image)
 		$parent_gallery_ids = $parent->get_gallery_image_ids();
@@ -273,7 +281,7 @@ class MDFCFORWC_Feed {
 
 		// Build human-readable title from parent title + variation attributes
 		$attr_values = array_filter( array_values( $variation->get_variation_attributes() ) );
-		$title       = $parent->get_name();
+		$title       = wp_strip_all_tags( $parent->get_name() );
 		if ( $attr_values ) {
 			$title .= ' – ' . implode( ', ', $attr_values );
 		}
@@ -294,12 +302,14 @@ class MDFCFORWC_Feed {
 		return [
 			'id'                  => $parent->get_id() . '_' . $variation->get_id(),
 			'title'               => $title,
-			'parent_title'        => $parent->get_name(),
+			'parent_title'        => wp_strip_all_tags( $parent->get_name() ),
 			'parent_link'         => $link,
 			'description'         => $this->sanitize_rich_html( $parent->get_description() ?: $parent->get_short_description() ),
 			'short_description'   => $this->sanitize_rich_html( $parent->get_short_description() ),
 			'link'                => $link,
 			'image'               => $image_url,
+			'parent_image'        => $parent_image_url,
+			'variant_image'       => $variant_image_url,
 			'additional_images'   => $additional_images,
 			'price'               => $variation->get_price(),
 			'regular_price'       => $variation->get_regular_price(),
@@ -392,6 +402,8 @@ class MDFCFORWC_Feed {
 			foreach ( array_slice( $p['additional_images'] ?? [], 0, 10 ) as $extra_img ) {
 				$xml .= '      <g:additional_image_link>' . esc_url( $extra_img )                                 . '</g:additional_image_link>' . "\n";
 			}
+			$xml .= '      <parent_image>'                . esc_url( $p['parent_image'] ?? '' )                  . '</parent_image>' . "\n";
+			$xml .= '      <variant_image>'               . esc_url( $p['variant_image'] ?? '' )                 . '</variant_image>' . "\n";
 			if ( $p['brand'] ?? '' ) {
 				$xml .= '      <g:brand><![CDATA['        . $p['brand']                                           . ']]></g:brand>' . "\n";
 			}
