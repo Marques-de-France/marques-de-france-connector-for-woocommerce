@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "@wordpress/element";
 import { __ } from "@wordpress/i18n";
 import apiFetch from "@wordpress/api-fetch";
 import { Button, Notice, Spinner } from "@wordpress/components";
+import { chevronLeft } from "@wordpress/icons";
 
 const { feedFilterMode: initialMode = "TAG" } = window.mdfcforwcAdmin || {};
 
@@ -373,18 +374,10 @@ export default function Feed() {
           >
             {__("Search", "marques-de-france-connector-for-woocommerce")}
           </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            style={{ backgroundColor: "#fff", minHeight: 40, height: 40 }}
-            onClick={closeManageMode}
-          >
-            {__("Back to feed", "marques-de-france-connector-for-woocommerce")}
-          </Button>
         </form>
 
         <div style={{ marginBottom: 16 }}>
-          <Notice status="info" isDismissible={false}>
+          <Notice status="warning" isDismissible={false}>
             {__(
               "Only select products manufactured in France. These are the products that will appear in the Marques de France guide.",
               "marques-de-france-connector-for-woocommerce",
@@ -551,37 +544,48 @@ export default function Feed() {
                 </tbody>
               </table>
             </div>
-            {manageTotalPages > 1 && (
-              <div className="mdf-pagination">
-                <span className="mdf-pagination__info">
-                  {__("Page", "marques-de-france-connector-for-woocommerce")}{" "}
-                  {managePage} / {manageTotalPages}
-                </span>
-                <Button
-                  variant="secondary"
-                  style={{ backgroundColor: "#fff" }}
-                  disabled={managePage <= 1}
-                  onClick={() =>
-                    fetchManageProducts(managePage - 1, manageSearch)
-                  }
-                >
-                  {__(
-                    "Previous",
-                    "marques-de-france-connector-for-woocommerce",
-                  )}
-                </Button>
-                <Button
-                  variant="secondary"
-                  style={{ backgroundColor: "#fff" }}
-                  disabled={managePage >= manageTotalPages}
-                  onClick={() =>
-                    fetchManageProducts(managePage + 1, manageSearch)
-                  }
-                >
-                  {__("Next", "marques-de-france-connector-for-woocommerce")}
-                </Button>
-              </div>
-            )}
+            <div
+              className="mdf-pagination"
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 12,
+                marginTop: 16,
+              }}
+            >
+              <Button
+                type="button"
+                variant="primary"
+                style={{ minHeight: 40, height: 40 }}
+                onClick={closeManageMode}
+              >
+                {__("Save", "marques-de-france-connector-for-woocommerce")}
+              </Button>
+              {manageTotalPages > 1 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span className="mdf-pagination__info">
+                    {__("Page", "marques-de-france-connector-for-woocommerce")} {managePage} / {manageTotalPages}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    style={{ backgroundColor: "#fff" }}
+                    disabled={managePage <= 1}
+                    onClick={() => fetchManageProducts(managePage - 1, manageSearch)}
+                  >
+                    {__("Previous", "marques-de-france-connector-for-woocommerce")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    style={{ backgroundColor: "#fff" }}
+                    disabled={managePage >= manageTotalPages}
+                    onClick={() => fetchManageProducts(managePage + 1, manageSearch)}
+                  >
+                    {__("Next", "marques-de-france-connector-for-woocommerce")}
+                  </Button>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -827,36 +831,38 @@ export default function Feed() {
     <div className="mdf-page mdf-feed-page">
       {error && <div className="mdf-error">{error}</div>}
 
-      <div className="mdf-card mdf-feed-card">
-        <div className="mdf-chart-controls">
-          <strong style={{ fontSize: 14, color: "#051440" }}>
-            {__("Feed mode", "marques-de-france-connector-for-woocommerce")}
-          </strong>
+      {!manageMode && (
+        <div className="mdf-card mdf-feed-card">
+          <div className="mdf-chart-controls">
+            <strong style={{ fontSize: 14, color: "#051440" }}>
+              {__("Feed mode", "marques-de-france-connector-for-woocommerce")}
+            </strong>
+          </div>
+          <p className="mdf-feed-copy">{summaryText}</p>
+          <div className="mdf-feed-actions">
+            <Button
+              variant={isServerList ? "secondary" : "primary"}
+              onClick={() => handleModeSwitch("TAG")}
+              disabled={switching || !isServerList}
+            >
+              {__(
+                "Use tag-based selection",
+                "marques-de-france-connector-for-woocommerce",
+              )}
+            </Button>
+            <Button
+              variant={isServerList ? "primary" : "secondary"}
+              onClick={() => handleModeSwitch("SERVERLIST")}
+              disabled={switching || isServerList}
+            >
+              {__(
+                "Use manual selection",
+                "marques-de-france-connector-for-woocommerce",
+              )}
+            </Button>
+          </div>
         </div>
-        <p className="mdf-feed-copy">{summaryText}</p>
-        <div className="mdf-feed-actions">
-          <Button
-            variant={isServerList ? "secondary" : "primary"}
-            onClick={() => handleModeSwitch("TAG")}
-            disabled={switching || !isServerList}
-          >
-            {__(
-              "Use tag-based selection",
-              "marques-de-france-connector-for-woocommerce",
-            )}
-          </Button>
-          <Button
-            variant={isServerList ? "primary" : "secondary"}
-            onClick={() => handleModeSwitch("SERVERLIST")}
-            disabled={switching || isServerList}
-          >
-            {__(
-              "Use manual selection",
-              "marques-de-france-connector-for-woocommerce",
-            )}
-          </Button>
-        </div>
-      </div>
+      )}
 
       {!manageMode && (
         <div style={{ marginBottom: 16 }}>
@@ -866,6 +872,29 @@ export default function Feed() {
               "marques-de-france-connector-for-woocommerce",
             )}
           </Notice>
+        </div>
+      )}
+
+      {manageMode && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, gap: 12 }}>
+          <Button
+            type="button"
+            variant="tertiary"
+            icon={chevronLeft}
+            iconPosition="left"
+            style={{ minHeight: 40, height: 40 }}
+            onClick={closeManageMode}
+          >
+            {__("Back to feed", "marques-de-france-connector-for-woocommerce")}
+          </Button>
+          <Button
+            type="button"
+            variant="primary"
+            style={{ minHeight: 40, height: 40 }}
+            onClick={closeManageMode}
+          >
+            {__("Save", "marques-de-france-connector-for-woocommerce")}
+          </Button>
         </div>
       )}
 
