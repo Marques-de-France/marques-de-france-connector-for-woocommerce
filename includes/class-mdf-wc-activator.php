@@ -69,8 +69,37 @@ class MDFCFORWC_Activator {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
+		// Create feed_products table for SERVERLIST mode.
+		self::create_feed_products_table( $charset_collate );
+
 		// Store the DB version for future migrations
 		update_option( 'mdfcforwc_db_version', MDFCFORWC_DB_VERSION );
+	}
+
+	/**
+	 * Creates (or verifies existence of) the feed_products table.
+	 * Safe to call multiple times — uses CREATE TABLE IF NOT EXISTS via dbDelta().
+	 *
+	 * @param string $charset_collate Optional. Falls back to $wpdb->get_charset_collate().
+	 */
+	private static function create_feed_products_table( string $charset_collate = '' ): void {
+		global $wpdb;
+
+		if ( '' === $charset_collate ) {
+			$charset_collate = $wpdb->get_charset_collate();
+		}
+
+		$table = $wpdb->prefix . 'mdfcforwc_feed_products';
+		$sql   = "CREATE TABLE IF NOT EXISTS {$table} (
+			id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			product_id BIGINT UNSIGNED NOT NULL,
+			added_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id),
+			UNIQUE KEY product_id (product_id)
+		) {$charset_collate};";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
 	}
 
 	private static function schedule_actions() {
@@ -98,6 +127,9 @@ class MDFCFORWC_Activator {
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
+		// Ensure the feed_products table exists (introduced in DB version 1.2.0).
+		self::create_feed_products_table();
+
 		// Add hub_sync_attempts column (introduced in DB version 1.1.0).
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
 		$col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'hub_sync_attempts'" );
@@ -121,7 +153,7 @@ class MDFCFORWC_Activator {
 	 */
 	private static function register_with_hub() {
 		$hub_url  = rtrim( MDFCFORWC_HUB_URL, '/' );
-		$site_url = home_url();
+		$site_url = MDFCFORWC_Settings::get_site_url();
 
 		$response = wp_remote_post(
 			$hub_url . '/api/wc/self-register',
@@ -176,7 +208,7 @@ class MDFCFORWC_Activator {
 
 		$hub_url  = rtrim( MDFCFORWC_Settings::get_hub_url(), '/' );
 		$token    = MDFCFORWC_Settings::get_secure_token();
-		$site_url = home_url();
+		$site_url = MDFCFORWC_Settings::get_site_url();
 
 		// ---------------------------------------------------------------------------
 		// Fetch all sales pages from the Hub before touching the local DB.

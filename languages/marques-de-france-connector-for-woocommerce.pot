@@ -1,381 +1,378 @@
-# Copyright (C) 2026 Marques de France
-# This file is distributed under the GPL-2.0-or-later.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Marques de France
+# This file is distributed under the same license as the Marques de France package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Marques de France 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/marques-de-france-connector-for-woocommerce\n"
+"Project-Id-Version: Marques de France 1.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-04 12:13+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-07T14:17:31+00:00\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: marques-de-france-connector-for-woocommerce\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#. Plugin Name of the plugin
-#. Author of the plugin
-#: marques-de-france-connector-for-woocommerce.php
-#: admin/class-mdf-wc-admin.php:60
-#: admin/class-mdf-wc-admin.php:61
-#: build/index.js:1
-#: src/admin/App.js:36
-msgid "Marques de France"
-msgstr ""
-
-#. Plugin URI of the plugin
-#. Author URI of the plugin
-#: marques-de-france-connector-for-woocommerce.php
-msgid "https://www.marques-de-france.fr"
-msgstr ""
-
-#. Description of the plugin
-#: marques-de-france-connector-for-woocommerce.php
-msgid "Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform."
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:72
-#: admin/class-mdf-wc-admin.php:73
-#: build/index.js:1
-#: src/admin/App.js:14
+#: src/admin/App.js:10 admin/class-mdf-wc-admin.php:78
+#: admin/class-mdf-wc-admin.php:79
 msgid "Dashboard"
 msgstr ""
 
-#: admin/class-mdf-wc-admin.php:82
-#: admin/class-mdf-wc-admin.php:83
-#: build/index.js:1
-#: src/admin/App.js:15
-msgid "Sales"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:92
-#: admin/class-mdf-wc-admin.php:93
-#: build/index.js:1
-#: src/admin/App.js:16
-msgid "Settings"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:439
-msgid "Marques de France – Attribution"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:462
-msgid "No MDF attribution for this order."
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:467
-msgid "Source"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:468
-msgid "UTM Source"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:469
-msgid "UTM Medium"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:470
-msgid "UTM Campaign"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:471
-msgid "UTM Content"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:472
-msgid "UTM Term"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:473
-msgid "Landing Site"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:474
-msgid "Referring Site"
-msgstr ""
-
-#: admin/class-mdf-wc-admin.php:475
-msgid "Ref Param"
-msgstr ""
-
-#: marques-de-france-connector-for-woocommerce.php:116
-msgid "Marques de France requires WooCommerce to be installed and active."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:31
-msgid "No data for the selected period."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:72
-msgid "Failed to load data."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:106
-msgid "✓ Connected to MDF Hub"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:108
-msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:109
-msgid "✗ Hub not reachable"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:117
-msgid "Total Sales"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:119
-msgid "attributed"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:122
-msgid "Total Revenue"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:124
-msgid "confirmed"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:127
-msgid "This Month"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:129
-#: src/admin/pages/Sales.js:148
-msgid "sales"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:133
-msgid "Unsynced"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:135
-msgid "pending Hub sync"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:143
-msgid "Revenue over time"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:147
-msgid "Daily"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:148
-msgid "Monthly"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:88
-msgid "Plugin not configured. Please go to "
-msgstr ""
-
-#: build/index.js:1
-msgid "Activate your store"
-msgstr ""
-
-#: build/index.js:1
-msgid "Store registered"
-msgstr ""
-
-#: build/index.js:1
-msgid "Enter your activation code"
-msgstr ""
-
-#: build/index.js:1
-msgid "Your store has been successfully registered. Our team will send you your activation code by email, it may take a few hours. Once received, enter it in the "
-msgstr ""
-
-#: build/index.js:1
-msgid "Settings tab"
-msgstr ""
-
-#: build/index.js:1
-msgid " to complete the setup."
-msgstr ""
-
-#: build/index.js:1
-msgid "Enter my activation code"
-msgstr ""
-
-#: build/index.js:1
-msgid "Token saved. Store connected."
-msgstr ""
-
-#: build/index.js:1
-msgid "Token saved but connection failed. Please check your access code."
-msgstr ""
-
-#: build/index.js:1
-msgid "Token saved but connection check failed."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:88
-msgid " and enter your Secure Token."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:75
-msgid "Failed to load sales."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:109
-msgid "Search order ID…"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:117
-msgid "All statuses"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:118
-msgid "Confirmed"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:119
-msgid "Cancelled"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:120
-msgid "Refunded"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:130
-msgid "From"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:137
-msgid "To"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:140
-msgid "Reset"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:157
-msgid "Order"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:159
-msgid "Attribution"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:161
-msgid "Amount"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:164
-msgid "Status"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:167
-msgid "Date"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:169
-msgid "Synced"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:176
-msgid "No sales found."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:214
-msgid "Previous"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:222
-msgid "Next"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:83
-msgid "Connection"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:87
-msgid "Secure Token"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:88
-msgid "The token provided by Marques de France when your store was registered."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:50
-msgid "Settings saved."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:55
-msgid "Failed to save settings."
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:102
-msgid "Save settings"
-msgstr ""
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:110
+#: src/admin/App.js:11 src/admin/pages/Settings.js:113
 msgid "Product Feed"
 msgstr ""
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:114
-msgid "Share this URL with Marques de France to enable your product feed in the directory."
+#: src/admin/App.js:12 src/admin/pages/Dashboard.js:167
+#: src/admin/pages/Sales.js:230 src/admin/pages/Sales.js:267
+msgid "Sales"
 msgstr ""
 
-#: build/index.js:1
+#: src/admin/App.js:13 admin/class-mdf-wc-admin.php:108
+#: admin/class-mdf-wc-admin.php:109
+msgid "Settings"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:64
+msgid "Failed to load data."
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:78 src/admin/pages/Sales.js:349
+#: src/admin/pages/Sales.js:552
+msgid "Loading…"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:94
+msgid "Activate your store"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:103
+msgid "Store registered"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:113
+msgid "Enter your activation code"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:125
+msgid "Enter my activation code"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:152 src/admin/pages/Sales.js:253
+msgid "Revenue"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:213
+msgid "Hub connected"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:217
+msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:228
+msgid "Total Sales"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:237 src/admin/pages/Dashboard.js:255
+msgid "All time"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:246 src/admin/pages/Sales.js:395
+msgid "Confirmed"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:264
+msgid "Total Revenue"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:273
+msgid "Confirmed only"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:282
+msgid "This Month"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:291 src/admin/pages/Sales.js:455
+msgid "sales"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:301
+msgid "Unsynced"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:310
+msgid "pending Hub sync"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:323
+msgid "Sales over the last 12 months"
+msgstr ""
+
+#: src/admin/pages/Dashboard.js:334
+msgid "No data for the selected period."
+msgstr ""
+
+#: src/admin/pages/Sales.js:86
+msgid "Last 7 days"
+msgstr ""
+
+#: src/admin/pages/Sales.js:91
+msgid "Last 28 days"
+msgstr ""
+
+#: src/admin/pages/Sales.js:98
+msgid "Last 90 days"
+msgstr ""
+
+#: src/admin/pages/Sales.js:105
+msgid "Last 12 months"
+msgstr ""
+
+#: src/admin/pages/Sales.js:111
+msgid "Last year"
+msgstr ""
+
+#: src/admin/pages/Sales.js:115
+msgid "This year"
+msgstr ""
+
+#: src/admin/pages/Sales.js:177
+msgid "Failed to load sales."
+msgstr ""
+
+#: src/admin/pages/Sales.js:295
+msgid "Revenue over time"
+msgstr ""
+
+#: src/admin/pages/Sales.js:324
+msgid "Daily"
+msgstr ""
+
+#: src/admin/pages/Sales.js:338
+msgid "Monthly"
+msgstr ""
+
+#: src/admin/pages/Sales.js:370
+msgid "Search order ID…"
+msgstr ""
+
+#: src/admin/pages/Sales.js:389
+msgid "All statuses"
+msgstr ""
+
+#: src/admin/pages/Sales.js:401
+msgid "Cancelled"
+msgstr ""
+
+#: src/admin/pages/Sales.js:407
+msgid "Refunded"
+msgstr ""
+
+#: src/admin/pages/Sales.js:413
+msgid "Pending"
+msgstr ""
+
+#: src/admin/pages/Sales.js:419
+msgid "From"
+msgstr ""
+
+#: src/admin/pages/Sales.js:431
+msgid "To"
+msgstr ""
+
+#: src/admin/pages/Sales.js:444
+msgid "Reset"
+msgstr ""
+
+#: src/admin/pages/Sales.js:477
+msgid "Order"
+msgstr ""
+
+#: src/admin/pages/Sales.js:485
+msgid "Attribution"
+msgstr ""
+
+#: src/admin/pages/Sales.js:500
+msgid "Amount"
+msgstr ""
+
+#: src/admin/pages/Sales.js:517
+msgid "Status"
+msgstr ""
+
+#: src/admin/pages/Sales.js:536
+msgid "Date"
+msgstr ""
+
+#: src/admin/pages/Sales.js:576
+msgid "No sales found."
+msgstr ""
+
+#: src/admin/pages/Sales.js:638
+msgid "Page"
+msgstr ""
+
+#: src/admin/pages/Sales.js:649
+msgid "Previous"
+msgstr ""
+
+#: src/admin/pages/Sales.js:659
+msgid "Next"
+msgstr ""
+
+#: src/admin/pages/Settings.js:27
+msgid "Settings saved."
+msgstr ""
+
+#: src/admin/pages/Settings.js:35
+msgid "Failed to save settings."
+msgstr ""
+
+#: src/admin/pages/Settings.js:59
+msgid "Connection"
+msgstr ""
+
+#: src/admin/pages/Settings.js:80
+msgid "Secure Token"
+msgstr ""
+
+#: src/admin/pages/Settings.js:94
+msgid "The token provided by Marques de France when your store was registered."
+msgstr ""
+
+#: src/admin/pages/Settings.js:101
+msgid "Save settings"
+msgstr ""
+
 #: src/admin/pages/Settings.js:119
+msgid ""
+"Share this URL with Marques de France to enable your product feed in the "
+"directory."
+msgstr ""
+
+#: src/admin/pages/Settings.js:128
 msgid "Copied!"
 msgstr ""
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:119
+#: src/admin/pages/Settings.js:132
 msgid "Copy URL"
 msgstr ""
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:122
+#: src/admin/pages/Settings.js:143
 msgid "Preview"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:66 admin/class-mdf-wc-admin.php:67
+#: admin/class-mdf-wc-admin.php:609 admin/class-mdf-wc-admin.php:639
+msgid "Marques de France"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:88
+msgid "Product feed"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:89
+msgid "Flux de produits"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:98
+msgid "Sales tracking"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:99
+msgid "Suivi des ventes"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:563
+#, php-format
+msgid ""
+"<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF "
+"Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
+"settings</a>."
+msgid_plural ""
+"<strong>Marques de France</strong>: %1$d sales have not been synced to the "
+"MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
+"settings</a>."
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/class-mdf-wc-admin.php:610
+msgid ""
+"Could not reach the MDF Hub. Check your connection settings and try again."
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:617
+#, php-format
+msgid "Marques de France: %d sale restored from the MDF Hub."
+msgid_plural "Marques de France: %d sales restored from the MDF Hub."
+msgstr[0] ""
+msgstr[1] ""
+
+#: admin/class-mdf-wc-admin.php:640
+msgid ""
+"Sales data may be out of sync (e.g. after a plugin reinstall). Click below "
+"to restore from the MDF Hub — this will replace the local sales table with "
+"the Hub's records."
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:646
+msgid "Restore sales from Hub"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:659
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1124
+msgid "Marques de France – Attribution"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1146
+msgid "No attribution detected for this order."
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1151
+msgid "Source"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1152
+msgid "UTM Source"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1153
+msgid "UTM Medium"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1154
+msgid "UTM Campaign"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1155
+msgid "UTM Content"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1156
+msgid "UTM Term"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1157
+msgid "Landing Site"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1158
+msgid "Referring Site"
+msgstr ""
+
+#: admin/class-mdf-wc-admin.php:1159
+msgid "Ref Param"
+msgstr ""
+
+#: marques-de-france-connector-for-woocommerce.php:117
+msgid "Marques de France requires WooCommerce to be installed and active."
 msgstr ""

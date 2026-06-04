@@ -45,8 +45,31 @@ class MDFCFORWC_Settings {
 		return rtrim( MDFCFORWC_HUB_URL, '/' );
 	}
 
+	public static function get_site_url(): string {
+		return rtrim( home_url(), '/' );
+	}
+
 	public static function is_configured(): bool {
 		return '' !== self::get_secure_token();
+	}
+
+	/**
+	 * Returns the current feed filter mode: 'TAG' (default) or 'SERVERLIST'.
+	 */
+	public static function get_feed_filter_mode(): string {
+		return (string) get_option( 'mdfcforwc_feed_filter_mode', 'TAG' );
+	}
+
+	/**
+	 * Persists the feed filter mode. Only 'TAG' and 'SERVERLIST' are accepted.
+	 *
+	 * @param string $mode 'TAG' | 'SERVERLIST'.
+	 */
+	public static function set_feed_filter_mode( string $mode ): void {
+		if ( ! in_array( $mode, [ 'TAG', 'SERVERLIST' ], true ) ) {
+			return;
+		}
+		update_option( 'mdfcforwc_feed_filter_mode', $mode );
 	}
 
 

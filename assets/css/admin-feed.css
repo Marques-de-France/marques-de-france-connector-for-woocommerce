@@ -1,0 +1,95 @@
+/**
+ * MDF WooCommerce – Product Feed admin page styles
+ */
+
+/* Card container */
+.mdf-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	padding: 16px 20px;
+	margin: 16px 0;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.mdf-card h2 {
+	font-size: 1em;
+	font-weight: 600;
+	margin: 0 0 10px;
+	padding: 0;
+}
+
+.mdf-count {
+	font-weight: 400;
+	color: #646970;
+}
+
+/* Availability badges */
+.mdf-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.mdf-badge-green {
+	background: #d4edda;
+	color: #155724;
+}
+
+.mdf-badge-red {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+.mdf-badge-gray {
+	background: #e2e3e5;
+	color: #383d41;
+}
+
+/* Highlighted row — product in feed */
+.mdf-row-in-feed {
+	background: #f0f9ff !important;
+}
+
+/* Empty state */
+.mdf-empty {
+	padding: 32px 16px;
+	text-align: center;
+	color: #646970;
+}
+
+.mdf-empty p {
+	margin: 0 0 4px;
+}
+
+/* Brand sub-label in table */
+.mdf-brand {
+	color: #646970;
+	font-size: 12px;
+}
+
+/* In-feed count inline label */
+.mdf-in-feed-count {
+	color: #646970;
+	font-size: 13px;
+	margin-left: 8px;
+	vertical-align: middle;
+}
+
+/* Notice margin tweaks */
+.mdf-notice.notice {
+	margin-top: 16px !important;
+	margin-bottom: 4px !important;
+}
+
+/* Manage mode header */
+.mdf-manage-header {
+	margin-bottom: 12px;
+}
+
+.mdf-manage-header h2 {
+	margin: 12px 0 4px;
+}

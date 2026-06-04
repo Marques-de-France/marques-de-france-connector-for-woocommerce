@@ -26,8 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constants
 // ---------------------------------------------------------------------------
 
-define( 'MDFCFORWC_VERSION',     '1.1.0' );
-define( 'MDFCFORWC_DB_VERSION',  '1.1.0' );
+define( 'MDFCFORWC_VERSION',     '1.2.0' );
+define( 'MDFCFORWC_DB_VERSION',  '1.2.0' );
 define( 'MDFCFORWC_PLUGIN_FILE', __FILE__ );
 define( 'MDFCFORWC_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'MDFCFORWC_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
@@ -102,8 +102,9 @@ function mdfcforwc_autoloader( $class_name ) {
 		'MDFCFORWC_Tracker'     => 'includes/class-mdf-wc-tracker.php',
 		'MDFCFORWC_Attribution' => 'includes/class-mdf-wc-attribution.php',
 		'MDFCFORWC_Hub_Client'  => 'includes/class-mdf-wc-hub-client.php',
-		'MDFCFORWC_Feed'        => 'includes/class-mdf-wc-feed.php',
-		'MDFCFORWC_Admin'       => 'admin/class-mdf-wc-admin.php',
+		'MDFCFORWC_Feed'          => 'includes/class-mdf-wc-feed.php',
+		'MDFCFORWC_Feed_Products' => 'includes/class-mdf-wc-feed-products.php',
+		'MDFCFORWC_Admin'         => 'admin/class-mdf-wc-admin.php',
 	];
 
 	if ( isset( $map[ $class_name ] ) ) {

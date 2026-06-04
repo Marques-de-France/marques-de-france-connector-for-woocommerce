@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MDFCFORWC_Admin {
 
 	const MENU_SLUG         = 'marques-de-france-connector-for-woocommerce';
-	const CAPABILITY        = 'manage_woocommerce';
+	const CAPABILITY        = 'manage_options';
 	const REST_NAMESPACE    = 'mdfcforwc/v1';
 
 	private static ?self $instance = null;
@@ -54,6 +54,25 @@ class MDFCFORWC_Admin {
 		// Settings page: delegate to MDFCFORWC_Settings for WP Settings API
 		$settings = MDFCFORWC_Settings::get_instance();
 		$settings->register();
+	}
+
+	private function user_can_access(): bool {
+		return current_user_can( self::CAPABILITY ) || current_user_can( 'manage_woocommerce' );
+	}
+
+	private function sync_sales_from_hub_if_needed(): void {
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
+			return;
+		}
+
+		$cache_key = 'mdfcforwc_sales_sync_from_hub';
+		if ( false !== get_transient( $cache_key ) ) {
+			return;
+		}
+
+		require_once MDFCFORWC_PLUGIN_DIR . 'includes/class-mdf-wc-activator.php';
+		MDFCFORWC_Activator::backfill_from_hub( false );
+		set_transient( $cache_key, 1, 5 * MINUTE_IN_SECONDS );
 	}
 
 	// ---------------------------------------------------------------------------
@@ -122,7 +141,13 @@ class MDFCFORWC_Admin {
 	}
 
 	public function render_page_feed() {
-		echo '<div id="mdf-wc-admin" data-page="feed"></div>';
+		?>
+		<div class="wrap" id="mdf-feed-page">
+			<h1 class="wp-heading-inline"><?php esc_html_e( 'Product feed', 'marques-de-france-connector-for-woocommerce' ); ?></h1>
+			<div id="mdf-feed-root"></div>
+			<div id="mdf-manage-section" style="display:none"></div>
+		</div>
+		<?php
 	}
 
 	public function render_page_sales() {
@@ -149,6 +174,35 @@ class MDFCFORWC_Admin {
 			return;
 		}
 
+		// Feed page uses PHP-rendered HTML + vanilla JS (no React bundle needed).
+		if ( 'marques-de-france_page_' . self::MENU_SLUG . '-feed' === $hook ) {
+			wp_enqueue_script(
+				'mdfcforwc-admin-feed',
+				MDFCFORWC_PLUGIN_URL . 'assets/js/admin-feed.js',
+				[],
+				MDFCFORWC_VERSION,
+				true
+			);
+			wp_localize_script(
+				'mdfcforwc-admin-feed',
+				'mdfcforwcFeed',
+				[
+					'restUrl'    => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
+					'nonce'      => wp_create_nonce( 'wp_rest' ),
+					'filterMode' => MDFCFORWC_Settings::get_feed_filter_mode(),
+					'feedUrl'    => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
+					'token'      => MDFCFORWC_Settings::get_secure_token(),
+				]
+			);
+			wp_enqueue_style(
+				'mdfcforwc-admin-feed',
+				MDFCFORWC_PLUGIN_URL . 'assets/css/admin-feed.css',
+				[],
+				MDFCFORWC_VERSION
+			);
+			return;
+		}
+
 		$asset_file = MDFCFORWC_PLUGIN_DIR . 'build/index.asset.php';
 
 		if ( ! file_exists( $asset_file ) ) {
@@ -157,11 +211,19 @@ class MDFCFORWC_Admin {
 
 		$asset = require $asset_file;
 
+		$script_version = file_exists( MDFCFORWC_PLUGIN_DIR . 'build/index.js' )
+			? filemtime( MDFCFORWC_PLUGIN_DIR . 'build/index.js' )
+			: $asset['version'];
+
+		$style_version = file_exists( MDFCFORWC_PLUGIN_DIR . 'build/style-index.css' )
+			? filemtime( MDFCFORWC_PLUGIN_DIR . 'build/style-index.css' )
+			: $asset['version'];
+
 		wp_enqueue_script(
 			'mdfcforwc-admin',
 			MDFCFORWC_PLUGIN_URL . 'build/index.js',
 			$asset['dependencies'],
-			$asset['version'],
+			$script_version,
 			true
 		);
 
@@ -169,7 +231,7 @@ class MDFCFORWC_Admin {
 			'mdfcforwc-admin',
 			MDFCFORWC_PLUGIN_URL . 'build/style-index.css',
 			[ 'wp-components' ],
-			$asset['version']
+			$style_version
 		);
 
 		// Pass data to JS
@@ -177,13 +239,15 @@ class MDFCFORWC_Admin {
 			'mdfcforwc-admin',
 			'mdfcforwcAdmin',
 			[
-				'restUrl'     => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
-				'nonce'       => wp_create_nonce( 'wp_rest' ),
-				'feedUrl'     => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
-				'token'       => MDFCFORWC_Settings::get_secure_token(),
-				'configured'  => MDFCFORWC_Settings::is_configured(),
-				'siteUrl'     => home_url(),
-				'settingsUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
+				'restUrl'      => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
+				'nonce'        => wp_create_nonce( 'wp_rest' ),
+				'feedUrl'      => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
+				'token'        => MDFCFORWC_Settings::get_secure_token(),
+				'configured'   => MDFCFORWC_Settings::is_configured(),
+				'siteUrl'      => MDFCFORWC_Settings::get_site_url(),
+				'pluginUrl'    => MDFCFORWC_PLUGIN_URL,
+				'settingsUrl'  => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
+				'feedAdminUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-feed' ) ),
 			]
 		);
 
@@ -205,7 +269,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_stats' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 		] );
 
@@ -214,7 +278,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_analytics' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'dateFrom'    => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
@@ -228,7 +292,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_sales' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'page'     => [ 'type' => 'integer', 'default' => 1 ],
@@ -247,7 +311,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_hub_status' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 		] );
 
@@ -256,7 +320,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_products' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'search'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
@@ -270,7 +334,7 @@ class MDFCFORWC_Admin {
 		register_rest_route( self::REST_NAMESPACE, '/admin/settings', [
 			'methods'             => WP_REST_Server::CREATABLE,
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'mdfcforwc_secure_token' => [
@@ -281,12 +345,194 @@ class MDFCFORWC_Admin {
 			],
 			'callback' => [ $this, 'rest_save_settings' ],
 		] );
+
+		// GET + PATCH /wp-json/mdfcforwc/v1/admin/feed-settings
+		register_rest_route( self::REST_NAMESPACE, '/admin/feed-settings', [
+			[
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'rest_get_feed_settings' ],
+				'permission_callback' => function () {
+					return $this->user_can_access();
+				},
+			],
+			[
+				'methods'             => 'PATCH',
+				'callback'            => [ $this, 'rest_update_feed_settings' ],
+				'permission_callback' => function () {
+					return $this->user_can_access();
+				},
+				'args' => [
+					'feedFilterMode' => [
+						'type'              => 'string',
+						'required'          => true,
+						'enum'              => [ 'TAG', 'SERVERLIST' ],
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			],
+		] );
+
+		// GET /wp-json/mdfcforwc/v1/admin/all-products
+		register_rest_route( self::REST_NAMESPACE, '/admin/all-products', [
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_all_products' ],
+			'permission_callback' => function () {
+				return $this->user_can_access();
+			},
+			'args' => [
+				'search'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
+				'page'     => [ 'type' => 'integer', 'default' => 1,  'sanitize_callback' => 'absint' ],
+				'per_page' => [ 'type' => 'integer', 'default' => 25, 'sanitize_callback' => 'absint' ],
+			],
+		] );
+
+		// POST /wp-json/mdfcforwc/v1/admin/feed-products
+		register_rest_route( self::REST_NAMESPACE, '/admin/feed-products', [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => [ $this, 'rest_add_feed_product' ],
+			'permission_callback' => function () {
+				return $this->user_can_access();
+			},
+			'args' => [
+				'productId' => [
+					'type'              => 'integer',
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				],
+			],
+		] );
+
+		// DELETE /wp-json/mdfcforwc/v1/admin/feed-products/(?P<productId>[0-9]+)
+		register_rest_route( self::REST_NAMESPACE, '/admin/feed-products/(?P<productId>[0-9]+)', [
+			'methods'             => WP_REST_Server::DELETABLE,
+			'callback'            => [ $this, 'rest_remove_feed_product' ],
+			'permission_callback' => function () {
+				return $this->user_can_access();
+			},
+		] );
 	}
 
 	public function rest_save_settings( WP_REST_Request $request ): WP_REST_Response {
 		$token = $request->get_param( 'mdfcforwc_secure_token' );
 		update_option( 'mdfcforwc_secure_token', $token );
 		return new WP_REST_Response( [ 'success' => true ], 200 );
+	}
+
+	public function rest_get_feed_settings(): WP_REST_Response {
+		return new WP_REST_Response(
+			[ 'feedFilterMode' => MDFCFORWC_Settings::get_feed_filter_mode() ],
+			200
+		);
+	}
+
+	public function rest_update_feed_settings( WP_REST_Request $request ): WP_REST_Response {
+		$new_mode     = $request->get_param( 'feedFilterMode' );
+		$current_mode = MDFCFORWC_Settings::get_feed_filter_mode();
+
+		// Auto-import tagged products when switching TAG → SERVERLIST.
+		if ( 'SERVERLIST' === $new_mode && 'TAG' === $current_mode ) {
+			MDFCFORWC_Feed_Products::import_tagged_products();
+		}
+
+		MDFCFORWC_Settings::set_feed_filter_mode( $new_mode );
+		return new WP_REST_Response( [ 'feedFilterMode' => $new_mode ], 200 );
+	}
+
+	public function rest_all_products( WP_REST_Request $request ): WP_REST_Response {
+		$search   = $request->get_param( 'search' );
+		$page     = max( 1, (int) $request->get_param( 'page' ) );
+		$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
+
+		$wp_args = [
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		];
+
+		if ( $search ) {
+			$wp_args['s']              = $search;
+			$this->product_search_term = $search;
+			add_filter( 'posts_search', [ $this, 'extend_product_search_with_sku' ], 10, 2 );
+		}
+
+		$wp_query = new WP_Query( $wp_args );
+
+		if ( $search ) {
+			remove_filter( 'posts_search', [ $this, 'extend_product_search_with_sku' ], 10 );
+			$this->product_search_term = '';
+		}
+
+		$total       = (int) $wp_query->found_posts;
+		$total_pages = (int) ceil( $total / $per_page );
+
+		// Pre-fetch all feed product IDs for O(1) lookup in the loop.
+		$feed_ids     = MDFCFORWC_Feed_Products::get_selected_product_ids();
+		$feed_ids_set = array_flip( $feed_ids );
+
+		$items = [];
+
+		foreach ( $wp_query->posts as $post ) {
+			$product = wc_get_product( $post->ID );
+
+			if ( ! $product ) {
+				continue;
+			}
+
+			$image_id  = $product->get_image_id();
+			$image_src = $image_id ? wp_get_attachment_image_src( $image_id, 'thumbnail' ) : false;
+			$image     = $image_src ? $image_src[0] : wc_placeholder_img_src();
+
+			$brand_post = function_exists( 'get_field' ) ? get_field( 'product_listing', $product->get_id() ) : null;
+			$brand      = ( $brand_post && isset( $brand_post->post_title ) ) ? $brand_post->post_title : '';
+
+			$items[] = [
+				'id'           => $product->get_id(),
+				'name'         => $product->get_name(),
+				'image'        => $image,
+				'price'        => (float) $product->get_price(),
+				'price_html'   => $product->get_price_html(),
+				'brand'        => $brand,
+				'availability' => $product->is_in_stock() ? 'in stock' : 'out of stock',
+				'inFeed'       => isset( $feed_ids_set[ $product->get_id() ] ),
+				'edit_url'     => get_edit_post_link( $product->get_id(), 'raw' ),
+			];
+		}
+
+		return rest_ensure_response( [
+			'products'    => $items,
+			'total'       => $total,
+			'total_pages' => $total_pages,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'currency'    => get_woocommerce_currency(),
+			'inFeedCount' => MDFCFORWC_Feed_Products::get_count(),
+		] );
+	}
+
+	public function rest_add_feed_product( WP_REST_Request $request ): WP_REST_Response {
+		$product_id = (int) $request->get_param( 'productId' );
+
+		if ( ! get_post( $product_id ) ) {
+			return new WP_REST_Response( [ 'error' => 'Product not found' ], 404 );
+		}
+
+		$success = MDFCFORWC_Feed_Products::add_product( $product_id );
+		return new WP_REST_Response(
+			[ 'success' => $success, 'inFeedCount' => MDFCFORWC_Feed_Products::get_count() ],
+			$success ? 200 : 500
+		);
+	}
+
+	public function rest_remove_feed_product( WP_REST_Request $request ): WP_REST_Response {
+		$product_id = (int) $request->get_param( 'productId' );
+		$success    = MDFCFORWC_Feed_Products::remove_product( $product_id );
+		return new WP_REST_Response(
+			[ 'success' => $success, 'inFeedCount' => MDFCFORWC_Feed_Products::get_count() ],
+			200
+		);
 	}
 
 	// ── REST Callbacks ──────────────────────────────────────────────────────────
@@ -300,7 +546,7 @@ class MDFCFORWC_Admin {
 	 * so the notice disappears as soon as all rows are resolved.
 	 */
 	public function render_unsynced_notice() {
-		if ( ! current_user_can( self::CAPABILITY ) ) {
+		if ( ! $this->user_can_access() ) {
 			return;
 		}
 
@@ -352,7 +598,7 @@ class MDFCFORWC_Admin {
 	 * The notice disappears once the backfill has been run.
 	 */
 	public function render_backfill_notice() {
-		if ( ! current_user_can( self::CAPABILITY ) ) {
+		if ( ! $this->user_can_access() ) {
 			return;
 		}
 
@@ -428,7 +674,7 @@ class MDFCFORWC_Admin {
 	public function handle_backfill() {
 		check_admin_referer( 'mdfcforwc_backfill', 'mdfcforwc_backfill_nonce' );
 
-		if ( ! current_user_can( self::CAPABILITY ) ) {
+		if ( ! $this->user_can_access() ) {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'marques-de-france-connector-for-woocommerce' ) );
 		}
 
@@ -451,6 +697,7 @@ class MDFCFORWC_Admin {
 	// ── REST Callbacks ──────────────────────────────────────────────────────────
 
 	public function rest_stats() {
+		$this->sync_sales_from_hub_if_needed();
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
@@ -489,6 +736,7 @@ class MDFCFORWC_Admin {
 	}
 
 	public function rest_analytics( WP_REST_Request $request ) {
+		$this->sync_sales_from_hub_if_needed();
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
@@ -549,6 +797,7 @@ class MDFCFORWC_Admin {
 	}
 
 	public function rest_sales( WP_REST_Request $request ) {
+		$this->sync_sales_from_hub_if_needed();
 		global $wpdb;
 		// Raw table name — %i placeholder (WP 6.2+) backtick-quotes it safely.
 		$table_name = $wpdb->prefix . 'mdfcforwc_sales';
@@ -563,76 +812,61 @@ class MDFCFORWC_Admin {
 		$sort_f    = $request->get_param( 'sortField' );
 		$sort_d    = $request->get_param( 'sortDir' );
 
-		// Whitelist-validate sort column; %i will backtick-quote it — no interpolation.
 		$valid_fields = [ 'created_at', 'amount', 'order_id', 'status' ];
 		$sort_col     = in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at';
 		$sort_asc     = ( $sort_d === 'asc' );
 
-		// Conditional-flag WHERE params — all user values handled by %d/%s placeholders.
-		$status_active    = ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded' ], true ) ) ? 1 : 0;
-		$status_val       = $status_active ? $status : '';
-		$search_active    = $search ? 1 : 0;
-		$like_val         = $search ? '%' . $wpdb->esc_like( $search ) . '%' : '';
-		$date_from_active = $date_from ? 1 : 0;
+		$status_active    = ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded', 'pending' ], true ) ) ? 1 : 0;
+		$status_val       = $status_active ? sanitize_text_field( $status ) : '';
+		$search_active    = ! empty( $search ) ? 1 : 0;
+		$like_val         = $search_active ? '%' . $wpdb->esc_like( sanitize_text_field( $search ) ) . '%' : '';
+		$date_from_active = ! empty( $date_from ) ? 1 : 0;
 		$date_from_val    = $date_from_active ? sanitize_text_field( $date_from ) . ' 00:00:00' : '';
-		$date_to_active   = $date_to ? 1 : 0;
+		$date_to_active   = ! empty( $date_to ) ? 1 : 0;
 		$date_to_val      = $date_to_active ? sanitize_text_field( $date_to ) . ' 23:59:59' : '';
 
+		$conditions = [];
+		$params     = [];
+
+		if ( $status_active ) {
+			$conditions[] = 'status = %s';
+			$params[]     = $status_val;
+		}
+
+		if ( $search_active ) {
+			$conditions[] = '( order_id LIKE %s OR order_number LIKE %s )';
+			$params[]     = $like_val;
+			$params[]     = $like_val;
+		}
+
+		if ( $date_from_active ) {
+			$conditions[] = 'created_at >= %s';
+			$params[]     = $date_from_val;
+		}
+
+		if ( $date_to_active ) {
+			$conditions[] = 'created_at <= %s';
+			$params[]     = $date_to_val;
+		}
+
+		$table_name_quoted = '`' . esc_sql( $table_name ) . '`';
+		$sort_col_quoted   = '`' . esc_sql( $sort_col ) . '`';
+		$where_sql         = $conditions ? ' WHERE ' . implode( ' AND ', $conditions ) : '';
+
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i
-				WHERE ( %d = 0 OR status = %s )
-				  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-				  AND ( %d = 0 OR created_at >= %s )
-				  AND ( %d = 0 OR created_at <= %s )',
-				$table_name,
-				$status_active, $status_val,
-				$search_active, $like_val, $like_val,
-				$date_from_active, $date_from_val,
-				$date_to_active, $date_to_val
-			)
+		$total_sql = 'SELECT COUNT(*) FROM ' . $table_name_quoted . $where_sql;
+		$total     = (int) ( $params
+			? $wpdb->get_var( $wpdb->prepare( $total_sql, ...$params ) )
+			: $wpdb->get_var( $total_sql )
 		);
 
-		// Two static query templates (ASC / DESC) keep the direction keyword as a
-		// SQL literal. %i (WP 6.2+) handles table name and sort column safely.
-		$where_params = [
-			$table_name,
-			$status_active, $status_val,
-			$search_active, $like_val, $like_val,
-			$date_from_active, $date_from_val,
-			$date_to_active, $date_to_val,
-			$sort_col,
-			$per_page, $offset,
-		];
-
-		if ( $sort_asc ) {
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT * FROM %i
-					WHERE ( %d = 0 OR status = %s )
-					  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-					  AND ( %d = 0 OR created_at >= %s )
-					  AND ( %d = 0 OR created_at <= %s )
-					ORDER BY %i ASC LIMIT %d OFFSET %d',
-					...$where_params
-				),
-				ARRAY_A
-			);
-		} else {
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT * FROM %i
-					WHERE ( %d = 0 OR status = %s )
-					  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-					  AND ( %d = 0 OR created_at >= %s )
-					  AND ( %d = 0 OR created_at <= %s )
-					ORDER BY %i DESC LIMIT %d OFFSET %d',
-					...$where_params
-				),
-				ARRAY_A
-			);
-		}
+		$rows_sql = 'SELECT * FROM ' . $table_name_quoted . $where_sql . ' ORDER BY ' . $sort_col_quoted . ( $sort_asc ? ' ASC' : ' DESC' ) . ' LIMIT %d OFFSET %d';
+		$rows     = $wpdb->get_results(
+			$params
+				? $wpdb->prepare( $rows_sql, ...array_merge( $params, [ $per_page, $offset ] ) )
+				: $wpdb->prepare( 'SELECT * FROM ' . $table_name_quoted . $where_sql . ' ORDER BY ' . $sort_col_quoted . ( $sort_asc ? ' ASC' : ' DESC' ) . ' LIMIT %d OFFSET %d', $per_page, $offset ),
+			ARRAY_A
+		);
 		// phpcs:enable
 
 		return rest_ensure_response( [
@@ -653,7 +887,7 @@ class MDFCFORWC_Admin {
 
 		$hub_url  = MDFCFORWC_Settings::get_hub_url();
 		$token    = MDFCFORWC_Settings::get_secure_token();
-		$site_url = home_url();
+		$site_url = MDFCFORWC_Settings::get_site_url();
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[MDF-WC] hub-status ping — hub_url: ' . $hub_url . ', shop: ' . $site_url . ', token: ' . substr( $token, 0, 8 ) . '…' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -705,6 +939,7 @@ class MDFCFORWC_Admin {
 		$sort     = $request->get_param( 'sort' ) ?: 'name-asc';
 		$page     = max( 1, (int) $request->get_param( 'page' ) );
 		$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
+		$mode     = MDFCFORWC_Settings::get_feed_filter_mode();
 
 		// Map sort option to WP_Query args (WC-native 'price' orderby is unavailable
 		// when using WP_Query directly, so price sorts use meta_value_num + _price).
@@ -727,14 +962,33 @@ class MDFCFORWC_Admin {
 			'paged'          => $page,
 			'orderby'        => $order_args['orderby'],
 			'order'          => $order_args['order'],
-			'tax_query'      => [
+		];
+
+		if ( 'SERVERLIST' === $mode ) {
+			// SERVERLIST mode: show only products explicitly selected for the feed.
+			$feed_ids = MDFCFORWC_Feed_Products::get_selected_product_ids();
+			if ( empty( $feed_ids ) ) {
+				return rest_ensure_response( [
+					'products'    => [],
+					'total'       => 0,
+					'total_pages' => 1,
+					'page'        => $page,
+					'per_page'    => $per_page,
+					'currency'    => get_woocommerce_currency(),
+					'inFeedCount' => 0,
+				] );
+			}
+			$wp_args['post__in'] = $feed_ids;
+		} else {
+			// TAG mode: products with the 'marques-de-france' tag, in-stock, non-virtual.
+			$wp_args['tax_query'] = [
 				[
 					'taxonomy' => 'product_tag',
 					'field'    => 'slug',
 					'terms'    => 'marques-de-france',
 				],
-			],
-			'meta_query'     => [
+			];
+			$wp_args['meta_query'] = [
 				'relation' => 'AND',
 				[
 					'key'     => '_virtual',
@@ -745,8 +999,8 @@ class MDFCFORWC_Admin {
 					'key'   => '_stock_status',
 					'value' => 'instock',
 				],
-			],
-		];
+			];
+		}
 
 		if ( isset( $order_args['meta_key'] ) ) {
 			$wp_args['meta_key'] = $order_args['meta_key'];
@@ -807,7 +1061,9 @@ class MDFCFORWC_Admin {
 				'currency'           => get_woocommerce_currency(),
 				'brand'              => $brand,
 				'availability'       => $product->is_in_stock() ? 'in stock' : 'out of stock',
-				'has_mdf_tag'        => true, // filtered by tag at query level
+				'has_mdf_tag'        => 'SERVERLIST' === $mode
+				? has_term( 'marques-de-france', 'product_tag', $product->get_id() )
+				: true, // all results carry the tag in TAG mode
 				'type'               => $product->get_type(),
 				'total_variants'     => $total_variants,
 				'available_variants' => $available_variants,
@@ -815,14 +1071,20 @@ class MDFCFORWC_Admin {
 			];
 		}
 
-		return rest_ensure_response( [
+		$response = [
 			'products'    => $items,
 			'total'       => $total,
 			'total_pages' => $total_pages,
 			'page'        => $page,
 			'per_page'    => $per_page,
 			'currency'    => get_woocommerce_currency(),
-		] );
+		];
+
+		if ( 'SERVERLIST' === $mode ) {
+			$response['inFeedCount'] = MDFCFORWC_Feed_Products::get_count();
+		}
+
+		return rest_ensure_response( $response );
 	}
 
 	/**

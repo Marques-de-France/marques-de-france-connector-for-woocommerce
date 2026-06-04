@@ -118,27 +118,49 @@ class MDFCFORWC_Feed {
 	// ---------------------------------------------------------------------------
 
 	private function get_feed_products( int $per_page, int $page ): array {
-		// WC 10.7+ auto-injects a product_type tax_query via wc_get_products(), which
-		// excludes any type not registered in wc_get_product_types() (e.g. composite
-		// from WooCommerce Composite Products by SomewhereWarm). Using WP_Query
-		// directly on post_type=product bypasses that restriction entirely.
-		$wp_query = new WP_Query( [
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => $per_page,
-			'paged'          => $page,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			'no_found_rows'  => true,
-			'fields'         => 'ids',
-			'tax_query'      => [
-				[
-					'taxonomy' => 'product_tag',
-					'field'    => 'slug',
-					'terms'    => 'marques-de-france',
+		$mode = MDFCFORWC_Settings::get_feed_filter_mode();
+
+		if ( 'SERVERLIST' === $mode ) {
+			$feed_ids = MDFCFORWC_Feed_Products::get_selected_product_ids();
+			if ( empty( $feed_ids ) ) {
+				return [];
+			}
+			$query_args = [
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'post__in'       => $feed_ids,
+				'orderby'        => 'post__in',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			];
+		} else {
+			// TAG mode: products with the 'marques-de-france' tag.
+			// WC 10.7+ auto-injects a product_type tax_query via wc_get_products(), which
+			// excludes any type not registered in wc_get_product_types() (e.g. composite
+			// from WooCommerce Composite Products by SomewhereWarm). Using WP_Query
+			// directly on post_type=product bypasses that restriction entirely.
+			$query_args = [
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'tax_query'      => [
+					[
+						'taxonomy' => 'product_tag',
+						'field'    => 'slug',
+						'terms'    => 'marques-de-france',
+					],
 				],
-			],
-		] );
+			];
+		}
+
+		$wp_query = new WP_Query( $query_args );
 
 		$items = [];
 
