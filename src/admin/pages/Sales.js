@@ -2,33 +2,8 @@ import { useState, useEffect, useRef } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button, DatePicker, Popover } from '@wordpress/components';
-import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	PointElement,
-	LineElement,
-	BarElement,
-	BarController,
-	LineController,
-	Title,
-	Tooltip,
-	Legend,
-} from 'chart.js';
-import { Chart } from 'react-chartjs-2';
-
-ChartJS.register(
-	CategoryScale,
-	LinearScale,
-	PointElement,
-	LineElement,
-	BarElement,
-	BarController,
-	LineController,
-	Title,
-	Tooltip,
-	Legend
-);
+import LoadingState from '../components/LoadingState';
+import RevenueChart from '../components/RevenueChart';
 
 /** Compute dateFrom/dateTo from a preset string. */
 function getRangeDates(preset) {
@@ -141,16 +116,7 @@ function formatDateValue(date) {
 	return `${year}-${month}-${day}`;
 }
 
-function formatAxisLabel(dateKey, granularity = 'day') {
-	const [year, month, day] = dateKey.split('-').map(Number);
-	const date = new Date(year, month - 1, day || 1);
 
-	return new Intl.DateTimeFormat('fr-FR', {
-		day: granularity === 'day' ? 'numeric' : undefined,
-		month: 'long',
-		year: 'numeric',
-	}).format(date);
-}
 
 export default function Sales() {
 	// Analytics state
@@ -238,92 +204,7 @@ export default function Sales() {
 		return sortDir === 'asc' ? ' ↑' : ' ↓';
 	};
 
-	// Chart config
-	const chartLabels =
-		analytics?.data?.map((d) => formatAxisLabel(d.date, granularity)) ||
-		[];
 	const currency = analytics?.currency || sales?.currency || 'EUR';
-	const revenueValues =
-		analytics?.data?.map((d) =>
-			parseFloat(Number(d.revenue || 0).toFixed(2))
-		) || [];
-
-	const chartDataset = {
-		labels: chartLabels,
-		datasets: [
-			{
-				type: 'line',
-				label: __('Chiffres d’affaires', 'marques-de-france-connector-for-woocommerce'),
-				data: revenueValues,
-				borderColor: '#051440',
-				backgroundColor: 'rgba(5,20,64,0.08)',
-				yAxisID: 'y',
-				tension: 0.3,
-				fill: false,
-				pointRadius: 4,
-				pointBackgroundColor: '#051440',
-			},
-			{
-				type: 'bar',
-				label: __(
-					'Sales',
-					'marques-de-france-connector-for-woocommerce'
-				),
-				data: analytics?.data?.map((d) => d.conversions) || [],
-				backgroundColor: 'rgba(255,102,84,0.65)',
-				borderColor: 'rgba(255,102,84,0)',
-				yAxisID: 'y1',
-			},
-		],
-	};
-
-	const chartOptions = {
-		responsive: true,
-		maintainAspectRatio: false,
-		interaction: { mode: 'index', intersect: false },
-		scales: {
-			y: {
-				type: 'linear',
-				position: 'left',
-				ticks: {
-					color: '#051440',
-					callback: (value) =>
-						formatAmount(value, currency, {
-							minimumFractionDigits: 0,
-							maximumFractionDigits: 0,
-						}),
-				},
-				title: {
-					display: true,
-					text: __(
-						'Revenue',
-						'marques-de-france-connector-for-woocommerce'
-					),
-					color: '#051440',
-				},
-			},
-			y1: {
-				type: 'linear',
-				position: 'right',
-				grid: { drawOnChartArea: false },
-				ticks: {
-					color: '#ed2e38',
-					callback: (value) => `${value}`,
-				},
-				title: {
-					display: true,
-					text: __(
-						'Sales',
-						'marques-de-france-connector-for-woocommerce'
-					),
-					color: '#ed2e38',
-				},
-			},
-		},
-		plugins: {
-			legend: { position: 'bottom' },
-		},
-	};
 
 	const formatAmount = (
 		v,
@@ -392,20 +273,14 @@ export default function Sales() {
 					</div>
 				</div>
 				<div className="mdf-chart-container">
-					{analyticsLoading ? (
-						<div className="mdf-loading">
-							{__(
-								'Loading…',
-								'marques-de-france-connector-for-woocommerce'
-							)}
-						</div>
-					) : (
-						<Chart
-							type="bar"
-							data={chartDataset}
-							options={chartOptions}
-						/>
-					)}
+					<RevenueChart
+						data={analytics}
+						currency={currency}
+						granularity={granularity}
+						loading={analyticsLoading}
+						revenueLabel={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
+						salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
+					/>
 				</div>
 			</div>
 
@@ -635,11 +510,11 @@ export default function Sales() {
 								<td
 									colSpan={5}
 									className="mdf-table__loading"
+									style={{ textAlign: 'center' }}
 								>
-									{__(
-										'Loading…',
-										'marques-de-france-connector-for-woocommerce'
-									)}
+									<LoadingState
+										style={{ margin: '0 auto' }}
+									/>
 								</td>
 							</tr>
 						)}

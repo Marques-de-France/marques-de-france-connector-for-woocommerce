@@ -9,6 +9,7 @@ import {
   Spinner,
 } from "@wordpress/components";
 import { chevronLeft } from "@wordpress/icons";
+import LoadingState from "../components/LoadingState";
 
 const { feedFilterMode: initialMode = "TAG" } = window.mdfcforwcAdmin || {};
 
@@ -39,6 +40,7 @@ export default function Feed() {
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState(null);
   const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const [isGuidanceModalOpen, setIsGuidanceModalOpen] = useState(false);
   const [pendingMode, setPendingMode] = useState(initialMode);
 
   const isServerList = mode === "SERVERLIST";
@@ -116,6 +118,14 @@ export default function Feed() {
   const closeModeModal = () => {
     setIsModeModalOpen(false);
     setPendingMode(mode);
+  };
+
+  const openGuidanceModal = () => {
+    setIsGuidanceModalOpen(true);
+  };
+
+  const closeGuidanceModal = () => {
+    setIsGuidanceModalOpen(false);
   };
 
   const handleModeSwitch = async (nextMode) => {
@@ -445,13 +455,9 @@ export default function Feed() {
         </div>
 
         {manageLoading ? (
-          <div className="mdf-loading">
-            <Spinner />
-            {__(
-              "Loading products…",
-              "marques-de-france-connector-for-woocommerce",
-            )}
-          </div>
+          <LoadingState
+            style={{ padding: "16px 0" }}
+          />
         ) : (
           <>
             <div className="mdf-table-wrap">
@@ -745,11 +751,14 @@ export default function Feed() {
             <tbody>
               {feedLoading ? (
                 <tr>
-                  <td colSpan={5} className="mdf-table__loading">
-                    {__(
-                      "Loading…",
-                      "marques-de-france-connector-for-woocommerce",
-                    )}
+                  <td
+                    colSpan={5}
+                    className="mdf-table__loading"
+                    style={{ textAlign: "center" }}
+                  >
+                    <LoadingState
+                      style={{ margin: "0 auto" }}
+                    />
                   </td>
                 </tr>
               ) : feedError ? (
@@ -870,13 +879,9 @@ export default function Feed() {
   if (loading) {
     return (
       <div className="mdf-page">
-        <div className="mdf-loading">
-          <Spinner />
-          {__(
-            "Loading feed settings…",
-            "marques-de-france-connector-for-woocommerce",
-          )}
-        </div>
+        <LoadingState
+          style={{ padding: "24px 0" }}
+        />
       </div>
     );
   }
@@ -905,6 +910,63 @@ export default function Feed() {
         </div>
       )}
 
+      {!manageMode && !isServerList && (
+        <div className="mdf-card mdf-feed-card" style={{ marginBottom: 16 }}>
+          <div className="mdf-chart-controls">
+            <strong style={{ fontSize: 14, color: "#051440" }}>
+              {__(
+                "How to include products in the feed?",
+                "marques-de-france-connector-for-woocommerce",
+              )}
+            </strong>
+          </div>
+          <p className="mdf-feed-copy">
+            {__(
+              "Add the ",
+              "marques-de-france-connector-for-woocommerce",
+            )}
+            <code
+              style={{
+                background: "#f0f0f0",
+                border: "1px solid #dddddd",
+                borderRadius: 3,
+                padding: "1px 5px",
+                fontSize: 12,
+              }}
+            >
+              {__("marques-de-france", "marques-de-france-connector-for-woocommerce")}
+            </code>
+            {__(
+              " tag to the products you want to list on Marques de France. Selected products must be manufactured in France.",
+              "marques-de-france-connector-for-woocommerce",
+            )}
+          </p>
+          <div className="mdf-feed-actions" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Button
+              variant="primary"
+              onClick={() => {
+                window.open(
+                  "/wp-admin/edit.php?post_type=product",
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+              disabled={switching}
+            >
+              {__("Edit products in bulk", "marques-de-france-connector-for-woocommerce")}
+            </Button>
+            <Button
+              variant="link"
+              style={{ backgroundColor: "#fff" }}
+              onClick={openGuidanceModal}
+              disabled={switching}
+            >
+              {__("How to do ?", "marques-de-france-connector-for-woocommerce")}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {!manageMode && (
         <div style={{ marginBottom: 16 }}>
           <Notice status="info" isDismissible={false}>
@@ -916,9 +978,119 @@ export default function Feed() {
         </div>
       )}
 
+      {isGuidanceModalOpen && (
+        <Modal
+          title={__("How to add the marques-de-france tag?", "marques-de-france-connector-for-woocommerce")}
+          onRequestClose={closeGuidanceModal}
+        >
+          <div style={{ display: "grid", gap: 0}}>
+            <div style={{ display: "grid", gap: 12 }}>
+              {[
+                {
+                  number: "1",
+                  title: "Go to Products",
+                  text: "From your WordPress admin, go to Products.",
+                },
+                {
+                  number: "2",
+                  title: "Select a product",
+                  text: "Open a product made in France.",
+                },
+                {
+                  number: "3",
+                  title: "Add the tag",
+                  text: (
+                    <>
+                      In the product page, add the tag{" "}
+                      <code
+                        style={{
+                          background: "#f0f0f0",
+                          border: "1px solid #dddddd",
+                          borderRadius: 3,
+                          padding: "1px 5px",
+                          fontSize: 12,
+                        }}
+                      >
+                        marques-de-france
+                      </code>
+                      {" "}in the Tags field.
+                    </>
+                  ),
+                },
+                {
+                  number: "4",
+                  title: "Save",
+                  text: "Click Update. The product will appear in the feed.",
+                },
+              ].map((step, index, array) => (
+                <div key={step.number} style={{ display: "flex", gap: 12 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      width: 28,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        borderRadius: "50%",
+                        background: "#051440",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 600,
+                        fontSize: 13,
+                      }}
+                    >
+                      {step.number}
+                    </div>
+                    {index < array.length - 1 && (
+                      <div
+                        style={{
+                          width: 2,
+                          background: "#e1e1e1",
+                          flex: 1,
+                          minHeight: 0,
+                          marginTop: 0,
+                          marginBottom: 0,
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ paddingBottom: 20, flex: 1 }}>
+                    <p style={{ fontWeight: 600, margin: "0 0 4px", color: "#1d2327" }}>{step.title}</p>
+                    <p style={{ margin: 0, color: "#757575", lineHeight: 1.5 }}>{step.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <hr style={{ border: "1px solid #e1e1e1", margin: "16px 0" }} />
+
+            <div style={{ display: "grid", gap: 6 }}>
+              <p style={{ fontWeight: 600, margin: "0 0 4px", color: "#1d2327" }}>
+                {__("How to bulk edit?", "marques-de-france-connector-for-woocommerce")}
+              </p>
+              <p style={{ margin: 0, color: "#757575", lineHeight: 1.5 }}>
+                {__(
+                  "To add the tag to multiple products at once, select them in the product list, then choose Edit from the Bulk actions dropdown and add the tag in the Tags field.",
+                  "marques-de-france-connector-for-woocommerce",
+                )}
+              </p>
+            </div>
+
+          </div>
+        </Modal>
+      )}
+
       {isModeModalOpen && (
         <Modal
-          title={__("Feed mode", "marques-de-france-connector-for-woocommerce")}
+          title={__("Change mode", "marques-de-france-connector-for-woocommerce")}
           onRequestClose={closeModeModal}
         >
           <div style={{ display: "grid", gap: 16, minWidth: 420 }}>
@@ -956,7 +1128,22 @@ export default function Feed() {
               </strong>
               <p style={{ margin: 0, color: "#50575e", lineHeight: 1.5 }}>
                 {__(
-                  "Simply add the tag marques-de-france to each of your products manufactured in France. This is the simplest and most direct method.",
+                  "Simply add the tag ",
+                  "marques-de-france-connector-for-woocommerce",
+                )}
+                <code
+                  style={{
+                    background: "#f0f0f0",
+                    border: "1px solid #dddddd",
+                    borderRadius: 3,
+                    padding: "1px 5px",
+                    fontSize: 12,
+                  }}
+                >
+                  {__("marques-de-france", "marques-de-france-connector-for-woocommerce")}
+                </code>
+                {__(
+                  " to each of your products manufactured in France. This is the simplest and most direct method.",
                   "marques-de-france-connector-for-woocommerce",
                 )}
               </p>
@@ -988,7 +1175,26 @@ export default function Feed() {
                 onClick={saveModeSelection}
                 disabled={switching || pendingMode === mode}
               >
-                {__("Save", "marques-de-france-connector-for-woocommerce")}
+                {switching ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Spinner
+                      style={{ width: 16, height: 16 }}
+                      aria-label={__(
+                        "Saving feed mode…",
+                        "marques-de-france-connector-for-woocommerce",
+                      )}
+                    />
+                    {__("Saving…", "marques-de-france-connector-for-woocommerce")}
+                  </span>
+                ) : (
+                  __("Save", "marques-de-france-connector-for-woocommerce")
+                )}
               </Button>
             </div>
           </div>

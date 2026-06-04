@@ -249,6 +249,14 @@
 	min-width: 560px;
 	width: 100%;
 
+	tbody tr:nth-child(even) {
+		background-color: #f8f9fa;
+	}
+
+	tbody tr:nth-child(odd) {
+		background-color: #fff;
+	}
+
 	th,
 	td {
 		border: 1px solid #e0e0e0;

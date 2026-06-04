@@ -2,43 +2,12 @@ import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
-import {
-	Chart as ChartJS,
-	CategoryScale,
-	LinearScale,
-	PointElement,
-	LineElement,
-	BarElement,
-	BarController,
-	LineController,
-	Title,
-	Tooltip,
-	Legend,
-} from 'chart.js';
-import { Chart } from 'react-chartjs-2';
-
-ChartJS.register(
-	CategoryScale,
-	LinearScale,
-	PointElement,
-	LineElement,
-	BarElement,
-	BarController,
-	LineController,
-	Title,
-	Tooltip,
-	Legend
-);
+import LoadingState from '../components/LoadingState';
+import RevenueChart from '../components/RevenueChart';
 
 const { configured, settingsUrl } = window.mdfcforwcAdmin || {};
 
-function formatMonthLabel( dateKey ) {
-	const [ year, month ] = dateKey.split( '-' ).map( Number );
-	return new Intl.DateTimeFormat( 'fr-FR', {
-		month: 'long',
-		year: 'numeric',
-	} ).format( new Date( year, month - 1, 1 ) );
-}
+
 
 export default function Dashboard() {
 	const [ stats, setStats ] = useState( null );
@@ -84,9 +53,9 @@ export default function Dashboard() {
 
 	if ( loading ) {
 		return (
-			<div className="mdf-loading">
-				{ __( 'Loading…', 'marques-de-france-connector-for-woocommerce' ) }
-			</div>
+			<LoadingState
+				style={{ minHeight: 160 }}
+			/>
 		);
 	}
 
@@ -153,78 +122,6 @@ export default function Dashboard() {
 			minimumFractionDigits,
 			maximumFractionDigits,
 		} ).format( Number( v ) || 0 );
-
-	const labels =
-		chartData?.data?.map( ( d ) => formatMonthLabel( d.date ) ) || [];
-	const revenueValues =
-		chartData?.data?.map( ( d ) =>
-			parseFloat( Number( d.revenue || 0 ).toFixed( 2 ) )
-		) || [];
-	const salesValues = chartData?.data?.map( ( d ) => d.conversions ) || [];
-
-	const mixedData = {
-		labels,
-		datasets: [
-			{
-				type: 'line',
-				label: __(
-					'Revenue',
-					'marques-de-france-connector-for-woocommerce'
-				),
-				data: revenueValues,
-				borderColor: '#051440',
-				backgroundColor: 'rgba(5,20,64,0.08)',
-				yAxisID: 'y',
-				tension: 0.3,
-				fill: false,
-				pointRadius: 3,
-				pointBackgroundColor: '#051440',
-			},
-			{
-				type: 'bar',
-				label: __(
-					'Sales',
-					'marques-de-france-connector-for-woocommerce'
-				),
-				data: salesValues,
-				backgroundColor: 'rgba(255,102,84,0.65)',
-				borderColor: 'rgba(255,102,84,0)',
-				yAxisID: 'y1',
-			},
-		],
-	};
-
-	const chartOptions = {
-		responsive: true,
-		maintainAspectRatio: false,
-		interaction: { mode: 'index', intersect: false },
-		scales: {
-			y: {
-				type: 'linear',
-				position: 'left',
-				ticks: {
-					color: '#051440',
-					callback: ( value ) =>
-						formatAmount( value, currency, {
-							minimumFractionDigits: 0,
-							maximumFractionDigits: 0,
-						} ),
-				},
-			},
-			y1: {
-				type: 'linear',
-				position: 'right',
-				grid: { drawOnChartArea: false },
-				ticks: {
-					color: '#ed2e38',
-					callback: ( value ) => `${ value }`,
-				},
-			},
-		},
-		plugins: {
-			legend: { position: 'bottom' },
-		},
-	};
 
 	return (
 		<div className="mdf-page">
@@ -337,16 +234,14 @@ export default function Dashboard() {
 					</strong>
 				</div>
 				<div className="mdf-chart-container">
-					{ labels.length > 0 ? (
-						<Chart type="bar" data={ mixedData } options={ chartOptions } />
-					) : (
-						<div className="mdf-loading">
-							{ __(
-								'No data for the selected period.',
-								'marques-de-france-connector-for-woocommerce'
-							) }
-						</div>
-					) }
+					<RevenueChart
+						data={ chartData }
+						currency={ currency }
+						granularity="month"
+						loading={ loading }
+						revenueLabel={ __( 'Revenue', 'marques-de-france-connector-for-woocommerce' ) }
+						salesLabel={ __( 'Sales', 'marques-de-france-connector-for-woocommerce' ) }
+					/>
 				</div>
 			</div>
 		</div>
