@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "@wordpress/element";
 import { __ } from "@wordpress/i18n";
 import apiFetch from "@wordpress/api-fetch";
-import { Button, Notice, Spinner } from "@wordpress/components";
+import {
+  Button,
+  Modal,
+  Notice,
+  SelectControl,
+  Spinner,
+} from "@wordpress/components";
 import { chevronLeft } from "@wordpress/icons";
 
 const { feedFilterMode: initialMode = "TAG" } = window.mdfcforwcAdmin || {};
@@ -32,10 +38,16 @@ export default function Feed() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [feedLoading, setFeedLoading] = useState(false);
   const [feedError, setFeedError] = useState(null);
+  const [isModeModalOpen, setIsModeModalOpen] = useState(false);
+  const [pendingMode, setPendingMode] = useState(initialMode);
 
   const isServerList = mode === "SERVERLIST";
 
-  const fetchProducts = async (page = 1, search = feedSearch) => {
+  const fetchProducts = async (
+    page = 1,
+    search = feedSearch,
+    nextMode = mode,
+  ) => {
     try {
       if (!isInitialized) {
         setLoading(true);
@@ -50,7 +62,7 @@ export default function Feed() {
       });
       setProducts(data.products || []);
       setInFeedCount(data.inFeedCount ?? data.total ?? 0);
-      setMode(data.feedFilterMode || mode);
+      setMode(nextMode);
       setFeedPage(page);
       setFeedTotalPages(data.total_pages || 1);
     } catch {
@@ -96,6 +108,16 @@ export default function Feed() {
     fetchProducts();
   }, []);
 
+  const openModeModal = () => {
+    setPendingMode(mode);
+    setIsModeModalOpen(true);
+  };
+
+  const closeModeModal = () => {
+    setIsModeModalOpen(false);
+    setPendingMode(mode);
+  };
+
   const handleModeSwitch = async (nextMode) => {
     if (
       !window.confirm(
@@ -116,7 +138,7 @@ export default function Feed() {
         data: { feedFilterMode: nextMode },
       });
       setMode(nextMode);
-      await fetchProducts(1, feedSearch);
+      await fetchProducts(1, feedSearch, nextMode);
     } catch {
       setError(
         __(
@@ -127,6 +149,11 @@ export default function Feed() {
     } finally {
       setSwitching(false);
     }
+  };
+
+  const saveModeSelection = async () => {
+    await handleModeSwitch(pendingMode);
+    setIsModeModalOpen(false);
   };
 
   const openManageMode = () => {
@@ -862,30 +889,17 @@ export default function Feed() {
         <div className="mdf-card mdf-feed-card">
           <div className="mdf-chart-controls">
             <strong style={{ fontSize: 14, color: "#051440" }}>
-              {__("Feed mode", "marques-de-france-connector-for-woocommerce")}
+              {__("Selection method", "marques-de-france-connector-for-woocommerce")}
             </strong>
           </div>
           <p className="mdf-feed-copy">{summaryText}</p>
           <div className="mdf-feed-actions">
             <Button
-              variant={isServerList ? "secondary" : "primary"}
-              onClick={() => handleModeSwitch("TAG")}
-              disabled={switching || !isServerList}
+              variant="primary"
+              onClick={openModeModal}
+              disabled={switching}
             >
-              {__(
-                "Use tag-based selection",
-                "marques-de-france-connector-for-woocommerce",
-              )}
-            </Button>
-            <Button
-              variant={isServerList ? "primary" : "secondary"}
-              onClick={() => handleModeSwitch("SERVERLIST")}
-              disabled={switching || isServerList}
-            >
-              {__(
-                "Use manual selection",
-                "marques-de-france-connector-for-woocommerce",
-              )}
+              {__("Change", "marques-de-france-connector-for-woocommerce")}
             </Button>
           </div>
         </div>
@@ -900,6 +914,85 @@ export default function Feed() {
             )}
           </Notice>
         </div>
+      )}
+
+      {isModeModalOpen && (
+        <Modal
+          title={__("Feed mode", "marques-de-france-connector-for-woocommerce")}
+          onRequestClose={closeModeModal}
+        >
+          <div style={{ display: "grid", gap: 16, minWidth: 420 }}>
+            <SelectControl
+              label={__(
+                "Selection method",
+                "marques-de-france-connector-for-woocommerce",
+              )}
+              value={pendingMode}
+              options={[
+                {
+                  label: __(
+                    "Via manual selection from this app",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
+                  value: "SERVERLIST",
+                },
+                {
+                  label: __(
+                    "Via the product tag field (Recommended)",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
+                  value: "TAG",
+                },
+              ]}
+              onChange={(value) => setPendingMode(value)}
+            />
+
+            <div style={{ display: "grid", gap: 8 }}>
+              <strong style={{ fontSize: 13 }}>
+                {__(
+                  "Via the product tag field (recommended)",
+                  "marques-de-france-connector-for-woocommerce",
+                )}
+              </strong>
+              <p style={{ margin: 0, color: "#50575e", lineHeight: 1.5 }}>
+                {__(
+                  "Simply add the tag marques-de-france to each of your products manufactured in France. This is the simplest and most direct method.",
+                  "marques-de-france-connector-for-woocommerce",
+                )}
+              </p>
+
+              <strong style={{ fontSize: 13 }}>
+                {__(
+                  "Via manual selection from this app",
+                  "marques-de-france-connector-for-woocommerce",
+                )}
+              </strong>
+              <p style={{ margin: 0, color: "#50575e", lineHeight: 1.5 }}>
+                {__(
+                  "Manually select products directly from this app. Choose this option if your product tag field is used to display information in your theme.",
+                  "marques-de-france-connector-for-woocommerce",
+                )}
+              </p>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+              <Button
+                variant="secondary"
+                style={{ backgroundColor: "#fff" }}
+                onClick={closeModeModal}
+              >
+                {__("Cancel", "marques-de-france-connector-for-woocommerce")}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={saveModeSelection}
+                disabled={switching || pendingMode === mode}
+              >
+                {__("Save", "marques-de-france-connector-for-woocommerce")}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {manageMode && (
