@@ -461,6 +461,7 @@ class MDFCFORWC_Admin {
 				'price'        => (float) $product->get_price(),
 				'price_html'   => $product->get_price_html(),
 				'brand'        => $brand,
+				'status'       => get_post_status( $product->get_id() ),
 				'availability' => $product->is_in_stock() ? 'in stock' : 'out of stock',
 				'inFeed'       => isset( $feed_ids_set[ $product->get_id() ] ),
 				'edit_url'     => get_edit_post_link( $product->get_id(), 'raw' ),
@@ -1040,6 +1041,7 @@ class MDFCFORWC_Admin {
 				'price_html'         => $product->get_price_html(),
 				'currency'           => get_woocommerce_currency(),
 				'brand'              => $brand,
+				'status'             => get_post_status( $product->get_id() ),
 				'availability'       => $product->is_in_stock() ? 'in stock' : 'out of stock',
 				'has_mdf_tag'        => 'SERVERLIST' === $mode
 				? has_term( 'marques-de-france', 'product_tag', $product->get_id() )

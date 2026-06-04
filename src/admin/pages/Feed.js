@@ -227,6 +227,36 @@ export default function Feed() {
     pending: { background: "#f0c33c", color: "#2c3338" },
   };
 
+  const STATUS_LABELS = {
+    publish: __("Publish", "marques-de-france-connector-for-woocommerce"),
+    draft: __("Draft", "marques-de-france-connector-for-woocommerce"),
+    pending: __("Pending", "marques-de-france-connector-for-woocommerce"),
+    private: __("Private", "marques-de-france-connector-for-woocommerce"),
+    future: __("Scheduled", "marques-de-france-connector-for-woocommerce"),
+    trash: __("Trash", "marques-de-france-connector-for-woocommerce"),
+    "auto-draft": __(
+      "Auto-Draft",
+      "marques-de-france-connector-for-woocommerce",
+    ),
+    inherit: __("Inherit", "marques-de-france-connector-for-woocommerce"),
+  };
+
+  const formatStatusLabel = (value) => {
+    const raw = String(value ?? "").trim().toLowerCase();
+
+    if (STATUS_LABELS[raw]) {
+      return STATUS_LABELS[raw];
+    }
+
+    if (!raw) {
+      return __("Publish", "marques-de-france-connector-for-woocommerce");
+    }
+
+    return raw
+      .replace(/[_-]+/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
   const chipStyle = (value) => {
     const label = String(value || "").toLowerCase();
 
@@ -247,7 +277,9 @@ export default function Feed() {
       label.includes("disponible") ||
       label.includes("available") ||
       label.includes("active") ||
-      label.includes("confirmed")
+      label.includes("confirmed") ||
+      label.includes("publish") ||
+      label.includes("published")
     ) {
       return STATUS_COLORS.confirmed;
     }
@@ -468,13 +500,9 @@ export default function Feed() {
                 <tbody>
                   {sortedManageProducts.map((product) => {
                     const availabilityStyle = chipStyle(product.availability);
-                    const statusLabel =
-                      product.status ||
-                      product.feed_status ||
-                      __(
-                        "Active",
-                        "marques-de-france-connector-for-woocommerce",
-                      );
+                    const statusLabel = formatStatusLabel(
+                      product.status || product.feed_status,
+                    );
                     const statusStyle = chipStyle(statusLabel);
 
                     return (
@@ -720,10 +748,9 @@ export default function Feed() {
               ) : (
                 sortedProducts.map((product) => {
                   const availabilityStyle = chipStyle(product.availability);
-                  const statusLabel =
-                    product.status ||
-                    product.feed_status ||
-                    __("Active", "marques-de-france-connector-for-woocommerce");
+                  const statusLabel = formatStatusLabel(
+                    product.status || product.feed_status,
+                  );
                   const statusStyle = chipStyle(statusLabel);
 
                   return (
