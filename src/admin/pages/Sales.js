@@ -409,8 +409,9 @@ export default function Sales() {
 				</div>
 			</div>
 
-			{ /* Filters */}
-			<div className="mdf-filters">
+			<div className="mdf-chart-card">
+				{ /* Filters */}
+				<div className="mdf-filters">
 				<input
 					type="search"
 					className="mdf-input"
@@ -526,31 +527,31 @@ export default function Sales() {
 						</Popover>
 					)}
 				</div>
-				<Button
-					variant="secondary"
-					style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
-					onClick={handleReset}
-				>
-					{__(
-						'Reset',
-						'marques-de-france-connector-for-woocommerce'
-					)}
-				</Button>
-			</div>
+					<Button
+						variant="secondary"
+						style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
+						onClick={handleReset}
+					>
+						{__(
+							'Reset',
+							'marques-de-france-connector-for-woocommerce'
+						)}
+					</Button>
+				</div>
 
-			{ /* Sales count */}
-			{sales !== null && (
-				<p className="mdf-sales__summary">
+				{ /* Sales count */}
+				{sales !== null && (
+					<p className="mdf-sales__summary">
 					{sales.total}{' '}
 					{__(
 						'sales',
 						'marques-de-france-connector-for-woocommerce'
 					)}
 				</p>
-			)}
+				)}
 
-			{ /* Table */}
-			<div className="mdf-table-wrap">
+				{ /* Table */}
+				<div className="mdf-table-wrap">
 				<table className="mdf-table">
 					<thead>
 						<tr>
@@ -721,9 +722,9 @@ export default function Sales() {
 				</table>
 			</div>
 
-			{ /* Pagination */}
-			{totalPages > 1 && (
-				<div className="mdf-pagination">
+				{ /* Pagination */}
+				{totalPages > 1 && (
+					<div className="mdf-pagination">
 					<span className="mdf-pagination__info">
 						{__(
 							'Page',
@@ -753,8 +754,9 @@ export default function Sales() {
 							'marques-de-france-connector-for-woocommerce'
 						)}
 					</Button>
-				</div>
-			)}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

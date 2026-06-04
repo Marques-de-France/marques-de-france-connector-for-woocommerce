@@ -1,10 +1,11 @@
 import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import Dashboard from './pages/Dashboard';
+import Feed from './pages/Feed';
 import Sales from './pages/Sales';
 import Settings from './pages/Settings';
 
-const { pluginUrl, feedAdminUrl } = window.mdfcforwcAdmin || {};
+const { pluginUrl } = window.mdfcforwcAdmin || {};
 
 const TABS = [
 	{ key: 'dashboard', label: __( 'Dashboard', 'marques-de-france-connector-for-woocommerce' ) },
@@ -45,11 +46,6 @@ export default function App() {
 	}, [] );
 
 	const handleTabClick = ( key ) => {
-		if ( key === 'feed' && feedAdminUrl ) {
-			window.location.href = feedAdminUrl;
-			return;
-		}
-
 		const pageSlug = key === 'dashboard' ? MENU_SLUG : `${ MENU_SLUG }-${ key }`;
 		const nextUrl = `${ window.location.pathname }?page=${ pageSlug }`;
 
@@ -61,6 +57,8 @@ export default function App() {
 		switch ( activeTab ) {
 			case 'dashboard':
 				return <Dashboard />;
+			case 'feed':
+				return <Feed />;
 			case 'sales':
 				return <Sales />;
 			case 'settings':

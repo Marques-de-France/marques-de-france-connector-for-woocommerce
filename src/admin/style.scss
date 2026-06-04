@@ -350,7 +350,52 @@
 	width: 100%;
 }
 
-// Feed URL display
+// Feed page
+.mdf-feed-header-row {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: space-between;
+}
+
+.mdf-feed-search-row {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
+.mdf-feed-card {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 6px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	margin-bottom: 16px;
+	padding: 16px 20px;
+
+	h2 {
+		color: #051440;
+		font-size: 15px;
+		font-weight: 600;
+		margin: 0 0 8px;
+	}
+}
+
+.mdf-feed-copy {
+	color: #555;
+	font-size: 13px;
+	line-height: 1.5;
+	margin: 0 0 12px;
+}
+
+.mdf-feed-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
 .mdf-feed-url-row {
 	align-items: center;
 	display: flex;
@@ -367,6 +412,26 @@
 	min-width: 200px;
 	padding: 6px 10px;
 	word-break: break-all;
+}
+
+.mdf-feed-product-cell {
+	align-items: center;
+	display: flex;
+	gap: 10px;
+}
+
+.mdf-feed-thumb {
+	border-radius: 4px;
+	flex-shrink: 0;
+	height: 40px;
+	object-fit: cover;
+	width: 40px;
+}
+
+.mdf-feed-brand {
+	color: #666;
+	font-size: 12px;
+	margin-top: 4px;
 }
 
 // Loading and error states

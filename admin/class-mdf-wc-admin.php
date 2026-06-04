@@ -141,13 +141,7 @@ class MDFCFORWC_Admin {
 	}
 
 	public function render_page_feed() {
-		?>
-		<div class="wrap" id="mdf-feed-page">
-			<h1 class="wp-heading-inline"><?php esc_html_e( 'Product feed', 'marques-de-france-connector-for-woocommerce' ); ?></h1>
-			<div id="mdf-feed-root"></div>
-			<div id="mdf-manage-section" style="display:none"></div>
-		</div>
-		<?php
+		echo '<div id="mdf-wc-admin" data-page="feed"></div>';
 	}
 
 	public function render_page_sales() {
@@ -171,35 +165,6 @@ class MDFCFORWC_Admin {
 		];
 
 		if ( ! in_array( $hook, $admin_pages, true ) ) {
-			return;
-		}
-
-		// Feed page uses PHP-rendered HTML + vanilla JS (no React bundle needed).
-		if ( 'marques-de-france_page_' . self::MENU_SLUG . '-feed' === $hook ) {
-			wp_enqueue_script(
-				'mdfcforwc-admin-feed',
-				MDFCFORWC_PLUGIN_URL . 'assets/js/admin-feed.js',
-				[],
-				MDFCFORWC_VERSION,
-				true
-			);
-			wp_localize_script(
-				'mdfcforwc-admin-feed',
-				'mdfcforwcFeed',
-				[
-					'restUrl'    => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
-					'nonce'      => wp_create_nonce( 'wp_rest' ),
-					'filterMode' => MDFCFORWC_Settings::get_feed_filter_mode(),
-					'feedUrl'    => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
-					'token'      => MDFCFORWC_Settings::get_secure_token(),
-				]
-			);
-			wp_enqueue_style(
-				'mdfcforwc-admin-feed',
-				MDFCFORWC_PLUGIN_URL . 'assets/css/admin-feed.css',
-				[],
-				MDFCFORWC_VERSION
-			);
 			return;
 		}
 
@@ -243,6 +208,7 @@ class MDFCFORWC_Admin {
 				'nonce'        => wp_create_nonce( 'wp_rest' ),
 				'feedUrl'      => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
 				'token'        => MDFCFORWC_Settings::get_secure_token(),
+				'feedFilterMode' => MDFCFORWC_Settings::get_feed_filter_mode(),
 				'configured'   => MDFCFORWC_Settings::is_configured(),
 				'siteUrl'      => MDFCFORWC_Settings::get_site_url(),
 				'pluginUrl'    => MDFCFORWC_PLUGIN_URL,
