@@ -66,8 +66,8 @@ msgid "Revenue"
 msgstr "Chiffre d’affaires"
 
 #: src/admin/pages/Dashboard.js:213
-msgid "Hub connected"
-msgstr "Hub connecté"
+msgid "✓ Connected"
+msgstr "✓ Connecté"
 
 #: src/admin/pages/Dashboard.js:217
 msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
@@ -96,6 +96,10 @@ msgstr "Confirmés uniquement"
 #: src/admin/pages/Dashboard.js:282
 msgid "This Month"
 msgstr "Ce mois-ci"
+
+#: src/admin/pages/Dashboard.js:291 src/admin/pages/Sales.js:455
+msgid "sale"
+msgstr "vente"
 
 #: src/admin/pages/Dashboard.js:291 src/admin/pages/Sales.js:455
 msgid "sales"
@@ -254,6 +258,8 @@ msgid ""
 "Share this URL with Marques de France to enable your product feed in the "
 "directory."
 msgstr ""
+"Partagez cette URL avec Marques de France pour activer votre flux de "
+"produits dans l’annuaire."
 
 #: src/admin/pages/Settings.js:128
 msgid "Copied!"
@@ -278,7 +284,7 @@ msgstr "Flux de produits"
 
 #: admin/class-mdf-wc-admin.php:89
 msgid "Flux de produits"
-msgstr ""
+msgstr "Flux de produits"
 
 #: admin/class-mdf-wc-admin.php:98
 msgid "Sales tracking"
@@ -286,7 +292,7 @@ msgstr "Suivi des ventes"
 
 #: admin/class-mdf-wc-admin.php:99
 msgid "Suivi des ventes"
-msgstr ""
+msgstr "Suivi des ventes"
 
 #: admin/class-mdf-wc-admin.php:563
 #, php-format
@@ -299,19 +305,29 @@ msgid_plural ""
 "MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
 "settings</a>."
 msgstr[0] ""
+"<strong>Marques de France</strong> : %1$d vente n’a pas été synchronisée "
+"avec le Hub MDF depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos "
+"paramètres de connexion</a>."
 msgstr[1] ""
+"<strong>Marques de France</strong> : %1$d ventes n’ont pas été synchronisées "
+"avec le Hub MDF depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos "
+"paramètres de connexion</a>."
 
 #: admin/class-mdf-wc-admin.php:610
 msgid ""
 "Could not reach the MDF Hub. Check your connection settings and try again."
 msgstr ""
+"Impossible d’atteindre le Hub MDF. Vérifiez vos paramètres de connexion "
+"et réessayez."
 
 #: admin/class-mdf-wc-admin.php:617
 #, php-format
 msgid "Marques de France: %d sale restored from the MDF Hub."
 msgid_plural "Marques de France: %d sales restored from the MDF Hub."
 msgstr[0] ""
+"Marques de France : %d vente restaurée depuis le Hub MDF."
 msgstr[1] ""
+"Marques de France : %d ventes restaurées depuis le Hub MDF."
 
 #: admin/class-mdf-wc-admin.php:640
 msgid ""
@@ -319,14 +335,18 @@ msgid ""
 "to restore from the MDF Hub — this will replace the local sales table with "
 "the Hub's records."
 msgstr ""
+"Les données de vente peuvent être désynchronisées (par exemple après une "
+"réinstallation du plugin). Cliquez ci-dessous pour restaurer depuis le Hub "
+"MDF — cela remplacera la table locale des ventes par les enregistrements du "
+"Hub."
 
 #: admin/class-mdf-wc-admin.php:646
 msgid "Restore sales from Hub"
-msgstr ""
+msgstr "Restaurer les ventes depuis le Hub"
 
 #: admin/class-mdf-wc-admin.php:659
 msgid "You do not have permission to perform this action."
-msgstr ""
+msgstr "Vous n’avez pas la permission d’effectuer cette action."
 
 #: admin/class-mdf-wc-admin.php:1124
 msgid "Marques de France – Attribution"

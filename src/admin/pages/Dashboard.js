@@ -142,12 +142,16 @@ export default function Dashboard() {
 	}
 
 	const currency = stats?.currency || 'EUR';
-	const formatAmount = ( v, currencyCode = currency ) =>
+	const formatAmount = (
+		v,
+		currencyCode = currency,
+		{ minimumFractionDigits = 2, maximumFractionDigits = 2 } = {}
+	) =>
 		new Intl.NumberFormat( 'fr-FR', {
 			style: 'currency',
 			currency: currencyCode,
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
+			minimumFractionDigits,
+			maximumFractionDigits,
 		} ).format( Number( v ) || 0 );
 
 	const labels =
@@ -200,7 +204,11 @@ export default function Dashboard() {
 				position: 'left',
 				ticks: {
 					color: '#051440',
-					callback: ( value ) => formatAmount( value, currency ),
+					callback: ( value ) =>
+						formatAmount( value, currency, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						} ),
 				},
 			},
 			y1: {
@@ -209,7 +217,7 @@ export default function Dashboard() {
 				grid: { drawOnChartArea: false },
 				ticks: {
 					color: '#ed2e38',
-					callback: ( value ) => formatAmount( value, currency ),
+					callback: ( value ) => `${ value }`,
 				},
 			},
 		},

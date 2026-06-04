@@ -265,7 +265,11 @@ export default function Sales() {
 				position: 'left',
 				ticks: {
 					color: '#051440',
-					callback: ( value ) => formatAmount( value, currency ),
+					callback: ( value ) =>
+						formatAmount( value, currency, {
+							minimumFractionDigits: 0,
+							maximumFractionDigits: 0,
+						} ),
 				},
 				title: {
 					display: true,
@@ -282,7 +286,7 @@ export default function Sales() {
 				grid: { drawOnChartArea: false },
 				ticks: {
 					color: '#ed2e38',
-					callback: ( value ) => formatAmount( value, currency ),
+					callback: ( value ) => `${ value }`,
 				},
 				title: {
 					display: true,
@@ -299,12 +303,16 @@ export default function Sales() {
 		},
 	};
 
-	const formatAmount = ( v, currencyCode = currency ) =>
+	const formatAmount = (
+		v,
+		currencyCode = currency,
+		{ minimumFractionDigits = 2, maximumFractionDigits = 2 } = {}
+	) =>
 		new Intl.NumberFormat( 'fr-FR', {
 			style: 'currency',
 			currency: currencyCode,
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
+			minimumFractionDigits,
+			maximumFractionDigits,
 		} ).format( Number( v ) || 0 );
 
 	const totalPages = Math.ceil( ( sales?.total || 0 ) / 25 );
