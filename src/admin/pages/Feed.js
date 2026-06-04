@@ -383,6 +383,15 @@ export default function Feed() {
           </Button>
         </form>
 
+        <div style={{ marginBottom: 16 }}>
+          <Notice status="info" isDismissible={false}>
+            {__(
+              "Only select products manufactured in France. These are the products that will appear in the Marques de France guide.",
+              "marques-de-france-connector-for-woocommerce",
+            )}
+          </Notice>
+        </div>
+
         {manageLoading ? (
           <div className="mdf-loading">
             <Spinner />
@@ -464,79 +473,81 @@ export default function Feed() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedManageProducts.map((product) => (
-                    <tr key={product.id}>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={Boolean(product.inFeed)}
-                          onChange={() =>
-                            toggleProduct(product.id, Boolean(product.inFeed))
-                          }
-                        />
-                      </td>
-                      <td>
-                        <div className="mdf-feed-product-cell">
-                          <img
-                            src={product.image}
-                            alt=""
-                            className="mdf-feed-thumb"
+                  {sortedManageProducts.map((product) => {
+                    const availabilityStyle = chipStyle(product.availability);
+                    const statusLabel =
+                      product.status ||
+                      product.feed_status ||
+                      __(
+                        "Active",
+                        "marques-de-france-connector-for-woocommerce",
+                      );
+                    const statusStyle = chipStyle(statusLabel);
+
+                    return (
+                      <tr key={product.id}>
+                        <td>
+                          <input
+                            type="checkbox"
+                            checked={Boolean(product.inFeed)}
+                            onChange={() =>
+                              toggleProduct(product.id, Boolean(product.inFeed))
+                            }
                           />
-                          <div>
-                            <span>{product.name}</span>
+                        </td>
+                        <td>
+                          <div className="mdf-feed-product-cell">
+                            <img
+                              src={product.image}
+                              alt=""
+                              className="mdf-feed-thumb"
+                            />
+                            <div>
+                              <span>{product.name}</span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td>{product.brand || "—"}</td>
-                      <td>{renderPrice(product)}</td>
-                      <td>
-                        <span
-                          style={{
-                            background: chipStyle(product.availability)
-                              .background,
-                            color: chipStyle(product.availability).color,
-                            borderRadius: 3,
-                            display: "inline-block",
-                            fontSize: 11,
-                            fontWeight: 600,
-                            padding: "2px 8px",
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {product.availability ||
-                            __(
-                              "Unknown",
-                              "marques-de-france-connector-for-woocommerce",
-                            )}
-                        </span>
-                      </td>
-                      <td>
-                        <span
-                          style={{
-                            background: chipStyle(
-                              product.status || product.feed_status,
-                            ).background,
-                            borderRadius: 3,
-                            color: chipStyle(
-                              product.status || product.feed_status,
-                            ).color,
-                            display: "inline-block",
-                            fontSize: 11,
-                            fontWeight: 600,
-                            padding: "2px 8px",
-                            textTransform: "capitalize",
-                          }}
-                        >
-                          {product.status ||
-                            product.feed_status ||
-                            __(
-                              "Active",
-                              "marques-de-france-connector-for-woocommerce",
-                            )}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>{product.brand || "—"}</td>
+                        <td>{renderPrice(product)}</td>
+                        <td>
+                          <span
+                            style={{
+                              background: availabilityStyle.background,
+                              color: availabilityStyle.color,
+                              borderRadius: 3,
+                              display: "inline-block",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: "2px 8px",
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {product.availability ||
+                              __(
+                                "Unknown",
+                                "marques-de-france-connector-for-woocommerce",
+                              )}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            style={{
+                              background: statusStyle.background,
+                              borderRadius: 3,
+                              color: statusStyle.color,
+                              display: "inline-block",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: "2px 8px",
+                              textTransform: "capitalize",
+                            }}
+                          >
+                            {statusLabel}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -703,70 +714,69 @@ export default function Feed() {
                   </td>
                 </tr>
               ) : (
-                sortedProducts.map((product) => (
-                  <tr key={product.id}>
-                    <td>
-                      <div className="mdf-feed-product-cell">
-                        <img
-                          src={product.image}
-                          alt=""
-                          className="mdf-feed-thumb"
-                        />
-                        <div>
-                          <span>{product.name}</span>
+                sortedProducts.map((product) => {
+                  const availabilityStyle = chipStyle(product.availability);
+                  const statusLabel =
+                    product.status ||
+                    product.feed_status ||
+                    __("Active", "marques-de-france-connector-for-woocommerce");
+                  const statusStyle = chipStyle(statusLabel);
+
+                  return (
+                    <tr key={product.id}>
+                      <td>
+                        <div className="mdf-feed-product-cell">
+                          <img
+                            src={product.image}
+                            alt=""
+                            className="mdf-feed-thumb"
+                          />
+                          <div>
+                            <span>{product.name}</span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td>{product.brand || "—"}</td>
-                    <td>{renderPrice(product)}</td>
-                    <td>
-                      <span
-                        style={{
-                          background: chipStyle(product.availability)
-                            .background,
-                          borderRadius: 3,
-                          color: chipStyle(product.availability).color,
-                          display: "inline-block",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          padding: "2px 8px",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {product.availability ||
-                          __(
-                            "Unknown",
-                            "marques-de-france-connector-for-woocommerce",
-                          )}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          background: chipStyle(
-                            product.status || product.feed_status,
-                          ).background,
-                          borderRadius: 3,
-                          color: chipStyle(
-                            product.status || product.feed_status,
-                          ).color,
-                          display: "inline-block",
-                          fontSize: 11,
-                          fontWeight: 600,
-                          padding: "2px 8px",
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {product.status ||
-                          product.feed_status ||
-                          __(
-                            "Active",
-                            "marques-de-france-connector-for-woocommerce",
-                          )}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td>{product.brand || "—"}</td>
+                      <td>{renderPrice(product)}</td>
+                      <td>
+                        <span
+                          style={{
+                            background: availabilityStyle.background,
+                            borderRadius: 3,
+                            color: availabilityStyle.color,
+                            display: "inline-block",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {product.availability ||
+                            __(
+                              "Unknown",
+                              "marques-de-france-connector-for-woocommerce",
+                            )}
+                        </span>
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            background: statusStyle.background,
+                            borderRadius: 3,
+                            color: statusStyle.color,
+                            display: "inline-block",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {statusLabel}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -848,14 +858,16 @@ export default function Feed() {
         </div>
       </div>
 
-      <div style={{ marginBottom: 16 }}>
-        <Notice status="info" isDismissible={false}>
-          {__(
-            "Out-of-stock, inactive, or products missing a price, image, or brand are automatically excluded from the feed.",
-            "marques-de-france-connector-for-woocommerce",
-          )}
-        </Notice>
-      </div>
+      {!manageMode && (
+        <div style={{ marginBottom: 16 }}>
+          <Notice status="info" isDismissible={false}>
+            {__(
+              "Out-of-stock, inactive, or products missing a price, image, or brand are automatically excluded from the feed.",
+              "marques-de-france-connector-for-woocommerce",
+            )}
+          </Notice>
+        </div>
+      )}
 
       <div className="mdf-chart-card">{tableContent}</div>
     </div>

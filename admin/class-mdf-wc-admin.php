@@ -985,15 +985,25 @@ class MDFCFORWC_Admin {
 			$this->product_search_term = '';
 		}
 
-		$total       = (int) $wp_query->found_posts;
-		$total_pages = (int) ceil( $total / $per_page );
-
-		$items = [];
+		$raw_items = [];
 
 		foreach ( $wp_query->posts as $post ) {
 			$product = wc_get_product( $post->ID );
 
 			if ( ! $product ) {
+				continue;
+			}
+
+			if ( $product->is_virtual() ) {
+				continue;
+			}
+
+			if ( ! $product->is_in_stock() ) {
+				continue;
+			}
+
+			$price = (float) $product->get_price();
+			if ( $price <= 0 ) {
 				continue;
 			}
 
@@ -1009,33 +1019,42 @@ class MDFCFORWC_Admin {
 				$total_variants = count( $variation_ids );
 				foreach ( $variation_ids as $vid ) {
 					$v = wc_get_product( $vid );
-					if ( $v && $v->is_in_stock() ) {
+					if ( $v && $v->is_in_stock() && $v->is_purchasable() ) {
 						$available_variants++;
 					}
+				}
+
+				if ( 0 === $available_variants ) {
+					continue;
 				}
 			}
 
 			$brand_post = function_exists( 'get_field' ) ? get_field( 'product_listing', $product->get_id() ) : null;
 			$brand      = ( $brand_post && isset( $brand_post->post_title ) ) ? $brand_post->post_title : '';
 
-			$items[] = [
+			$raw_items[] = [
 				'id'                 => $product->get_id(),
 				'name'               => $product->get_name(),
 				'image'              => $image,
-				'price'              => (float) $product->get_price(),
+				'price'              => $price,
 				'price_html'         => $product->get_price_html(),
 				'currency'           => get_woocommerce_currency(),
 				'brand'              => $brand,
 				'availability'       => $product->is_in_stock() ? 'in stock' : 'out of stock',
 				'has_mdf_tag'        => 'SERVERLIST' === $mode
 				? has_term( 'marques-de-france', 'product_tag', $product->get_id() )
-				: true, // all results carry the tag in TAG mode
+				: true,
 				'type'               => $product->get_type(),
 				'total_variants'     => $total_variants,
 				'available_variants' => $available_variants,
 				'edit_url'           => get_edit_post_link( $product->get_id(), 'raw' ),
 			];
 		}
+
+		$total       = count( $raw_items );
+		$total_pages = (int) ceil( $total / $per_page );
+		$offset      = ( $page - 1 ) * $per_page;
+		$items       = array_slice( $raw_items, $offset, $per_page );
 
 		$response = [
 			'products'    => $items,
