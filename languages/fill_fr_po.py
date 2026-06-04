@@ -22,7 +22,7 @@ translations = {
     'All time': 'Depuis toujours',
     'Confirmed': 'Confirmé',
     'Total Revenue': 'Chiffre d’affaires total',
-    'Confirmed only': 'Confirmés uniquement',
+    'Confirmed': 'Confirmés',
     'This Month': 'Ce mois-ci',
     'sales': 'ventes',
     'Unsynced': 'Non synchronisé',

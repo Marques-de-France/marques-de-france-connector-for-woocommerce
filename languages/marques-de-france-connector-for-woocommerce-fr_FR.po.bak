@@ -83,8 +83,8 @@ msgstr "Hub connecté"
 
 #: src/admin/pages/Dashboard.js:217
 msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
-msgstr "✗ Code d’accès invalide — veuillez ressaisir votre code d’accès dans les Paramètres."
-msgstr "✗ Code d’accès invalide — veuillez ressaisir votre code d’accès dans les Paramètres."
+msgstr "✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les Paramètres."
+msgstr "✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les Paramètres."
 
 #: src/admin/pages/Dashboard.js:228
 msgid "Total Sales"
@@ -107,9 +107,9 @@ msgstr "Chiffre d’affaires total"
 msgstr "Chiffre d’affaires total"
 
 #: src/admin/pages/Dashboard.js:273
-msgid "Confirmed only"
-msgstr "Confirmés uniquement"
-msgstr "Confirmés uniquement"
+msgid "Confirmed"
+msgstr "Confirmés"
+msgstr "Confirmés"
 
 #: src/admin/pages/Dashboard.js:282
 msgid "This Month"

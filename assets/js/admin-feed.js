@@ -2,7 +2,7 @@
 /**
  * MDF WooCommerce – Product Feed admin page
  *
- * Vanilla JS (no build step). Rendered on the "Flux de produits" admin page
+ * Vanilla JS (no build step). Rendered on the "Product feed" admin page
  * via PHP-generated HTML. Requires the mdfcforwcFeed global set by wp_localize_script.
  */
 ( function () {
@@ -12,6 +12,13 @@
 	const BASE_URL = cfg.restUrl; // e.g. https://example.com/wp-json/mdfcforwc/v1/
 	const NONCE    = cfg.nonce;
 	const PER_PAGE = 25;
+
+	const __t = ( text ) => {
+		if ( window.wp && window.wp.i18n && 'function' === typeof window.wp.i18n.__ ) {
+			return window.wp.i18n.__( text, 'marques-de-france-connector-for-woocommerce' );
+		}
+		return text;
+	};
 
 	// ── State ──────────────────────────────────────────────────────────────────
 
@@ -78,10 +85,10 @@
 
 	function availabilityBadge( availability ) {
 		if ( 'in stock' === availability ) {
-			return '<span class="mdf-badge mdf-badge-green">En stock</span>';
+			return '<span class="mdf-badge mdf-badge-green">' + esc( __t( 'In stock' ) ) + '</span>';
 		}
 		if ( 'out of stock' === availability ) {
-			return '<span class="mdf-badge mdf-badge-red">Rupture de stock</span>';
+			return '<span class="mdf-badge mdf-badge-red">' + esc( __t( 'Out of stock' ) ) + '</span>';
 		}
 		return '<span class="mdf-badge mdf-badge-gray">' + esc( availability ) + '</span>';
 	}
@@ -90,7 +97,7 @@
 
 	async function loadProducts() {
 		const root   = document.getElementById( 'mdf-feed-root' );
-		root.innerHTML = '<div style="padding:20px">' + spinner() + ' Chargement&hellip;</div>';
+		root.innerHTML = '<div style="padding:20px">' + spinner() + ' ' + esc( __t( 'Loading…' ) ) + '</div>';
 
 		const params = new URLSearchParams( {
 			page:     state.currentPage,
@@ -108,7 +115,7 @@
 			// inFeedCount is returned in SERVERLIST mode; fall back to total for TAG mode
 			state.inFeedCount = data.inFeedCount !== undefined ? data.inFeedCount : state.total;
 		} catch ( err ) {
-			root.innerHTML = '<div class="notice notice-error inline"><p>Erreur lors du chargement des produits.</p></div>';
+			root.innerHTML = '<div class="notice notice-error inline"><p>' + esc( __t( 'Failed to load the products.' ) ) + '</p></div>';
 			return;
 		}
 
@@ -117,7 +124,7 @@
 
 	async function loadAllProducts() {
 		const section    = document.getElementById( 'mdf-manage-section' );
-		section.innerHTML = '<div style="padding:20px">' + spinner() + ' Chargement&hellip;</div>';
+		section.innerHTML = '<div style="padding:20px">' + spinner() + ' ' + esc( __t( 'Loading…' ) ) + '</div>';
 
 		const params = new URLSearchParams( {
 			page:     state.managePage,
@@ -134,7 +141,7 @@
 			state.manageTotalPages = data.total_pages  || 1;
 			state.inFeedCount      = data.inFeedCount  || 0;
 		} catch ( err ) {
-			section.innerHTML = '<div class="notice notice-error inline"><p>Erreur lors du chargement des produits.</p></div>';
+			section.innerHTML = '<div class="notice notice-error inline"><p>' + esc( __t( 'Failed to load the products.' ) ) + '</p></div>';
 			return;
 		}
 
@@ -145,7 +152,7 @@
 
 	async function switchMode( newMode ) {
 		const root     = document.getElementById( 'mdf-feed-root' );
-		root.innerHTML = '<div style="padding:20px">' + spinner() + ' Mise &agrave; jour&hellip;</div>';
+		root.innerHTML = '<div style="padding:20px">' + spinner() + ' ' + esc( __t( 'Updating…' ) ) + '</div>';
 
 		try {
 			await apiFetch( 'PATCH', 'admin/feed-settings', { feedFilterMode: newMode } );
@@ -154,7 +161,7 @@
 			state.currentSearch = '';
 			await loadProducts();
 		} catch ( err ) {
-			root.innerHTML = '<div class="notice notice-error inline"><p>Erreur lors du changement de mode.</p></div>';
+			root.innerHTML = '<div class="notice notice-error inline"><p>' + esc( __t( 'Failed to change the feed mode.' ) ) + '</p></div>';
 		}
 	}
 
@@ -214,7 +221,7 @@
 				'" data-page="' + i + '" data-scope="' + scope + '">' + i + '</button> ';
 		}
 		return '<div class="tablenav bottom"><div class="tablenav-pages">' +
-			'<span class="displaying-num">' + total + ' produit' + ( total > 1 ? 's' : '' ) + '</span> ' +
+			'<span class="displaying-num">' + total + ' ' + ( 1 === total ? __t( 'product' ) : __t( 'products' ) ) + '</span> ' +
 			btns + '</div></div>';
 	}
 
@@ -227,44 +234,42 @@
 
 		// ─ Mode selector card ────────────────────────────────────────────────
 		const modeLabel = isServerlist
-			? 'Via une s\u00e9lection manuelle depuis cette application'
-			: 'Via le champ \u00ab\u00a0\u00c9tiquette\u00a0\u00bb des produits (recommand\u00e9)';
+			? __t( 'Via manual selection from this app' )
+			: __t( 'Via the product tag field (Recommended)' );
 
 		let modeHtml = '<div class="mdf-card">' +
-			'<h2>M\u00e9thode de s\u00e9lection</h2>' +
-			'<p>M\u00e9thode actuelle\u00a0: <strong>' + esc( modeLabel ) + '</strong></p>';
+			'<h2>' + esc( __t( 'Selection method' ) ) + '</h2>' +
+			'<p>' + esc( __t( 'Current method:' ) ) + ' <strong>' + esc( modeLabel ) + '</strong></p>';
 
 		if ( isServerlist ) {
-			modeHtml += '<p><a href="#" id="mdf-switch-to-tag">Revenir \u00e0 la s\u00e9lection par \u00e9tiquette</a></p>';
+			modeHtml += '<p><a href="#" id="mdf-switch-to-tag">' + esc( __t( 'Switch back to tag-based selection' ) ) + '</a></p>';
 		} else {
-			modeHtml += '<p class="description">Les \u00e9tiquettes apparaissent sur votre boutique\u00a0? ' +
-				'<a href="#" id="mdf-switch-to-serverlist">Utiliser la s\u00e9lection manuelle</a></p>';
+			modeHtml += '<p class="description">' + esc( __t( 'Do your tags appear on your shop?' ) ) + ' ' +
+				'<a href="#" id="mdf-switch-to-serverlist">' + esc( __t( 'Use manual selection' ) ) + '</a></p>';
 		}
 		modeHtml += '</div>';
 
 		// ─ Feed URL card ──────────────────────────────────────────────────────
 		const feedUrlHtml = cfg.token
-			? '<div class="mdf-card"><h2>URL du flux</h2>' +
+			? '<div class="mdf-card"><h2>' + esc( __t( 'Feed URL' ) ) + '</h2>' +
 			  '<p><code>' + esc( cfg.feedUrl + '?token=' + cfg.token ) + '</code></p></div>'
 			: '';
 
 		// ─ TAG mode info banner ───────────────────────────────────────────────
 		const tagBannerHtml = ! isServerlist
 			? '<div class="notice notice-info inline mdf-notice">' +
-			  '<p><strong>Comment inclure des produits dans le flux\u00a0?</strong></p>' +
-			  '<p>Ajoutez l\u2019\u00e9tiquette <code>marques-de-france</code> aux produits que vous souhaitez int\u00e9grer sur Marques de France. ' +
-			  'Les produits s\u00e9lectionn\u00e9s doivent \u00eatre fabriqu\u00e9s en France.</p></div>'
+			  '<p><strong>' + esc( __t( 'How to include products in the feed?' ) ) + '</strong></p>' +
+			  '<p>' + esc( __t( 'Add the tag' ) ) + ' <code>marques-de-france</code> ' + esc( __t( 'to the products you want to list on Marques de France. Selected products must be manufactured in France.' ) ) + '</p></div>'
 			: '';
 
 		// ─ SERVERLIST active banner ───────────────────────────────────────────
 		const serverlistBannerHtml = isServerlist
 			? '<div class="notice notice-info inline mdf-notice">' +
-			  '<p><strong>S\u00e9lection manuelle active</strong> \u2014 ' +
-			  'Vous choisissez directement dans cette application quels produits apparaissent sur Marques de France. ' +
-			  'Aucune \u00e9tiquette WooCommerce n\u00e9cessaire.</p>' +
-			  '<p><button type="button" class="button button-primary" id="mdf-enter-manage">Modifier la s\u00e9lection</button> ' +
+			  '<p><strong>' + esc( __t( 'Manual selection is active' ) ) + '</strong> — ' +
+			  esc( __t( 'You choose directly in this app which products appear on Marques de France. No WooCommerce tag is required.' ) ) + '</p>' +
+			  '<p><button type="button" class="button button-primary" id="mdf-enter-manage">' + esc( __t( 'Modify selection' ) ) + '</button> ' +
 			  '<span class="mdf-in-feed-count">' +
-			  count + ' produit' + ( 1 !== count ? 's' : '' ) + ' s\u00e9lectionn\u00e9' + ( 1 !== count ? 's' : '' ) +
+			  count + ' ' + ( 1 === count ? esc( __t( 'product' ) ) : esc( __t( 'products' ) ) ) + ' ' + esc( __t( 'selected' ) ) +
 			  '</span></p></div>'
 			: '';
 
@@ -272,10 +277,10 @@
 		let tableHtml;
 		if ( 0 === state.products.length ) {
 			tableHtml = isServerlist
-				? '<div class="mdf-empty"><p><strong>Aucun produit s\u00e9lectionn\u00e9</strong></p>' +
-				  '<p>Cliquez sur \u00ab\u00a0Modifier la s\u00e9lection\u00a0\u00bb pour ajouter des produits fabriqu\u00e9s en France au flux.</p></div>'
-				: '<div class="mdf-empty"><p><strong>Aucun produit dans le flux</strong></p>' +
-				  '<p>Ajoutez l\u2019\u00e9tiquette <code>marques-de-france</code> \u00e0 vos produits fabriqu\u00e9s en France.</p></div>';
+				? '<div class="mdf-empty"><p><strong>' + esc( __t( 'No products selected' ) ) + '</strong></p>' +
+				  '<p>' + esc( __t( 'Click “Modify selection” to add French-made products to the feed.' ) ) + '</p></div>'
+				: '<div class="mdf-empty"><p><strong>' + esc( __t( 'No products in the feed' ) ) + '</strong></p>' +
+				  '<p>' + esc( __t( 'Add the tag marques-de-france to your French-made products.' ) ) + '</p></div>';
 		} else {
 			const rows = state.products.map( function ( p ) {
 				return '<tr>' +
@@ -291,9 +296,9 @@
 				'<table class="wp-list-table widefat fixed striped posts">' +
 				'<thead><tr>' +
 				'<th style="width:50px"></th>' +
-				'<th>Produit</th>' +
-				'<th style="width:110px">Prix</th>' +
-				'<th style="width:150px">Disponibilit\u00e9</th>' +
+				'<th>' + esc( __t( 'Product' ) ) + '</th>' +
+				'<th style="width:110px">' + esc( __t( 'Price' ) ) + '</th>' +
+				'<th style="width:150px">' + esc( __t( 'Availability' ) ) + '</th>' +
 				'</tr></thead>' +
 				'<tbody>' + rows + '</tbody>' +
 				'</table>';
@@ -311,7 +316,7 @@
 			tagBannerHtml +
 			serverlistBannerHtml +
 			'<div class="mdf-card">' +
-			'<h2>Produits s\u00e9lectionn\u00e9s dans le flux' + countLabel + '</h2>' +
+			'<h2>' + esc( __t( 'Products selected in the feed' ) ) + countLabel + '</h2>' +
 			tableHtml +
 			pagination +
 			'</div>';
@@ -322,9 +327,7 @@
 			switchToServerlist.addEventListener( 'click', function ( e ) {
 				e.preventDefault();
 				if ( window.confirm(
-					'La s\u00e9lection manuelle supprime l\u2019obligation d\u2019utiliser l\u2019\u00e9tiquette \u00ab\u00a0marques-de-france\u00a0\u00bb.\n\n' +
-					'Vos produits d\u00e9j\u00e0 balis\u00e9s seront import\u00e9s automatiquement.\n\n' +
-					'Vous pouvez revenir en arri\u00e8re \u00e0 tout moment.\n\nPasser en s\u00e9lection manuelle ?'
+					__t( 'Manual selection removes the requirement to use the marques-de-france tag.\n\nYour already tagged products will be imported automatically.\n\nYou can switch back at any time.\n\nSwitch to manual selection?' )
 				) ) {
 					switchMode( 'SERVERLIST' );
 				}
@@ -336,9 +339,7 @@
 			switchToTag.addEventListener( 'click', function ( e ) {
 				e.preventDefault();
 				if ( window.confirm(
-					'Vous repassez \u00e0 la m\u00e9thode par \u00e9tiquette \u00ab\u00a0marques-de-france\u00a0\u00bb.\n\n' +
-					'Votre liste de s\u00e9lection manuelle est conserv\u00e9e mais n\u2019est plus active.\n\n' +
-					'Seuls les produits portant l\u2019\u00e9tiquette \u00ab\u00a0marques-de-france\u00a0\u00bb appara\u00eetront dans le flux.\n\nRevenir \u00e0 la s\u00e9lection par \u00e9tiquette ?'
+					__t( 'You are switching back to the marques-de-france tag method.\n\nYour manual selection list is kept but is no longer active.\n\nOnly products tagged marques-de-france will appear in the feed.\n\nSwitch back to tag-based selection?' )
 				) ) {
 					switchMode( 'TAG' );
 				}
@@ -364,7 +365,7 @@
 
 		let tableHtml;
 		if ( 0 === state.allProducts.length ) {
-			tableHtml = '<div class="mdf-empty"><p>Aucun produit trouv\u00e9.</p></div>';
+			tableHtml = '<div class="mdf-empty"><p>' + esc( __t( 'No products found.' ) ) + '</p></div>';
 		} else {
 			const rows = state.allProducts.map( function ( p ) {
 				return '<tr' + ( p.inFeed ? ' class="mdf-row-in-feed"' : '' ) + '>' +
@@ -386,9 +387,9 @@
 				'<thead><tr>' +
 				'<th class="check-column" style="width:36px"></th>' +
 				'<th style="width:50px"></th>' +
-				'<th>Produit</th>' +
-				'<th style="width:110px">Prix</th>' +
-				'<th style="width:150px">Disponibilit\u00e9</th>' +
+				'<th>' + esc( __t( 'Product' ) ) + '</th>' +
+				'<th style="width:110px">' + esc( __t( 'Price' ) ) + '</th>' +
+				'<th style="width:150px">' + esc( __t( 'Availability' ) ) + '</th>' +
 				'</tr></thead>' +
 				'<tbody>' + rows + '</tbody>' +
 				'</table>';
@@ -398,18 +399,17 @@
 
 		section.innerHTML =
 			'<div class="mdf-manage-header">' +
-			'<button type="button" class="button" id="mdf-back-btn">\u2190 Retour au flux</button>' +
-			'<h2>S\u00e9lectionner des produits pour le flux</h2>' +
+			'<button type="button" class="button" id="mdf-back-btn">← ' + esc( __t( 'Back to feed' ) ) + '</button>' +
+			'<h2>' + esc( __t( 'Select products for the feed' ) ) + '</h2>' +
 			'<p class="description">' +
-			count + ' produit' + ( 1 !== count ? 's' : '' ) + ' s\u00e9lectionn\u00e9' + ( 1 !== count ? 's' : '' ) +
+			count + ' ' + ( 1 === count ? esc( __t( 'product' ) ) : esc( __t( 'products' ) ) ) + ' ' + esc( __t( 'selected' ) ) +
 			'</p></div>' +
 			'<div class="notice notice-info inline mdf-notice">' +
-			'<p>S\u00e9lectionnez uniquement les produits fabriqu\u00e9s en France. ' +
-			'Ce sont ces produits qui appara\u00eetront dans le guide Marques de France.</p></div>' +
+			'<p>' + esc( __t( 'Select only French-made products. These are the products that will appear in the Marques de France guide.' ) ) + '</p></div>' +
 			'<div class="tablenav top"><div class="alignleft actions">' +
 			'<input type="search" id="mdf-manage-search-input" value="' + esc( state.manageSearch ) + '" ' +
-			'placeholder="Rechercher par produit ou marque" class="regular-text">' +
-			' <button type="button" class="button" id="mdf-manage-search-btn">Rechercher</button>' +
+			'placeholder="' + esc( __t( 'Search products or brands' ) ) + '" class="regular-text">' +
+			' <button type="button" class="button" id="mdf-manage-search-btn">' + esc( __t( 'Search' ) ) + '</button>' +
 			'</div></div>' +
 			tableHtml +
 			pagination;

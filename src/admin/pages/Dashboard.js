@@ -3,6 +3,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 import LoadingState from '../components/LoadingState';
+import KpiCard from '../components/KpiCard';
 import RevenueChart from '../components/RevenueChart';
 
 const { configured, settingsUrl } = window.mdfcforwcAdmin || {};
@@ -148,78 +149,30 @@ export default function Dashboard() {
 
 			{ /* KPI cards */ }
 			<div className="mdf-stat-cards">
-				<div className="mdf-stat-card">
-					<div className="mdf-stat-card__label">
-						{ __(
-							'Total Sales',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</div>
-					<div className="mdf-stat-card__value">
-						{ stats?.totalSales ?? '—' }
-					</div>
-					<div className="mdf-stat-card__sub">
-						{ __(
-							'All time',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</div>
-				</div>
-
-				<div className="mdf-stat-card">
-					<div className="mdf-stat-card__label">
-						{ __(
-							'Total Revenue',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</div>
-					<div className="mdf-stat-card__value">
-						{ formatAmount( stats?.totalRevenue ) }
-					</div>
-					<div className="mdf-stat-card__sub">
-						{ __(
-							'Confirmed only',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</div>
-				</div>
-
-				<div className="mdf-stat-card">
-					<div className="mdf-stat-card__label">
-						{ __(
-							'This Month',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</div>
-					<div className="mdf-stat-card__value">
-						{ formatAmount( stats?.monthRevenue ) }
-					</div>
-					<div className="mdf-stat-card__sub">
-						{ `${ stats?.monthSales ?? 0 } ${ __(
-							stats?.monthSales === 1 ? 'sale' : 'sales',
-							'marques-de-france-connector-for-woocommerce'
-						) }` }
-					</div>
-				</div>
-
+				<KpiCard
+					label={ __( 'Total Sales', 'marques-de-france-connector-for-woocommerce' ) }
+					value={ stats?.totalSales ?? '—' }
+					subLabel={ __( 'All time', 'marques-de-france-connector-for-woocommerce' ) }
+				/>
+				<KpiCard
+					label={ __( 'Total Revenue', 'marques-de-france-connector-for-woocommerce' ) }
+					value={ formatAmount( stats?.totalRevenue ) }
+					subLabel={ __( 'Confirmed', 'marques-de-france-connector-for-woocommerce' ) }
+				/>
+				<KpiCard
+					label={ __( 'This Month', 'marques-de-france-connector-for-woocommerce' ) }
+					value={ formatAmount( stats?.monthRevenue ) }
+					subLabel={ `${ stats?.monthSales ?? 0 } ${ __(
+						stats?.monthSales === 1 ? 'sale' : 'sales',
+						'marques-de-france-connector-for-woocommerce'
+					) }` }
+				/>
 				{ stats?.unsyncedSales > 0 && (
-					<div className="mdf-stat-card">
-						<div className="mdf-stat-card__label">
-							{ __(
-								'Unsynced',
-								'marques-de-france-connector-for-woocommerce'
-							) }
-						</div>
-						<div className="mdf-stat-card__value">
-							{ stats.unsyncedSales }
-						</div>
-						<div className="mdf-stat-card__sub">
-							{ __(
-								'pending Hub sync',
-								'marques-de-france-connector-for-woocommerce'
-							) }
-						</div>
-					</div>
+					<KpiCard
+						label={ __( 'Unsynced', 'marques-de-france-connector-for-woocommerce' ) }
+						value={ stats.unsyncedSales }
+						subLabel={ __( 'pending Hub sync', 'marques-de-france-connector-for-woocommerce' ) }
+					/>
 				) }
 			</div>
 

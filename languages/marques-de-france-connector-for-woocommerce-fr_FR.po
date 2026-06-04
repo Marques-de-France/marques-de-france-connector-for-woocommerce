@@ -71,7 +71,9 @@ msgstr "✓ Connecté"
 
 #: src/admin/pages/Dashboard.js:217
 msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
-msgstr "✗ Code d’accès invalide — veuillez ressaisir votre code d’accès dans les Paramètres."
+msgstr ""
+"✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les "
+"Paramètres."
 
 #: src/admin/pages/Dashboard.js:228
 msgid "Total Sales"
@@ -90,8 +92,8 @@ msgid "Total Revenue"
 msgstr "Chiffre d’affaires total"
 
 #: src/admin/pages/Dashboard.js:273
-msgid "Confirmed only"
-msgstr "Confirmés uniquement"
+msgid "Confirmed"
+msgstr "Confirmés"
 
 #: src/admin/pages/Dashboard.js:282
 msgid "This Month"
@@ -246,8 +248,11 @@ msgid "Secure Token"
 msgstr "Code d’accès sécurisé"
 
 #: src/admin/pages/Settings.js:94
-msgid "The token provided by Marques de France when your store was registered."
-msgstr "Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."
+msgid ""
+"The token provided by Marques de France when your store was registered."
+msgstr ""
+"Le code d’accès fourni par Marques de France lors de l’enregistrement de "
+"votre boutique."
 
 #: src/admin/pages/Settings.js:101
 msgid "Save settings"
@@ -297,37 +302,35 @@ msgstr "Suivi des ventes"
 #: admin/class-mdf-wc-admin.php:563
 #, php-format
 msgid ""
-"<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF "
-"Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
+"<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF"
+" Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
 "settings</a>."
 msgid_plural ""
 "<strong>Marques de France</strong>: %1$d sales have not been synced to the "
-"MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
-"settings</a>."
+"MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection"
+" settings</a>."
 msgstr[0] ""
 "<strong>Marques de France</strong> : %1$d vente n’a pas été synchronisée "
 "avec le Hub MDF depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos "
 "paramètres de connexion</a>."
 msgstr[1] ""
-"<strong>Marques de France</strong> : %1$d ventes n’ont pas été synchronisées "
-"avec le Hub MDF depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos "
+"<strong>Marques de France</strong> : %1$d ventes n’ont pas été synchronisées"
+" avec le Hub MDF depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos "
 "paramètres de connexion</a>."
 
 #: admin/class-mdf-wc-admin.php:610
 msgid ""
 "Could not reach the MDF Hub. Check your connection settings and try again."
 msgstr ""
-"Impossible d’atteindre le Hub MDF. Vérifiez vos paramètres de connexion "
-"et réessayez."
+"Impossible d’atteindre le Hub MDF. Vérifiez vos paramètres de connexion et "
+"réessayez."
 
 #: admin/class-mdf-wc-admin.php:617
 #, php-format
 msgid "Marques de France: %d sale restored from the MDF Hub."
 msgid_plural "Marques de France: %d sales restored from the MDF Hub."
-msgstr[0] ""
-"Marques de France : %d vente restaurée depuis le Hub MDF."
-msgstr[1] ""
-"Marques de France : %d ventes restaurées depuis le Hub MDF."
+msgstr[0] "Marques de France : %d vente restaurée depuis le Hub MDF."
+msgstr[1] "Marques de France : %d ventes restaurées depuis le Hub MDF."
 
 #: admin/class-mdf-wc-admin.php:640
 msgid ""
@@ -395,3 +398,207 @@ msgstr "Paramètre ref"
 #: marques-de-france-connector-for-woocommerce.php:117
 msgid "Marques de France requires WooCommerce to be installed and active."
 msgstr "Marques de France nécessite que WooCommerce soit installé et activé."
+
+msgid "Back to feed"
+msgstr "Retour au flux"
+
+msgid "Brand"
+msgstr "Marque"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Change"
+msgstr "Modifier"
+
+msgid "Change mode"
+msgstr "Changer de mode"
+
+msgid "Draft"
+msgstr "Brouillon"
+
+msgid "Edit products in bulk"
+msgstr "Modifier les produits en lot"
+
+msgid "How to add the marques-de-france tag?"
+msgstr "Comment ajouter le tag marques-de-france ?"
+
+msgid "How to bulk edit?"
+msgstr "Comment modifier en lot ?"
+
+msgid "How to do ?"
+msgstr "Comment faire ?"
+
+msgid "Inherit"
+msgstr "Hérité"
+
+msgid "On selected period"
+msgstr "Sur la période sélectionnée"
+
+msgid "Price"
+msgstr "Prix"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Publish"
+msgstr "Publié"
+
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Saving…"
+msgstr "Enregistrement…"
+
+msgid "Scheduled"
+msgstr "Planifié"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Selection method"
+msgstr "Méthode de sélection"
+
+msgid "Trash"
+msgstr "Corbeille"
+
+msgid "marques-de-france"
+msgstr "marques-de-france"
+
+msgid "Go to Products"
+msgstr "Aller dans Produits"
+
+msgid "From your WordPress admin, go to Products."
+msgstr "Dans votre administration WordPress, allez dans le menu Produits."
+
+msgid "Select a product"
+msgstr "Sélectionnez un produit"
+
+msgid "Open a product made in France."
+msgstr "Ouvrez un produit fabriqué en France."
+
+msgid "Add the tag "
+msgstr "Ajoutez le tag "
+
+msgid "In the product page, add the tag "
+msgstr "Dans la page d'étidion du produit, ajoutez l'étiquette produit "
+
+msgid "in the Tags field."
+msgstr "dans le champ Étiquette produit."
+
+msgid "Click Update. The product will appear in the feed."
+msgstr "Cliquez sur Mettre à jour. Le produit apparaîtra dans le flux."
+
+msgid "How to include products in the feed?"
+msgstr "Comment inclure des produits dans le flux ?"
+
+msgid "Add the "
+msgstr "Ajoutez le "
+
+msgid ""
+" to the products you want to list on Marques de France. Selected "
+"products must be manufactured in France."
+msgstr ""
+" tag aux produits que vous souhaitez afficher sur Marques de France. Les "
+"produits sélectionnés doivent être fabriqués en France."
+
+msgid "Via the product tag field (Recommended)"
+msgstr "Via le champ Étiquettes produit (recommandé)"
+
+msgid "Via the product tag field (recommended)"
+msgstr "Via le champ Étiquettes produit (recommandé)"
+
+msgid "Simply add the tag "
+msgstr "Ajoutez simplement le tag "
+
+msgid ""
+" to each of your products manufactured in France. This is the simplest and "
+"most direct method."
+msgstr ""
+" à chacun de vos produits fabriqués en France. C’est la méthode la plus "
+"simple et directe."
+
+msgid ""
+"Manually select products directly from this app. Choose this option if your "
+"product tag field is used to display information in your theme."
+msgstr ""
+"Sélectionnez manuellement les produits directement depuis cette extension."
+" Choisissez cette option si votre champ de tag produit est utilisé pour "
+"afficher des informations dans votre thème."
+
+msgid ""
+"To add the tag to multiple products at once, select them in the product "
+"list, then choose Edit from the Bulk actions dropdown and add the tag in the"
+" Tags field."
+msgstr ""
+"Pour ajouter l'étiquette à plusieurs produits à la fois, sélectionnez-les dans la"
+" liste des produits, puis choisissez Modifier dans le menu Actions groupées "
+"et ajoutez l'étiquette dans le champ "Étiquettes produit"."
+
+msgid "Auto-Draft"
+msgstr "Brouillon auto"
+
+msgid "Availability"
+msgstr "Disponibilité"
+
+msgid ""
+"Changing the feed mode will update how products are selected. Continue?"
+msgstr ""
+"Le changement de mode de flux mettra à jour la manière dont les produits "
+"sont sélectionnés. Continuer ?"
+
+msgid "Failed to load the feed data."
+msgstr "Échec du chargement des données du flux."
+
+msgid "Failed to load the product selection list."
+msgstr "Échec du chargement de la liste de sélection des produits."
+
+msgid "Modify selection"
+msgstr "Modifier la sélection"
+
+msgid "No products are currently returned in the feed view."
+msgstr "Aucun produit n’est actuellement affiché dans la vue du flux."
+
+msgid "No products are currently selected for the feed."
+msgstr "Aucun produit n’est actuellement sélectionné pour le flux."
+
+msgid ""
+"Only select products manufactured in France. These are the products that "
+"will appear in the Marques de France guide."
+msgstr ""
+"Sélectionnez uniquement les produits fabriqués en France. Ce sont les "
+"produits qui apparaîtront dans le guide Marques de France."
+
+msgid ""
+"Out-of-stock, inactive, or products missing a price, image, or brand are "
+"automatically excluded from the feed."
+msgstr ""
+"Les produits en rupture de stock, inactifs ou sans prix, image ou marque "
+"sont automatiquement exclus du flux."
+
+msgid "Product"
+msgstr "Produit"
+
+msgid "Saving feed mode…"
+msgstr "Enregistrement du mode de flux…"
+
+msgid "Search products or brands"
+msgstr "Rechercher des produits ou des marques"
+
+msgid "Unable to update the feed mode."
+msgstr "Impossible de mettre à jour le mode de flux."
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "Via manual selection from this app"
+msgstr "Via la sélection manuelle depuis cette extension"
+
+msgid "Via the product tag field"
+msgstr "Via le champ de tag produit"
+
+msgid "In stock"
+msgstr "En stock"
+
+msgid "Out of stock"
+msgstr "Rupture de stock"

@@ -3,6 +3,7 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button, DatePicker, Popover } from '@wordpress/components';
 import LoadingState from '../components/LoadingState';
+import KpiCard from '../components/KpiCard';
 import RevenueChart from '../components/RevenueChart';
 
 /** Compute dateFrom/dateTo from a preset string. */
@@ -205,6 +206,14 @@ export default function Sales() {
 	};
 
 	const currency = analytics?.currency || sales?.currency || 'EUR';
+	const totalRevenue = (analytics?.data || []).reduce(
+		(sum, item) => sum + Number(item.revenue || 0),
+		0
+	);
+	const totalSales = (analytics?.data || []).reduce(
+		(sum, item) => sum + Number(item.conversions || 0),
+		0
+	);
 
 	const formatAmount = (
 		v,
@@ -282,6 +291,19 @@ export default function Sales() {
 						salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
 					/>
 				</div>
+			</div>
+
+			<div className="mdf-stat-cards">
+				<KpiCard
+					label={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
+					value={formatAmount(totalRevenue, currency)}
+					subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
+				/>
+				<KpiCard
+					label={__('Sales', 'marques-de-france-connector-for-woocommerce')}
+					value={String(totalSales)}
+					subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
+				/>
 			</div>
 
 			<div className="mdf-chart-card">

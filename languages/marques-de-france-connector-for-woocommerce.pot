@@ -91,7 +91,7 @@ msgid "Total Revenue"
 msgstr ""
 
 #: src/admin/pages/Dashboard.js:273
-msgid "Confirmed only"
+msgid "Confirmed"
 msgstr ""
 
 #: src/admin/pages/Dashboard.js:282

@@ -294,6 +294,30 @@ export default function Feed() {
       .replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
+  const formatAvailabilityLabel = (value) => {
+    const raw = String(value ?? "").trim().toLowerCase();
+
+    if (
+      raw.includes("in stock") ||
+      raw.includes("en stock") ||
+      raw.includes("disponible") ||
+      raw.includes("available")
+    ) {
+      return __("In stock", "marques-de-france-connector-for-woocommerce");
+    }
+
+    if (
+      raw.includes("out of stock") ||
+      raw.includes("rupture") ||
+      raw.includes("indisponible") ||
+      raw.includes("unavailable")
+    ) {
+      return __("Out of stock", "marques-de-france-connector-for-woocommerce");
+    }
+
+    return value || __("Unknown", "marques-de-france-connector-for-woocommerce");
+  };
+
   const chipStyle = (value) => {
     const label = String(value || "").toLowerCase();
 
@@ -532,11 +556,16 @@ export default function Feed() {
                 </thead>
                 <tbody>
                   {sortedManageProducts.map((product) => {
+                    const availabilityLabel = formatAvailabilityLabel(
+                      product.availability,
+                    );
                     const availabilityStyle = chipStyle(product.availability);
                     const statusLabel = formatStatusLabel(
                       product.status || product.feed_status,
                     );
-                    const statusStyle = chipStyle(statusLabel);
+                    const statusStyle = chipStyle(
+                      product.status || product.feed_status,
+                    );
 
                     return (
                       <tr key={product.id}>
@@ -557,7 +586,14 @@ export default function Feed() {
                               className="mdf-feed-thumb"
                             />
                             <div>
-                              <span>{product.name}</span>
+                              <a
+                                href={`/wp-admin/post.php?post=${product.id}&action=edit`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: "#051440", textDecoration: "underline" }}
+                              >
+                                {product.name}
+                              </a>
                             </div>
                           </div>
                         </td>
@@ -573,14 +609,9 @@ export default function Feed() {
                               fontSize: 11,
                               fontWeight: 600,
                               padding: "2px 8px",
-                              textTransform: "capitalize",
                             }}
                           >
-                            {product.availability ||
-                              __(
-                                "Unknown",
-                                "marques-de-france-connector-for-woocommerce",
-                              )}
+                            {availabilityLabel}
                           </span>
                         </td>
                         <td>
@@ -593,7 +624,6 @@ export default function Feed() {
                               fontSize: 11,
                               fontWeight: 600,
                               padding: "2px 8px",
-                              textTransform: "capitalize",
                             }}
                           >
                             {statusLabel}
@@ -783,11 +813,16 @@ export default function Feed() {
                 </tr>
               ) : (
                 sortedProducts.map((product) => {
+                  const availabilityLabel = formatAvailabilityLabel(
+                    product.availability,
+                  );
                   const availabilityStyle = chipStyle(product.availability);
                   const statusLabel = formatStatusLabel(
                     product.status || product.feed_status,
                   );
-                  const statusStyle = chipStyle(statusLabel);
+                  const statusStyle = chipStyle(
+                    product.status || product.feed_status,
+                  );
 
                   return (
                     <tr key={product.id}>
@@ -799,7 +834,14 @@ export default function Feed() {
                             className="mdf-feed-thumb"
                           />
                           <div>
-                            <span>{product.name}</span>
+                            <a
+                              href={`/wp-admin/post.php?post=${product.id}&action=edit`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#051440", textDecoration: "underline" }}
+                            >
+                              {product.name}
+                            </a>
                           </div>
                         </div>
                       </td>
@@ -815,14 +857,9 @@ export default function Feed() {
                             fontSize: 11,
                             fontWeight: 600,
                             padding: "2px 8px",
-                            textTransform: "capitalize",
                           }}
                         >
-                          {product.availability ||
-                            __(
-                              "Unknown",
-                              "marques-de-france-connector-for-woocommerce",
-                            )}
+                          {availabilityLabel}
                         </span>
                       </td>
                       <td>
@@ -835,7 +872,6 @@ export default function Feed() {
                             fontSize: 11,
                             fontWeight: 600,
                             padding: "2px 8px",
-                            textTransform: "capitalize",
                           }}
                         >
                           {statusLabel}
@@ -922,7 +958,7 @@ export default function Feed() {
           </div>
           <p className="mdf-feed-copy">
             {__(
-              "Add the ",
+              "Add the tag ",
               "marques-de-france-connector-for-woocommerce",
             )}
             <code
@@ -937,7 +973,7 @@ export default function Feed() {
               {__("marques-de-france", "marques-de-france-connector-for-woocommerce")}
             </code>
             {__(
-              " tag to the products you want to list on Marques de France. Selected products must be manufactured in France.",
+              " to the products you want to list on Marques de France. Selected products must be manufactured in France.",
               "marques-de-france-connector-for-woocommerce",
             )}
           </p>
@@ -988,20 +1024,38 @@ export default function Feed() {
               {[
                 {
                   number: "1",
-                  title: "Go to Products",
-                  text: "From your WordPress admin, go to Products.",
+                  title: __(
+                    "Go to Products",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
+                  text: __(
+                    "From your WordPress admin, go to Products.",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
                 },
                 {
                   number: "2",
-                  title: "Select a product",
-                  text: "Open a product made in France.",
+                  title: __(
+                    "Select a product",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
+                  text: __(
+                    "Open a product made in France.",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
                 },
                 {
                   number: "3",
-                  title: "Add the tag",
+                  title: __(
+                    "Add the tag ",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
                   text: (
                     <>
-                      In the product page, add the tag{" "}
+                      {__(
+                        "In the product page, add the tag ",
+                        "marques-de-france-connector-for-woocommerce",
+                      )}{" "}
                       <code
                         style={{
                           background: "#f0f0f0",
@@ -1013,14 +1067,24 @@ export default function Feed() {
                       >
                         marques-de-france
                       </code>
-                      {" "}in the Tags field.
+                      {" "}
+                      {__(
+                        "in the Tags field.",
+                        "marques-de-france-connector-for-woocommerce",
+                      )}
                     </>
                   ),
                 },
                 {
                   number: "4",
-                  title: "Save",
-                  text: "Click Update. The product will appear in the feed.",
+                  title: __(
+                    "Save",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
+                  text: __(
+                    "Click Update. The product will appear in the feed.",
+                    "marques-de-france-connector-for-woocommerce",
+                  ),
                 },
               ].map((step, index, array) => (
                 <div key={step.number} style={{ display: "flex", gap: 12 }}>
