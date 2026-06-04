@@ -125,6 +125,7 @@ export default function Sales() {
 	const [granularity, setGranularity] = useState('day');
 	const [analytics, setAnalytics] = useState(null);
 	const [analyticsLoading, setAnalyticsLoading] = useState(true);
+	const [analyticsError, setAnalyticsError] = useState(null);
 
 	// Sales table state
 	const [search, setSearch] = useState('');
@@ -146,11 +147,14 @@ export default function Sales() {
 	useEffect(() => {
 		const { dateFrom: from, dateTo: to } = getRangeDates(analyticsRange);
 		setAnalyticsLoading(true);
+		setAnalyticsError(null);
 		apiFetch({
 			path: `/mdfcforwc/v1/admin/analytics?dateFrom=${from}&dateTo=${to}&granularity=${granularity}`,
 		})
 			.then(setAnalytics)
-			.catch(() => { })
+			.catch(() => setAnalyticsError(
+				__( 'Failed to load chart data.', 'marques-de-france-connector-for-woocommerce' )
+			))
 			.finally(() => setAnalyticsLoading(false));
 	}, [analyticsRange, granularity]);
 
@@ -282,14 +286,18 @@ export default function Sales() {
 					</div>
 				</div>
 				<div className="mdf-chart-container">
-					<RevenueChart
-						data={analytics}
-						currency={currency}
-						granularity={granularity}
-						loading={analyticsLoading}
-						revenueLabel={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
-						salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
-					/>
+					{ analyticsError ? (
+						<div className="mdf-error">{ analyticsError }</div>
+					) : (
+						<RevenueChart
+							data={analytics}
+							currency={currency}
+							granularity={granularity}
+							loading={analyticsLoading}
+							revenueLabel={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
+							salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
+						/>
+					) }
 				</div>
 			</div>
 

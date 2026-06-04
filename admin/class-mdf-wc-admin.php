@@ -105,7 +105,7 @@ class MDFCFORWC_Admin {
 		add_submenu_page(
 			self::MENU_SLUG,
 			__( 'Product feed', 'marques-de-france-connector-for-woocommerce' ),
-			__( 'Flux de produits', 'marques-de-france-connector-for-woocommerce' ),
+			__( 'Product feed', 'marques-de-france-connector-for-woocommerce' ),
 			self::CAPABILITY,
 			self::MENU_SLUG . '-feed',
 			[ $this, 'render_page_feed' ]
@@ -115,7 +115,7 @@ class MDFCFORWC_Admin {
 		add_submenu_page(
 			self::MENU_SLUG,
 			__( 'Sales tracking', 'marques-de-france-connector-for-woocommerce' ),
-			__( 'Suivi des ventes', 'marques-de-france-connector-for-woocommerce' ),
+			__( 'Sales tracking', 'marques-de-france-connector-for-woocommerce' ),
 			self::CAPABILITY,
 			self::MENU_SLUG . '-sales',
 			[ $this, 'render_page_sales' ]
@@ -199,21 +199,27 @@ class MDFCFORWC_Admin {
 			$style_version
 		);
 
-		// Pass data to JS
+		// Pass data to JS.
+		// The raw token is intentionally omitted — compose the signed feed URL
+		// server-side so it never appears in the page source.
+		$token    = MDFCFORWC_Settings::get_secure_token();
+		$feed_url = $token
+			? esc_url_raw( add_query_arg( 'token', $token, rest_url( 'mdfcforwc/v1/feed' ) ) )
+			: esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) );
+
 		wp_localize_script(
 			'mdfcforwc-admin',
 			'mdfcforwcAdmin',
 			[
-				'restUrl'      => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
-				'nonce'        => wp_create_nonce( 'wp_rest' ),
-				'feedUrl'      => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
-				'token'        => MDFCFORWC_Settings::get_secure_token(),
+				'restUrl'        => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'feedUrl'        => $feed_url,
 				'feedFilterMode' => MDFCFORWC_Settings::get_feed_filter_mode(),
-				'configured'   => MDFCFORWC_Settings::is_configured(),
-				'siteUrl'      => MDFCFORWC_Settings::get_site_url(),
-				'pluginUrl'    => MDFCFORWC_PLUGIN_URL,
-				'settingsUrl'  => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
-				'feedAdminUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-feed' ) ),
+				'configured'     => MDFCFORWC_Settings::is_configured(),
+				'siteUrl'        => MDFCFORWC_Settings::get_site_url(),
+				'pluginUrl'      => MDFCFORWC_PLUGIN_URL,
+				'settingsUrl'    => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
+				'feedAdminUrl'   => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-feed' ) ),
 			]
 		);
 
@@ -297,10 +303,12 @@ class MDFCFORWC_Admin {
 		] );
 
 		// POST /wp-json/mdfcforwc/v1/admin/settings — save secure token
+		// Requires manage_options only (not shop managers) because changing the
+		// token breaks feed delivery and sales sync for the entire store.
 		register_rest_route( self::REST_NAMESPACE, '/admin/settings', [
 			'methods'             => WP_REST_Server::CREATABLE,
 			'permission_callback' => function () {
-				return $this->user_can_access();
+				return current_user_can( self::CAPABILITY );
 			},
 			'args' => [
 				'mdfcforwc_secure_token' => [
@@ -498,7 +506,7 @@ class MDFCFORWC_Admin {
 		$success    = MDFCFORWC_Feed_Products::remove_product( $product_id );
 		return new WP_REST_Response(
 			[ 'success' => $success, 'inFeedCount' => MDFCFORWC_Feed_Products::get_count() ],
-			200
+			$success ? 200 : 500
 		);
 	}
 
@@ -707,11 +715,22 @@ class MDFCFORWC_Admin {
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
-		$date_from   = $request->get_param( 'dateFrom' ) ?: gmdate( 'Y-m-01', strtotime( '-11 months' ) );
-		$date_to     = $request->get_param( 'dateTo' )   ?: gmdate( 'Y-m-t' ); // end of current month
-		$granularity = in_array( $request->get_param( 'granularity' ), [ 'day', 'month' ], true )
+		$date_from_raw = $request->get_param( 'dateFrom' ) ?: gmdate( 'Y-m-01', strtotime( '-11 months' ) );
+		$date_to_raw   = $request->get_param( 'dateTo' )   ?: gmdate( 'Y-m-t' );
+		$granularity   = in_array( $request->get_param( 'granularity' ), [ 'day', 'month' ], true )
 			? $request->get_param( 'granularity' )
 			: 'month';
+
+		// Validate date parameters before using them in SQL.
+		if ( ! DateTime::createFromFormat( 'Y-m-d', $date_from_raw ) ) {
+			return new WP_Error( 'invalid_date', 'dateFrom must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+		if ( ! DateTime::createFromFormat( 'Y-m-d', $date_to_raw ) ) {
+			return new WP_Error( 'invalid_date', 'dateTo must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+
+		$date_from = $date_from_raw;
+		$date_to   = $date_to_raw;
 
 		$from_dt = $date_from . ' 00:00:00';
 		$to_dt   = $date_to   . ' 23:59:59';
@@ -778,6 +797,14 @@ class MDFCFORWC_Admin {
 		$date_to   = $request->get_param( 'dateTo' );
 		$sort_f    = $request->get_param( 'sortField' );
 		$sort_d    = $request->get_param( 'sortDir' );
+
+		// Validate date parameters before appending time components for SQL.
+		if ( $date_from && ! DateTime::createFromFormat( 'Y-m-d', $date_from ) ) {
+			return new WP_Error( 'invalid_date', 'dateFrom must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+		if ( $date_to && ! DateTime::createFromFormat( 'Y-m-d', $date_to ) ) {
+			return new WP_Error( 'invalid_date', 'dateTo must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
 
 		$valid_fields = [ 'created_at', 'amount', 'order_id', 'status' ];
 		$sort_col     = in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at';
@@ -862,7 +889,7 @@ class MDFCFORWC_Admin {
 
 		$response = wp_remote_get( $hub_url . '/api/wc/status', [
 			'timeout'   => 8,
-			'sslverify' => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+			'sslverify' => ! ( defined( 'MDFCFORWC_DISABLE_SSL_VERIFY' ) && MDFCFORWC_DISABLE_SSL_VERIFY ),
 			'headers'   => [
 				'X-MDF-Token'      => $token,
 				'X-MDF-Shop'       => $site_url,

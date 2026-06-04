@@ -32,19 +32,25 @@ export default function Dashboard() {
 						apiFetch( { path: '/mdfcforwc/v1/admin/hub-status' } )
 					);
 				}
-				const results = await Promise.all( requests );
-				setStats( results[ 0 ] );
-				setChartData( results[ 1 ] );
-				if ( results[ 2 ] ) {
-					setHubStatus( results[ 2 ] );
+				// Use allSettled so a hub-status timeout or analytics failure
+				// does not wipe out the stats that loaded successfully.
+				const results = await Promise.allSettled( requests );
+				if ( results[ 0 ].status === 'fulfilled' ) {
+					setStats( results[ 0 ].value );
+				} else {
+					setError(
+						__(
+							'Failed to load data.',
+							'marques-de-france-connector-for-woocommerce'
+						)
+					);
 				}
-			} catch {
-				setError(
-					__(
-						'Failed to load data.',
-						'marques-de-france-connector-for-woocommerce'
-					)
-				);
+				if ( results[ 1 ].status === 'fulfilled' ) {
+					setChartData( results[ 1 ].value );
+				}
+				if ( results[ 2 ] && results[ 2 ].status === 'fulfilled' ) {
+					setHubStatus( results[ 2 ].value );
+				}
 			} finally {
 				setLoading( false );
 			}

@@ -3,10 +3,17 @@ import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button } from '@wordpress/components';
 
-const { token: initialToken } = window.mdfcforwcAdmin || {};
+const { token: initialToken, configured } = window.mdfcforwcAdmin || {};
+
+// Sentinel used to display masked dots when a token is already configured
+// but the raw value is intentionally not passed to the frontend.
+const TOKEN_MASK = '••••••••••••••••••••••••••••••••';
 
 export default function Settings() {
 	const [ token, setToken ] = useState( initialToken || '' );
+	const [ isMasked, setIsMasked ] = useState(
+		configured && ! initialToken
+	);
 	const [ saving, setSaving ] = useState( false );
 	const [ notice, setNotice ] = useState( null );
 
@@ -76,7 +83,13 @@ export default function Settings() {
 							type="password"
 							className="mdf-input mdf-secure-token"
 							style={{ width: '100%' }}
-							value={ token }
+							value={ isMasked ? TOKEN_MASK : token }
+							onFocus={ () => {
+								if ( isMasked ) {
+									setIsMasked( false );
+									setToken( '' );
+								}
+							} }
 							onChange={ ( e ) => setToken( e.target.value ) }
 							autoComplete="new-password"
 						/>

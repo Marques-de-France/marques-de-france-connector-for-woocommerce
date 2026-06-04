@@ -129,17 +129,6 @@ export default function Feed() {
   };
 
   const handleModeSwitch = async (nextMode) => {
-    if (
-      !window.confirm(
-        __(
-          "Changing the feed mode will update how products are selected. Continue?",
-          "marques-de-france-connector-for-woocommerce",
-        ),
-      )
-    ) {
-      return;
-    }
-
     try {
       setSwitching(true);
       await apiFetch({

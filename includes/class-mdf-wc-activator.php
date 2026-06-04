@@ -159,7 +159,7 @@ class MDFCFORWC_Activator {
 			$hub_url . '/api/wc/self-register',
 			[
 				'timeout'   => 10,
-				'sslverify' => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+				'sslverify' => ! ( defined( 'MDFCFORWC_DISABLE_SSL_VERIFY' ) && MDFCFORWC_DISABLE_SSL_VERIFY ),
 				'headers'   => [ 'Content-Type' => 'application/json' ],
 				'body'      => wp_json_encode( [ 'siteUrl' => $site_url ] ),
 			]

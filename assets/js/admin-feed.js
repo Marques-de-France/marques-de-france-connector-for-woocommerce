@@ -287,7 +287,7 @@
 					'<td style="width:50px"><img src="' + esc( p.image ) + '" width="36" height="36" alt="" style="object-fit:cover;border-radius:3px;vertical-align:middle"></td>' +
 					'<td><strong><a href="' + esc( p.edit_url ) + '" target="_blank">' + esc( p.name ) + '</a></strong>' +
 					( p.brand ? '<br><span class="mdf-brand">' + esc( p.brand ) + '</span>' : '' ) + '</td>' +
-					'<td style="width:110px">' + esc( p.price_html || String( p.price ) ) + '</td>' +
+				'<td style="width:110px">' + ( p.price_html ? p.price_html : esc( String( p.price ) ) ) + '</td>' +
 					'<td style="width:150px">' + availabilityBadge( p.availability ) + '</td>' +
 					'</tr>';
 			} ).join( '' );
@@ -377,7 +377,7 @@
 					'<td style="width:50px"><img src="' + esc( p.image ) + '" width="36" height="36" alt="" style="object-fit:cover;border-radius:3px;vertical-align:middle"></td>' +
 					'<td><strong><a href="' + esc( p.edit_url ) + '" target="_blank">' + esc( p.name ) + '</a></strong>' +
 					( p.brand ? '<br><span class="mdf-brand">' + esc( p.brand ) + '</span>' : '' ) + '</td>' +
-					'<td style="width:110px">' + esc( p.price_html || String( p.price ) ) + '</td>' +
+				'<td style="width:110px">' + ( p.price_html ? p.price_html : esc( String( p.price ) ) ) + '</td>' +
 					'<td style="width:150px">' + availabilityBadge( p.availability ) + '</td>' +
 					'</tr>';
 			} ).join( '' );
