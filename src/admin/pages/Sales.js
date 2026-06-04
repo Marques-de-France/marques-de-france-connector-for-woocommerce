@@ -468,7 +468,7 @@ export default function Sales() {
 					<Button
 						ref={fromButtonRef}
 						variant="secondary"
-						style={{ backgroundColor: '#fff' }}
+						style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 						onClick={() => setIsFromPickerOpen((open) => !open)}
 					>
 						{dateFrom
@@ -498,7 +498,7 @@ export default function Sales() {
 					<Button
 						ref={toButtonRef}
 						variant="secondary"
-						style={{ backgroundColor: '#fff' }}
+						style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 						onClick={() => setIsToPickerOpen((open) => !open)}
 					>
 						{dateTo
@@ -528,7 +528,7 @@ export default function Sales() {
 				</div>
 				<Button
 					variant="secondary"
-					style={{ backgroundColor: '#fff' }}
+					style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 					onClick={handleReset}
 				>
 					{__(

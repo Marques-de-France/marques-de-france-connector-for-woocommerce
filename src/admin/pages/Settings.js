@@ -74,7 +74,8 @@ export default function Settings() {
 						<input
 							id="mdf-secure-token"
 							type="password"
-							className="mdf-input mdf-input--wide mdf-secure-token"
+							className="mdf-input mdf-secure-token"
+							style={{ width: '100%' }}
 							value={ token }
 							onChange={ ( e ) => setToken( e.target.value ) }
 							autoComplete="new-password"
