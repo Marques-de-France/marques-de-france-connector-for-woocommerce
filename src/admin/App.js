@@ -1,4 +1,4 @@
-import { useState } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import Dashboard from './pages/Dashboard';
 import Sales from './pages/Sales';
@@ -13,18 +13,48 @@ const TABS = [
 	{ key: 'settings', label: __( 'Settings', 'marques-de-france-connector-for-woocommerce' ) },
 ];
 
+const MENU_SLUG = 'marques-de-france-connector-for-woocommerce';
+
+function getInitialTab() {
+	const params = new URLSearchParams( window.location.search );
+	const page = params.get( 'page' ) || '';
+
+	if ( page.endsWith( '-sales' ) ) {
+		return 'sales';
+	}
+	if ( page.endsWith( '-settings' ) ) {
+		return 'settings';
+	}
+	if ( page.endsWith( '-feed' ) ) {
+		return 'feed';
+	}
+
+	return window.mdfcforwcAdmin?.initialPage || 'dashboard';
+}
+
 export default function App() {
-	const initialPage = window.mdfcforwcAdmin?.initialPage || 'dashboard';
-	const [ activeTab, setActiveTab ] = useState( initialPage );
+	const [ activeTab, setActiveTab ] = useState( getInitialTab );
+
+	useEffect( () => {
+		const syncFromUrl = () => {
+			setActiveTab( getInitialTab() );
+		};
+
+		window.addEventListener( 'popstate', syncFromUrl );
+		return () => window.removeEventListener( 'popstate', syncFromUrl );
+	}, [] );
 
 	const handleTabClick = ( key ) => {
-		if ( key === 'feed' ) {
-			if ( feedAdminUrl ) {
-				window.location.href = feedAdminUrl;
-			}
+		if ( key === 'feed' && feedAdminUrl ) {
+			window.location.href = feedAdminUrl;
 			return;
 		}
+
+		const pageSlug = key === 'dashboard' ? MENU_SLUG : `${ MENU_SLUG }-${ key }`;
+		const nextUrl = `${ window.location.pathname }?page=${ pageSlug }`;
+
 		setActiveTab( key );
+		window.history.pushState( {}, '', nextUrl );
 	};
 
 	const renderContent = () => {
