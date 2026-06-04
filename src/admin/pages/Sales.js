@@ -472,7 +472,11 @@ export default function Sales() {
 						onClick={() => setIsFromPickerOpen((open) => !open)}
 					>
 						{dateFrom
-							? formatDateValue(dateFrom)
+							? new Intl.DateTimeFormat(undefined, {
+								day: '2-digit',
+								month: '2-digit',
+								year: 'numeric',
+							}).format(new Date(dateFrom))
 							: __('From', 'marques-de-france-connector-for-woocommerce')}
 					</Button>
 					{isFromPickerOpen && (
@@ -498,7 +502,11 @@ export default function Sales() {
 						onClick={() => setIsToPickerOpen((open) => !open)}
 					>
 						{dateTo
-							? formatDateValue(dateTo)
+							? new Intl.DateTimeFormat(undefined, {
+								day: '2-digit',
+								month: '2-digit',
+								year: 'numeric',
+							}).format(new Date(dateTo))
 							: __('To', 'marques-de-france-connector-for-woocommerce')}
 					</Button>
 					{isToPickerOpen && (
@@ -699,7 +707,11 @@ export default function Sales() {
 										</td>
 										<td>
 											{row.created_at
-												? row.created_at.slice(0, 10)
+												? new Intl.DateTimeFormat(undefined, {
+													day: '2-digit',
+													month: '2-digit',
+													year: 'numeric',
+												}).format(new Date(row.created_at))
 												: '—'}
 										</td>
 									</tr>
