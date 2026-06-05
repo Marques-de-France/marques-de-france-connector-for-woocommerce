@@ -14,6 +14,7 @@ import LoadingState from "../components/LoadingState";
 const { feedFilterMode: initialMode = "TAG" } = window.mdfcforwcAdmin || {};
 
 const PER_PAGE = 25;
+const PER_PAGE_OPTIONS = [25, 50, 100];
 
 export default function Feed() {
 	const [mode, setMode] = useState(initialMode);
@@ -26,6 +27,7 @@ export default function Feed() {
 	const [manageProducts, setManageProducts] = useState([]);
 	const [manageSearch, setManageSearch] = useState("");
 	const [feedSearch, setFeedSearch] = useState("");
+	const [resultsPerPage, setResultsPerPage] = useState(PER_PAGE);
 	const [feedPage, setFeedPage] = useState(1);
 	const [feedTotalPages, setFeedTotalPages] = useState(1);
 	const [managePage, setManagePage] = useState(1);
@@ -49,6 +51,7 @@ export default function Feed() {
 		page = 1,
 		search = feedSearch,
 		nextMode = mode,
+		perPage = resultsPerPage,
 	) => {
 		try {
 			if (!isInitialized) {
@@ -58,7 +61,7 @@ export default function Feed() {
 			}
 			setFeedError(null);
 			const data = await apiFetch({
-				path: `/mdfcforwc/v1/admin/products?page=${page}&per_page=${PER_PAGE}${search ? `&search=${encodeURIComponent(search)}` : ""
+				path: `/mdfcforwc/v1/admin/products?page=${page}&per_page=${perPage}${search ? `&search=${encodeURIComponent(search)}` : ""
 					}`,
 			});
 			setProducts(data.products || []);
@@ -80,11 +83,15 @@ export default function Feed() {
 		}
 	};
 
-	const fetchManageProducts = async (page = 1, search = "") => {
+	const fetchManageProducts = async (
+		page = 1,
+		search = "",
+		perPage = resultsPerPage,
+	) => {
 		try {
 			setManageLoading(true);
 			const data = await apiFetch({
-				path: `/mdfcforwc/v1/admin/all-products?page=${page}&per_page=${PER_PAGE}${search ? `&search=${encodeURIComponent(search)}` : ""
+				path: `/mdfcforwc/v1/admin/all-products?page=${page}&per_page=${perPage}${search ? `&search=${encodeURIComponent(search)}` : ""
 					}`,
 			});
 			setManageProducts(data.products || []);
@@ -151,6 +158,20 @@ export default function Feed() {
 	const saveModeSelection = async () => {
 		await handleModeSwitch(pendingMode);
 		setIsModeModalOpen(false);
+	};
+
+	const handleResultsPerPageChange = (nextValue, scope = "feed") => {
+		const nextPerPage = Number(nextValue);
+		setResultsPerPage(nextPerPage);
+
+		if (scope === "manage") {
+			setManagePage(1);
+			fetchManageProducts(1, manageSearch, nextPerPage);
+			return;
+		}
+
+		setFeedPage(1);
+		fetchProducts(1, feedSearch, mode, nextPerPage);
 	};
 
 	const openManageMode = () => {
@@ -423,6 +444,57 @@ export default function Feed() {
 		return value;
 	};
 
+	const toggleSelectAllVisibleProducts = async () => {
+		if (manageProducts.length === 0) {
+			return;
+		}
+
+		const nextInFeed = !manageProducts.every((product) => Boolean(product.inFeed));
+		const productsToToggle = manageProducts.filter(
+			(product) => Boolean(product.inFeed) !== nextInFeed,
+		);
+		const previousInFeed = manageProducts.map((product) => Boolean(product.inFeed));
+
+		setManageProducts((current) =>
+			current.map((product) => ({
+				...product,
+				inFeed: nextInFeed,
+			}))
+		);
+		setInFeedCount((current) => current + (nextInFeed ? productsToToggle.length : -productsToToggle.length));
+
+		try {
+			await Promise.all(
+				productsToToggle.map((product) =>
+					nextInFeed
+						? apiFetch({
+							path: "/mdfcforwc/v1/admin/feed-products",
+							method: "POST",
+							data: { productId: product.id },
+						})
+						: apiFetch({
+							path: `/mdfcforwc/v1/admin/feed-products/${product.id}`,
+							method: "DELETE",
+						}),
+				),
+			);
+		} catch {
+			setManageProducts((current) =>
+				current.map((product, index) => ({
+					...product,
+					inFeed: previousInFeed[index],
+				}))
+			);
+			setInFeedCount((current) => current + (nextInFeed ? -productsToToggle.length : productsToToggle.length));
+			setError(
+				__(
+					"Unable to update the selected products.",
+					"marques-de-france-connector-for-woocommerce",
+				)
+			);
+		}
+	};
+
 	let tableContent;
 
 	if (manageMode) {
@@ -475,13 +547,23 @@ export default function Feed() {
 							<table className="mdf-table">
 								<thead>
 									<tr>
-										<th style={{ width: 46 }}></th>
+										<th style={{ width: 46 }}>
+											<input
+												type="checkbox"
+												checked={
+													manageProducts.length > 0 &&
+													manageProducts.every((product) => Boolean(product.inFeed))
+												}
+												onChange={toggleSelectAllVisibleProducts}
+												aria-label={__("Select all products on this page", "marques-de-france-connector-for-woocommerce")}
+											/>
+										</th>
 										<th>
 											<button
 												type="button"
 												className={`mdf-sort-btn${manageSortField === "name"
-														? " mdf-sort-btn--active"
-														: ""
+													? " mdf-sort-btn--active"
+													: ""
 													}`}
 												onClick={() => handleSort("name", "manage")}
 											>
@@ -496,8 +578,8 @@ export default function Feed() {
 											<button
 												type="button"
 												className={`mdf-sort-btn${manageSortField === "brand"
-														? " mdf-sort-btn--active"
-														: ""
+													? " mdf-sort-btn--active"
+													: ""
 													}`}
 												onClick={() => handleSort("brand", "manage")}
 											>
@@ -512,8 +594,8 @@ export default function Feed() {
 											<button
 												type="button"
 												className={`mdf-sort-btn${manageSortField === "price"
-														? " mdf-sort-btn--active"
-														: ""
+													? " mdf-sort-btn--active"
+													: ""
 													}`}
 												onClick={() => handleSort("price", "manage")}
 											>
@@ -639,25 +721,43 @@ export default function Feed() {
 							</Button>
 							{manageTotalPages > 1 && (
 								<div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-									<span className="mdf-pagination__info">
-										{__("Page", "marques-de-france-connector-for-woocommerce")} {managePage} / {manageTotalPages}
-									</span>
-									<Button
-										variant="secondary"
-										style={{ backgroundColor: "#fff" }}
-										disabled={managePage <= 1}
-										onClick={() => fetchManageProducts(managePage - 1, manageSearch)}
-									>
-										{__("Previous", "marques-de-france-connector-for-woocommerce")}
-									</Button>
-									<Button
-										variant="secondary"
-										style={{ backgroundColor: "#fff" }}
-										disabled={managePage >= manageTotalPages}
-										onClick={() => fetchManageProducts(managePage + 1, manageSearch)}
-									>
-										{__("Next", "marques-de-france-connector-for-woocommerce")}
-									</Button>
+									<div className="mdf-pagination-content">
+										<span className="mdf-pagination__info">
+											{__("Page", "marques-de-france-connector-for-woocommerce")} {managePage} / {manageTotalPages}
+										</span>
+
+										<Button
+											variant="secondary"
+											style={{ backgroundColor: "#fff" }}
+											disabled={managePage <= 1}
+											onClick={() => fetchManageProducts(managePage - 1, manageSearch)}
+										>
+											{__("Previous", "marques-de-france-connector-for-woocommerce")}
+										</Button>
+										<Button
+											variant="secondary"
+											style={{ backgroundColor: "#fff" }}
+											disabled={managePage >= manageTotalPages}
+											onClick={() => fetchManageProducts(managePage + 1, manageSearch)}
+										>
+											{__("Next", "marques-de-france-connector-for-woocommerce")}
+										</Button>
+									</div>
+									<div className="mdf-pagination-content">
+										<label htmlFor="manage-results-per-page" style={{ fontSize: 13, color: "#50575e" }}>
+											{__("Results per page", "marques-de-france-connector-for-woocommerce")}
+										</label>
+										<select
+											id="manage-results-per-page"
+											className="mdf-select"
+											value={resultsPerPage}
+											onChange={(event) => handleResultsPerPageChange(event.target.value, "manage")}
+										>
+											{PER_PAGE_OPTIONS.map((option) => (
+												<option key={option} value={option}>{option}</option>
+											))}
+										</select>
+									</div>
 								</div>
 							)}
 						</div>
@@ -865,28 +965,46 @@ export default function Feed() {
 						</tbody>
 					</table>
 				</div>
-				{feedTotalPages > 1 && (
+				{products.length > 0 && (
 					<div className="mdf-pagination">
-						<span className="mdf-pagination__info">
-							{__("Page", "marques-de-france-connector-for-woocommerce")}{" "}
-							{feedPage} / {feedTotalPages}
-						</span>
-						<Button
-							variant="secondary"
-							style={{ backgroundColor: "#fff" }}
-							disabled={feedPage <= 1}
-							onClick={() => fetchProducts(feedPage - 1, feedSearch)}
-						>
-							{__("Previous", "marques-de-france-connector-for-woocommerce")}
-						</Button>
-						<Button
-							variant="secondary"
-							style={{ backgroundColor: "#fff" }}
-							disabled={feedPage >= feedTotalPages}
-							onClick={() => fetchProducts(feedPage + 1, feedSearch)}
-						>
-							{__("Next", "marques-de-france-connector-for-woocommerce")}
-						</Button>
+						<div className="mdf-pagination-content">
+							<span className="mdf-pagination__info">
+								{__("Page", "marques-de-france-connector-for-woocommerce")}{" "}
+								{feedPage} / {feedTotalPages}
+							</span>
+
+							<Button
+								variant="secondary"
+								style={{ backgroundColor: "#fff" }}
+								disabled={feedPage <= 1}
+								onClick={() => fetchProducts(feedPage - 1, feedSearch)}
+							>
+								{__("Previous", "marques-de-france-connector-for-woocommerce")}
+							</Button>
+							<Button
+								variant="secondary"
+								style={{ backgroundColor: "#fff" }}
+								disabled={feedPage >= feedTotalPages}
+								onClick={() => fetchProducts(feedPage + 1, feedSearch)}
+							>
+								{__("Next", "marques-de-france-connector-for-woocommerce")}
+							</Button>
+						</div>
+						<div className="mdf-pagination-content">
+							<label htmlFor="feed-results-per-page" style={{ fontSize: 13, color: "#50575e" }}>
+								{__("Results per page", "marques-de-france-connector-for-woocommerce")}
+							</label>
+							<select
+								id="feed-results-per-page"
+								className="mdf-select"
+								value={resultsPerPage}
+								onChange={(event) => handleResultsPerPageChange(event.target.value, "feed")}
+							>
+								{PER_PAGE_OPTIONS.map((option) => (
+									<option key={option} value={option}>{option}</option>
+								))}
+							</select>
+						</div>
 					</div>
 				)}
 			</>

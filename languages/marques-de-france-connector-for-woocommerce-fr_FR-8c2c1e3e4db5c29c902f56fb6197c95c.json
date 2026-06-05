@@ -1,1 +1,371 @@
-{"translation-revision-date": "2026-06-04 12:18+0200", "generator": "custom-mdf-json-export", "domain": "marques-de-france-connector-for-woocommerce", "locale_data": {"messages": {"": {"domain": "marques-de-france-connector-for-woocommerce", "plural-forms": "nplurals=2; plural=(n > 1);", "lang": "fr"}, "Dashboard": ["Tableau de bord"], "Product Feed": ["Flux de produits"], "Sales": ["Ventes"], "Settings": ["Paramètres"], "Failed to load data.": ["Échec du chargement des données."], "Loading…": ["Chargement…"], "Activate your store": ["Activez votre boutique"], "Store registered": ["Boutique enregistrée"], "Enter your activation code": ["Saisissez votre code d’activation"], "Enter my activation code": ["Saisir mon code d’activation"], "Revenue": ["Chiffre d’affaires"], "✓ Connected": ["✓ Connecté"], "✗ Invalid token — please re-enter your Secure Token in Settings.": ["✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les Paramètres."], "Total Sales": ["Ventes totales"], "All time": ["Depuis toujours"], "Confirmed": ["Confirmés"], "Total Revenue": ["Chiffre d’affaires total"], "This Month": ["Ce mois-ci"], "sale": ["vente"], "sales": ["ventes"], "Unsynced": ["Non synchronisé"], "pending Hub sync": ["en attente de synchronisation"], "Sales over the last 12 months": ["Ventes sur les 12 derniers mois"], "Access not authorized": ["Accès non autorisé"], "You are not authorized to use the application because your brand is not listed on our guide Marques de France.": ["Vous n’êtes pas autorisé à utiliser l’application car votre marque n’est pas répertoriée dans notre guide Marques de France."], "If you have French manufactured products, you can register your brand on": ["Si vous avez des produits fabriqués en France, vous pouvez inscrire votre marque sur"], " now.": [" dès maintenant."], "No data for the selected period.": ["Aucune donnée pour la période sélectionnée."], "Last 7 days": ["7 derniers jours"], "Last 28 days": ["28 derniers jours"], "Last 90 days": ["90 derniers jours"], "Last 12 months": ["12 derniers mois"], "Last year": ["L’année dernière"], "This year": ["Cette année"], "Failed to load sales.": ["Échec du chargement des ventes."], "Revenue over time": ["Chiffre d’affaires dans le temps"], "Daily": ["Journalier"], "Monthly": ["Mensuel"], "Search order ID…": ["Rechercher un numéro de commande…"], "All statuses": ["Tous les statuts"], "Cancelled": ["Annulé"], "Refunded": ["Remboursé"], "Pending": ["En attente"], "From": ["Du"], "To": ["Au"], "Reset": ["Réinitialiser"], "Order": ["Commande"], "Attribution": ["Attribution"], "Amount": ["Montant"], "Status": ["Statut"], "Date": ["Date"], "No sales found.": ["Aucune vente trouvée."], "Page": ["Page"], "Previous": ["Précédent"], "Next": ["Suivant"], "Settings saved.": ["Paramètres enregistrés."], "Failed to save settings.": ["Échec de l’enregistrement des paramètres."], "Connection": ["Connexion"], "Secure Token": ["Code d’accès sécurisé"], "The token provided by Marques de France when your store was registered.": ["Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."], "Save settings": ["Enregistrer les paramètres"], "Share this URL with Marques de France to enable your product feed in the directory.": ["Partagez cette URL avec Marques de France pour activer votre flux de produits dans l’annuaire."], "Copied!": ["Copié !"], "Copy URL": ["Copier l’URL"], "Preview": ["Aperçu"], "Marques de France": ["Marques de France"], "Product feed": ["Flux de produits"], "Flux de produits": ["Flux de produits"], "Sales tracking": ["Suivi des ventes"], "Suivi des ventes": ["Suivi des ventes"], "<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>.": ["<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>."], "Could not reach the MDF Hub. Check your connection settings and try again.": ["Impossible d’atteindre le Hub MDF. Vérifiez vos paramètres de connexion et réessayez."], "Marques de France: %d sale restored from the MDF Hub.": ["Marques de France: %d sale restored from the MDF Hub."], "Sales data may be out of sync (e.g. after a plugin reinstall). Click below to restore from the MDF Hub — this will replace the local sales table with the Hub's records.": ["Les données de vente peuvent être désynchronisées (par exemple après une réinstallation du plugin). Cliquez ci-dessous pour restaurer depuis le Hub MDF — cela remplacera la table locale des ventes par les enregistrements du Hub."], "Restore sales from Hub": ["Restaurer les ventes depuis le Hub"], "You do not have permission to perform this action.": ["Vous n’avez pas la permission d’effectuer cette action."], "Marques de France – Attribution": ["Marques de France – Attribution"], "No attribution detected for this order.": ["Aucune attribution détectée pour cette commande."], "Source": ["Source"], "UTM Source": ["UTM Source"], "UTM Medium": ["UTM Medium"], "UTM Campaign": ["UTM Campaign"], "UTM Content": ["UTM Content"], "UTM Term": ["UTM Term"], "Landing Site": ["Site d’arrivée"], "Referring Site": ["Site référent"], "Ref Param": ["Paramètre ref"], "Marques de France requires WooCommerce to be installed and active.": ["Marques de France nécessite que WooCommerce soit installé et activé."], "Back to feed": ["Retour au flux"], "Brand": ["Marque"], "Cancel": ["Annuler"], "Change": ["Modifier"], "Change mode": ["Changer de mode"], "Draft": ["Brouillon"], "Edit products in bulk": ["Modifier les produits en lot"], "How to add the marques-de-france tag?": ["Comment ajouter le tag marques-de-france ?"], "How to bulk edit?": ["Comment modifier en lot ?"], "How to do ?": ["Comment faire ?"], "Inherit": ["Hérité"], "On selected period": ["Sur la période sélectionnée"], "Price": ["Prix"], "Private": ["Privé"], "Publish": ["Publier"], "Save": ["Enregistrer"], "Saving…": ["Enregistrement…"], "Scheduled": ["Planifié"], "Search": ["Rechercher"], "Selection method": ["Méthode de sélection"], "Trash": ["Corbeille"], "marques-de-france": ["marques-de-france"], "Go to Products": ["Aller dans Produits"], "From your WordPress admin, go to Products.": ["Dans votre administration WordPress, ouvrez Produits."], "Select a product": ["Sélectionnez un produit"], "Open a product made in France.": ["Ouvrez un produit fabriqué en France."], "Add the tag": ["Ajoutez le tag"], "In the product page, add the tag": ["Dans la page du produit, ajoutez le tag"], "in the Tags field.": ["dans le champ Étiquettes produit."], "Click Update. The product will appear in the feed.": ["Cliquez sur Mettre à jour. Le produit apparaîtra dans le flux."]}}}
+{
+  "translation-revision-date": "2026-06-04 12:18+0200",
+  "generator": "custom-mdf-json-export",
+  "domain": "marques-de-france-connector-for-woocommerce",
+  "locale_data": {
+    "messages": {
+      "": {
+        "domain": "marques-de-france-connector-for-woocommerce",
+        "plural-forms": "nplurals=2; plural=(n > 1);",
+        "lang": "fr"
+      },
+      "Dashboard": [
+        "Tableau de bord"
+      ],
+      "Product Feed": [
+        "Flux de produits"
+      ],
+      "Sales": [
+        "Ventes"
+      ],
+      "Settings": [
+        "Paramètres"
+      ],
+      "Failed to load data.": [
+        "Échec du chargement des données."
+      ],
+      "Loading…": [
+        "Chargement…"
+      ],
+      "Activate your store": [
+        "Activez votre boutique"
+      ],
+      "Store registered": [
+        "Boutique enregistrée"
+      ],
+      "Enter your activation code": [
+        "Saisissez votre code d’activation"
+      ],
+      "Enter my activation code": [
+        "Saisir mon code d’activation"
+      ],
+      "Revenue": [
+        "Chiffre d’affaires"
+      ],
+      "✓ Connected": [
+        "✓ Connecté"
+      ],
+      "✗ Invalid token — please re-enter your Secure Token in Settings.": [
+        "✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les Paramètres."
+      ],
+      "Total Sales": [
+        "Ventes totales"
+      ],
+      "All time": [
+        "Depuis toujours"
+      ],
+      "Confirmed": [
+        "Confirmés"
+      ],
+      "Total Revenue": [
+        "Chiffre d’affaires total"
+      ],
+      "This Month": [
+        "Ce mois-ci"
+      ],
+      "sale": [
+        "vente"
+      ],
+      "sales": [
+        "ventes"
+      ],
+      "Unsynced": [
+        "Non synchronisé"
+      ],
+      "pending Hub sync": [
+        "en attente de synchronisation"
+      ],
+      "Sales over the last 12 months": [
+        "Ventes sur les 12 derniers mois"
+      ],
+      "Access not authorized": [
+        "Accès non autorisé"
+      ],
+      "You are not authorized to use the application because your brand is not listed on our guide Marques de France.": [
+        "Vous n’êtes pas autorisé à utiliser l’application car votre marque n’est pas répertoriée dans notre guide Marques de France."
+      ],
+      "If you have French manufactured products, you can register your brand on": [
+        "Si vous avez des produits fabriqués en France, vous pouvez inscrire votre marque sur"
+      ],
+      " now.": [
+        " dès maintenant."
+      ],
+      "No data for the selected period.": [
+        "Aucune donnée pour la période sélectionnée."
+      ],
+      "Last 7 days": [
+        "7 derniers jours"
+      ],
+      "Last 28 days": [
+        "28 derniers jours"
+      ],
+      "Last 90 days": [
+        "90 derniers jours"
+      ],
+      "Last 12 months": [
+        "12 derniers mois"
+      ],
+      "Last year": [
+        "L’année dernière"
+      ],
+      "This year": [
+        "Cette année"
+      ],
+      "Failed to load sales.": [
+        "Échec du chargement des ventes."
+      ],
+      "Revenue over time": [
+        "Chiffre d’affaires dans le temps"
+      ],
+      "Daily": [
+        "Journalier"
+      ],
+      "Monthly": [
+        "Mensuel"
+      ],
+      "Search order ID…": [
+        "Rechercher un numéro de commande…"
+      ],
+      "All statuses": [
+        "Tous les statuts"
+      ],
+      "Cancelled": [
+        "Annulé"
+      ],
+      "Refunded": [
+        "Remboursé"
+      ],
+      "Pending": [
+        "En attente"
+      ],
+      "From": [
+        "Du"
+      ],
+      "To": [
+        "Au"
+      ],
+      "Reset": [
+        "Réinitialiser"
+      ],
+      "Order": [
+        "Commande"
+      ],
+      "Attribution": [
+        "Attribution"
+      ],
+      "Amount": [
+        "Montant"
+      ],
+      "Status": [
+        "Statut"
+      ],
+      "Date": [
+        "Date"
+      ],
+      "No sales found.": [
+        "Aucune vente trouvée."
+      ],
+      "Page": [
+        "Page"
+      ],
+      "Previous": [
+        "Précédent"
+      ],
+      "Next": [
+        "Suivant"
+      ],
+      "Settings saved.": [
+        "Paramètres enregistrés."
+      ],
+      "Failed to save settings.": [
+        "Échec de l’enregistrement des paramètres."
+      ],
+      "Connection": [
+        "Connexion"
+      ],
+      "Secure Token": [
+        "Code d’accès sécurisé"
+      ],
+      "The token provided by Marques de France when your store was registered.": [
+        "Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."
+      ],
+      "Save settings": [
+        "Enregistrer les paramètres"
+      ],
+      "Share this URL with Marques de France to enable your product feed in the directory.": [
+        "Partagez cette URL avec Marques de France pour activer votre flux de produits dans l’annuaire."
+      ],
+      "Copied!": [
+        "Copié !"
+      ],
+      "Copy URL": [
+        "Copier l’URL"
+      ],
+      "Preview": [
+        "Aperçu"
+      ],
+      "Marques de France": [
+        "Marques de France"
+      ],
+      "Product feed": [
+        "Flux de produits"
+      ],
+      "Flux de produits": [
+        "Flux de produits"
+      ],
+      "Sales tracking": [
+        "Suivi des ventes"
+      ],
+      "Suivi des ventes": [
+        "Suivi des ventes"
+      ],
+      "<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>.": [
+        "<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>."
+      ],
+      "Could not reach the MDF Hub. Check your connection settings and try again.": [
+        "Impossible d’atteindre le Hub MDF. Vérifiez vos paramètres de connexion et réessayez."
+      ],
+      "Marques de France: %d sale restored from the MDF Hub.": [
+        "Marques de France: %d sale restored from the MDF Hub."
+      ],
+      "Sales data may be out of sync (e.g. after a plugin reinstall). Click below to restore from the MDF Hub — this will replace the local sales table with the Hub's records.": [
+        "Les données de vente peuvent être désynchronisées (par exemple après une réinstallation du plugin). Cliquez ci-dessous pour restaurer depuis le Hub MDF — cela remplacera la table locale des ventes par les enregistrements du Hub."
+      ],
+      "Restore sales from Hub": [
+        "Restaurer les ventes depuis le Hub"
+      ],
+      "You do not have permission to perform this action.": [
+        "Vous n’avez pas la permission d’effectuer cette action."
+      ],
+      "Marques de France – Attribution": [
+        "Marques de France – Attribution"
+      ],
+      "No attribution detected for this order.": [
+        "Aucune attribution détectée pour cette commande."
+      ],
+      "Source": [
+        "Source"
+      ],
+      "UTM Source": [
+        "UTM Source"
+      ],
+      "UTM Medium": [
+        "UTM Medium"
+      ],
+      "UTM Campaign": [
+        "UTM Campaign"
+      ],
+      "UTM Content": [
+        "UTM Content"
+      ],
+      "UTM Term": [
+        "UTM Term"
+      ],
+      "Landing Site": [
+        "Site d’arrivée"
+      ],
+      "Referring Site": [
+        "Site référent"
+      ],
+      "Ref Param": [
+        "Paramètre ref"
+      ],
+      "Marques de France requires WooCommerce to be installed and active.": [
+        "Marques de France nécessite que WooCommerce soit installé et activé."
+      ],
+      "Back to feed": [
+        "Retour au flux"
+      ],
+      "Brand": [
+        "Marque"
+      ],
+      "Cancel": [
+        "Annuler"
+      ],
+      "Change": [
+        "Modifier"
+      ],
+      "Change mode": [
+        "Changer de mode"
+      ],
+      "Draft": [
+        "Brouillon"
+      ],
+      "Edit products in bulk": [
+        "Modifier les produits en lot"
+      ],
+      "How to add the marques-de-france tag?": [
+        "Comment ajouter le tag marques-de-france ?"
+      ],
+      "How to bulk edit?": [
+        "Comment modifier en lot ?"
+      ],
+      "How to do ?": [
+        "Comment faire ?"
+      ],
+      "Inherit": [
+        "Hérité"
+      ],
+      "On selected period": [
+        "Sur la période sélectionnée"
+      ],
+      "Price": [
+        "Prix"
+      ],
+      "Private": [
+        "Privé"
+      ],
+      "Publish": [
+        "Publier"
+      ],
+      "Save": [
+        "Enregistrer"
+      ],
+      "Saving…": [
+        "Enregistrement…"
+      ],
+      "Scheduled": [
+        "Planifié"
+      ],
+      "Search": [
+        "Rechercher"
+      ],
+      "Selection method": [
+        "Méthode de sélection"
+      ],
+      "Trash": [
+        "Corbeille"
+      ],
+      "marques-de-france": [
+        "marques-de-france"
+      ],
+      "Go to Products": [
+        "Aller dans Produits"
+      ],
+      "From your WordPress admin, go to Products.": [
+        "Dans votre administration WordPress, ouvrez Produits."
+      ],
+      "Select a product": [
+        "Sélectionnez un produit"
+      ],
+      "Open a product made in France.": [
+        "Ouvrez un produit fabriqué en France."
+      ],
+      "Add the tag": [
+        "Ajoutez le tag"
+      ],
+      "In the product page, add the tag": [
+        "Dans la page du produit, ajoutez le tag"
+      ],
+      "in the Tags field.": [
+        "dans le champ Étiquettes produit."
+      ],
+      "Click Update. The product will appear in the feed.": [
+        "Cliquez sur Mettre à jour. Le produit apparaîtra dans le flux."
+      ],
+      "Results per page": [
+        "Résultats par page"
+      ]
+    }
+  }
+}

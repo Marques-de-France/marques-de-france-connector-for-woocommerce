@@ -56,6 +56,9 @@ function getRangeDates(preset) {
 	return { dateFrom: from, dateTo: today };
 }
 
+const PER_PAGE = 25;
+const PER_PAGE_OPTIONS = [25, 50, 100];
+
 const RANGE_OPTIONS = [
 	{
 		value: '7d',
@@ -135,6 +138,7 @@ export default function Sales() {
 	const [sortField, setSortField] = useState('created_at');
 	const [sortDir, setSortDir] = useState('desc');
 	const [page, setPage] = useState(1);
+	const [resultsPerPage, setResultsPerPage] = useState(PER_PAGE);
 	const [sales, setSales] = useState(null);
 	const [salesLoading, setSalesLoading] = useState(true);
 	const [salesError, setSalesError] = useState(null);
@@ -153,7 +157,7 @@ export default function Sales() {
 		})
 			.then(setAnalytics)
 			.catch(() => setAnalyticsError(
-				__( 'Failed to load chart data.', 'marques-de-france-connector-for-woocommerce' )
+				__('Failed to load chart data.', 'marques-de-france-connector-for-woocommerce')
 			))
 			.finally(() => setAnalyticsLoading(false));
 	}, [analyticsRange, granularity]);
@@ -164,7 +168,7 @@ export default function Sales() {
 		setSalesError(null);
 		const params = new URLSearchParams({
 			page: String(page),
-			per_page: '25',
+			per_page: String(resultsPerPage),
 			sortField,
 			sortDir,
 		});
@@ -184,7 +188,7 @@ export default function Sales() {
 				)
 			)
 			.finally(() => setSalesLoading(false));
-	}, [search, status, dateFrom, dateTo, sortField, sortDir, page]);
+	}, [search, status, dateFrom, dateTo, sortField, sortDir, page, resultsPerPage]);
 
 	const handleSort = (field) => {
 		if (field === sortField) {
@@ -231,7 +235,13 @@ export default function Sales() {
 			maximumFractionDigits,
 		}).format(Number(v) || 0);
 
-	const totalPages = Math.ceil((sales?.total || 0) / 25);
+	const totalPages = Math.ceil((sales?.total || 0) / resultsPerPage) || 1;
+
+	const handleResultsPerPageChange = (event) => {
+		const nextPerPage = Number(event.target.value || PER_PAGE);
+		setResultsPerPage(nextPerPage);
+		setPage(1);
+	};
 
 	const handleGranularityChange = (value) => {
 		setGranularity(value);
@@ -289,8 +299,8 @@ export default function Sales() {
 					</div>
 				</div>
 				<div className="mdf-chart-container">
-					{ analyticsError ? (
-						<div className="mdf-error">{ analyticsError }</div>
+					{analyticsError ? (
+						<div className="mdf-error">{analyticsError}</div>
 					) : (
 						<RevenueChart
 							data={analytics}
@@ -300,7 +310,7 @@ export default function Sales() {
 							revenueLabel={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
 							salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
 						/>
-					) }
+					)}
 				</div>
 			</div>
 
@@ -322,121 +332,121 @@ export default function Sales() {
 			<div className="mdf-chart-card">
 				{ /* Filters */}
 				<div className="mdf-filters">
-				<input
-					type="search"
-					className="mdf-input"
-					style={{ flex: 1, minWidth: 180 }}
-					placeholder={__(
-						'Search order ID…',
-						'marques-de-france-connector-for-woocommerce'
-					)}
-					value={search}
-					onChange={(e) => {
-						setSearch(e.target.value);
-						setPage(1);
-					}}
-				/>
-				<select
-					className="mdf-select"
-					value={status}
-					onChange={(e) => {
-						setStatus(e.target.value);
-						setPage(1);
-					}}
-				>
-					<option value="">
-						{__(
-							'All statuses',
+					<input
+						type="search"
+						className="mdf-input"
+						style={{ flex: 1, minWidth: 180 }}
+						placeholder={__(
+							'Search order ID…',
 							'marques-de-france-connector-for-woocommerce'
 						)}
-					</option>
-					<option value="confirmed">
-						{__(
-							'Confirmed',
-							'marques-de-france-connector-for-woocommerce'
-						)}
-					</option>
-					<option value="cancelled">
-						{__(
-							'Cancelled',
-							'marques-de-france-connector-for-woocommerce'
-						)}
-					</option>
-					<option value="refunded">
-						{__(
-							'Refunded',
-							'marques-de-france-connector-for-woocommerce'
-						)}
-					</option>
-					<option value="pending">
-						{__(
-							'Pending',
-							'marques-de-france-connector-for-woocommerce'
-						)}
-					</option>
-				</select>
-				<div className="mdf-filter-calendar" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-					<Button
-						ref={fromButtonRef}
-						variant="secondary"
-						style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
-						onClick={() => setIsFromPickerOpen((open) => !open)}
+						value={search}
+						onChange={(e) => {
+							setSearch(e.target.value);
+							setPage(1);
+						}}
+					/>
+					<select
+						className="mdf-select"
+						value={status}
+						onChange={(e) => {
+							setStatus(e.target.value);
+							setPage(1);
+						}}
 					>
-						{dateFrom
-							? new Intl.DateTimeFormat('fr-FR', {
-								day: '2-digit',
-								month: '2-digit',
-								year: 'numeric',
-							}).format(new Date(dateFrom))
-							: __('From', 'marques-de-france-connector-for-woocommerce')}
-					</Button>
-					{isFromPickerOpen && (
-						<Popover
-							anchorRef={fromButtonRef}
-							className="mdf-date-picker-popover"
-							onClose={() => setIsFromPickerOpen(false)}
+						<option value="">
+							{__(
+								'All statuses',
+								'marques-de-france-connector-for-woocommerce'
+							)}
+						</option>
+						<option value="confirmed">
+							{__(
+								'Confirmed',
+								'marques-de-france-connector-for-woocommerce'
+							)}
+						</option>
+						<option value="cancelled">
+							{__(
+								'Cancelled',
+								'marques-de-france-connector-for-woocommerce'
+							)}
+						</option>
+						<option value="refunded">
+							{__(
+								'Refunded',
+								'marques-de-france-connector-for-woocommerce'
+							)}
+						</option>
+						<option value="pending">
+							{__(
+								'Pending',
+								'marques-de-france-connector-for-woocommerce'
+							)}
+						</option>
+					</select>
+					<div className="mdf-filter-calendar" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+						<Button
+							ref={fromButtonRef}
+							variant="secondary"
+							style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
+							onClick={() => setIsFromPickerOpen((open) => !open)}
 						>
-							<DatePicker
-								currentDate={dateFrom ? new Date(dateFrom) : null}
-								onChange={(value) => {
-									setDateFrom(formatDateValue(value));
-									setPage(1);
-									setIsFromPickerOpen(false);
-								}}
-							/>
-						</Popover>
-					)}
-					<Button
-						ref={toButtonRef}
-						variant="secondary"
-						style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
-						onClick={() => setIsToPickerOpen((open) => !open)}
-					>
-						{dateTo
-							? new Intl.DateTimeFormat('fr-FR', {
-								day: '2-digit',
-								month: '2-digit',
-								year: 'numeric',
-							}).format(new Date(dateTo))
-							: __('To', 'marques-de-france-connector-for-woocommerce')}
-					</Button>
-					{isToPickerOpen && (
-						<Popover
-							anchorRef={toButtonRef}
-							className="mdf-date-picker-popover"
-							onClose={() => setIsToPickerOpen(false)}
+							{dateFrom
+								? new Intl.DateTimeFormat('fr-FR', {
+									day: '2-digit',
+									month: '2-digit',
+									year: 'numeric',
+								}).format(new Date(dateFrom))
+								: __('From', 'marques-de-france-connector-for-woocommerce')}
+						</Button>
+						{isFromPickerOpen && (
+							<Popover
+								anchorRef={fromButtonRef}
+								className="mdf-date-picker-popover"
+								onClose={() => setIsFromPickerOpen(false)}
+							>
+								<DatePicker
+									currentDate={dateFrom ? new Date(dateFrom) : null}
+									onChange={(value) => {
+										setDateFrom(formatDateValue(value));
+										setPage(1);
+										setIsFromPickerOpen(false);
+									}}
+								/>
+							</Popover>
+						)}
+						<Button
+							ref={toButtonRef}
+							variant="secondary"
+							style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
+							onClick={() => setIsToPickerOpen((open) => !open)}
 						>
-							<DatePicker
-								currentDate={dateTo ? new Date(dateTo) : null}
-								onChange={(value) => {
-									setDateTo(formatDateValue(value));
-									setPage(1);
-									setIsToPickerOpen(false);
-								}}
-							/>
-						</Popover>
-					)}
-				</div>
+							{dateTo
+								? new Intl.DateTimeFormat('fr-FR', {
+									day: '2-digit',
+									month: '2-digit',
+									year: 'numeric',
+								}).format(new Date(dateTo))
+								: __('To', 'marques-de-france-connector-for-woocommerce')}
+						</Button>
+						{isToPickerOpen && (
+							<Popover
+								anchorRef={toButtonRef}
+								className="mdf-date-picker-popover"
+								onClose={() => setIsToPickerOpen(false)}
+							>
+								<DatePicker
+									currentDate={dateTo ? new Date(dateTo) : null}
+									onChange={(value) => {
+										setDateTo(formatDateValue(value));
+										setPage(1);
+										setIsToPickerOpen(false);
+									}}
+								/>
+							</Popover>
+						)}
+					</div>
 					<Button
 						variant="secondary"
 						style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
@@ -452,218 +462,236 @@ export default function Sales() {
 				{ /* Sales count */}
 				{sales !== null && (
 					<p className="mdf-sales__summary">
-					{sales.total}{' '}
-					{__(
-						'sales',
-						'marques-de-france-connector-for-woocommerce'
-					)}
-				</p>
+						{sales.total}{' '}
+						{__(
+							'sales',
+							'marques-de-france-connector-for-woocommerce'
+						)}
+					</p>
 				)}
 
 				{ /* Table */}
 				<div className="mdf-table-wrap">
-				<table className="mdf-table">
-					<thead>
-						<tr>
-							<th>
-								<button
-									type="button"
-									className={`mdf-sort-btn${sortField === 'order_id'
-											? ' mdf-sort-btn--active'
-											: ''
-										}`}
-									onClick={() => handleSort('order_id')}
-								>
-									{__(
-										'Order',
-										'marques-de-france-connector-for-woocommerce'
-									)}
-									{sortIndicator('order_id')}
-								</button>
-							</th>
-							<th>
-								{__(
-									'Attribution',
-									'marques-de-france-connector-for-woocommerce'
-								)}
-							</th>
-							<th>
-								<button
-									type="button"
-									className={`mdf-sort-btn${sortField === 'amount'
-											? ' mdf-sort-btn--active'
-											: ''
-										}`}
-									onClick={() => handleSort('amount')}
-								>
-									{__(
-										'Amount',
-										'marques-de-france-connector-for-woocommerce'
-									)}
-									{sortIndicator('amount')}
-								</button>
-							</th>
-							<th>
-								<button
-									type="button"
-									className={`mdf-sort-btn${sortField === 'status'
-											? ' mdf-sort-btn--active'
-											: ''
-										}`}
-									onClick={() => handleSort('status')}
-								>
-									{__(
-										'Status',
-										'marques-de-france-connector-for-woocommerce'
-									)}
-									{sortIndicator('status')}
-								</button>
-							</th>
-							<th>
-								<button
-									type="button"
-									className={`mdf-sort-btn${sortField === 'created_at'
-											? ' mdf-sort-btn--active'
-											: ''
-										}`}
-									onClick={() =>
-										handleSort('created_at')
-									}
-								>
-									{__(
-										'Date',
-										'marques-de-france-connector-for-woocommerce'
-									)}
-									{sortIndicator('created_at')}
-								</button>
-							</th>
-						</tr>
-					</thead>
-					<tbody>
-						{salesLoading && (
+					<table className="mdf-table">
+						<thead>
 							<tr>
-								<td
-									colSpan={5}
-									className="mdf-table__loading"
-									style={{ textAlign: 'center' }}
-								>
-									<LoadingState
-										style={{ margin: '0 auto' }}
-									/>
-								</td>
+								<th>
+									<button
+										type="button"
+										className={`mdf-sort-btn${sortField === 'order_id'
+											? ' mdf-sort-btn--active'
+											: ''
+											}`}
+										onClick={() => handleSort('order_id')}
+									>
+										{__(
+											'Order',
+											'marques-de-france-connector-for-woocommerce'
+										)}
+										{sortIndicator('order_id')}
+									</button>
+								</th>
+								<th>
+									{__(
+										'Attribution',
+										'marques-de-france-connector-for-woocommerce'
+									)}
+								</th>
+								<th>
+									<button
+										type="button"
+										className={`mdf-sort-btn${sortField === 'amount'
+											? ' mdf-sort-btn--active'
+											: ''
+											}`}
+										onClick={() => handleSort('amount')}
+									>
+										{__(
+											'Amount',
+											'marques-de-france-connector-for-woocommerce'
+										)}
+										{sortIndicator('amount')}
+									</button>
+								</th>
+								<th>
+									<button
+										type="button"
+										className={`mdf-sort-btn${sortField === 'status'
+											? ' mdf-sort-btn--active'
+											: ''
+											}`}
+										onClick={() => handleSort('status')}
+									>
+										{__(
+											'Status',
+											'marques-de-france-connector-for-woocommerce'
+										)}
+										{sortIndicator('status')}
+									</button>
+								</th>
+								<th>
+									<button
+										type="button"
+										className={`mdf-sort-btn${sortField === 'created_at'
+											? ' mdf-sort-btn--active'
+											: ''
+											}`}
+										onClick={() =>
+											handleSort('created_at')
+										}
+									>
+										{__(
+											'Date',
+											'marques-de-france-connector-for-woocommerce'
+										)}
+										{sortIndicator('created_at')}
+									</button>
+								</th>
 							</tr>
-						)}
-						{!salesLoading && salesError && (
-							<tr>
-								<td colSpan={5}>
-									<div className="mdf-error">
-										{salesError}
-									</div>
-								</td>
-							</tr>
-						)}
-						{!salesLoading &&
-							!salesError &&
-							sales?.sales?.length === 0 && (
+						</thead>
+						<tbody>
+							{salesLoading && (
 								<tr>
 									<td
 										colSpan={5}
-										className="mdf-table__empty"
+										className="mdf-table__loading"
+										style={{ textAlign: 'center' }}
 									>
-										{__(
-											'No sales found.',
-											'marques-de-france-connector-for-woocommerce'
-										)}
+										<LoadingState
+											style={{ margin: '0 auto' }}
+										/>
 									</td>
 								</tr>
 							)}
-						{!salesLoading &&
-							sales?.sales?.map((row) => {
-								const orderUrl = `${window.location.origin}/wp-admin/post.php?post=${row.order_id}&action=edit`;
-								const colors =
-									STATUS_COLORS[row.status] || {
-										background: '#e0e0e0',
-										color: '#333',
-									};
-								return (
-									<tr key={row.id}>
-										<td>
-											<a href={orderUrl}>
-												#
-												{row.order_number ||
-													row.order_id}
-											</a>
-										</td>
-										<td>
-											{row.attribution_source || '—'}
-										</td>
-										<td>
-											{formatAmount(row.amount, row.currency)}
-										</td>
-										<td>
-											<span
-												style={{
-													background:
-														colors.background,
-													borderRadius: 3,
-													color: colors.color,
-													fontSize: 11,
-													fontWeight: 600,
-													padding: '2px 8px',
-													textTransform: 'capitalize',
-												}}
-											>
-												{row.status}
-											</span>
-										</td>
-										<td>
-											{row.created_at
-												? new Intl.DateTimeFormat('fr-FR', {
-													day: '2-digit',
-													month: '2-digit',
-													year: 'numeric',
-												}).format(new Date(row.created_at))
-												: '—'}
+							{!salesLoading && salesError && (
+								<tr>
+									<td colSpan={5}>
+										<div className="mdf-error">
+											{salesError}
+										</div>
+									</td>
+								</tr>
+							)}
+							{!salesLoading &&
+								!salesError &&
+								sales?.sales?.length === 0 && (
+									<tr>
+										<td
+											colSpan={5}
+											className="mdf-table__empty"
+										>
+											{__(
+												'No sales found.',
+												'marques-de-france-connector-for-woocommerce'
+											)}
 										</td>
 									</tr>
-								);
-							})}
-					</tbody>
-				</table>
-			</div>
+								)}
+							{!salesLoading &&
+								sales?.sales?.map((row) => {
+									const orderUrl = `${window.location.origin}/wp-admin/post.php?post=${row.order_id}&action=edit`;
+									const colors =
+										STATUS_COLORS[row.status] || {
+											background: '#e0e0e0',
+											color: '#333',
+										};
+									return (
+										<tr key={row.id}>
+											<td>
+												<a href={orderUrl}>
+													#
+													{row.order_number ||
+														row.order_id}
+												</a>
+											</td>
+											<td>
+												{row.attribution_source || '—'}
+											</td>
+											<td>
+												{formatAmount(row.amount, row.currency)}
+											</td>
+											<td>
+												<span
+													style={{
+														background:
+															colors.background,
+														borderRadius: 3,
+														color: colors.color,
+														fontSize: 11,
+														fontWeight: 600,
+														padding: '2px 8px',
+														textTransform: 'capitalize',
+													}}
+												>
+													{row.status}
+												</span>
+											</td>
+											<td>
+												{row.created_at
+													? new Intl.DateTimeFormat('fr-FR', {
+														day: '2-digit',
+														month: '2-digit',
+														year: 'numeric',
+													}).format(new Date(row.created_at))
+													: '—'}
+											</td>
+										</tr>
+									);
+								})}
+						</tbody>
+					</table>
+				</div>
 
 				{ /* Pagination */}
 				{totalPages > 1 && (
 					<div className="mdf-pagination">
-					<span className="mdf-pagination__info">
-						{__(
-							'Page',
-							'marques-de-france-connector-for-woocommerce'
-						)}{' '}
-						{page} / {totalPages}
-					</span>
-					<Button
-						variant="secondary"
-						style={{ backgroundColor: '#fff' }}
-						disabled={page <= 1}
-						onClick={() => setPage(page - 1)}
-					>
-						{__(
-							'Previous',
-							'marques-de-france-connector-for-woocommerce'
-						)}
-					</Button>
-					<Button
-						variant="secondary"
-						style={{ backgroundColor: '#fff' }}
-						disabled={page >= totalPages}
-						onClick={() => setPage(page + 1)}
-					>
-						{__(
-							'Next',
-							'marques-de-france-connector-for-woocommerce'
-						)}
-					</Button>
+						<div className="mdf-pagination-content">
+							<span className="mdf-pagination__info">
+								{__(
+									'Page',
+									'marques-de-france-connector-for-woocommerce'
+								)}{' '}
+								{page} / {totalPages}
+							</span>
+
+							<Button
+								variant="secondary"
+								style={{ backgroundColor: '#fff' }}
+								disabled={page <= 1}
+								onClick={() => setPage(page - 1)}
+							>
+								{__(
+									'Previous',
+									'marques-de-france-connector-for-woocommerce'
+								)}
+							</Button>
+							<Button
+								variant="secondary"
+								style={{ backgroundColor: '#fff' }}
+								disabled={page >= totalPages}
+								onClick={() => setPage(page + 1)}
+							>
+								{__(
+									'Next',
+									'marques-de-france-connector-for-woocommerce'
+								)}
+							</Button>
+						</div>
+						<div className="mdf-pagination-content">
+							<label htmlFor="sales-results-per-page" style={{ fontSize: 13, color: '#50575e' }}>
+								{__('Results per page', 'marques-de-france-connector-for-woocommerce')}
+							</label>
+							<select
+								id="sales-results-per-page"
+								className="mdf-select"
+								value={resultsPerPage}
+								onChange={handleResultsPerPageChange}
+							>
+								{PER_PAGE_OPTIONS.map((option) => (
+									<option key={option} value={option}>{option}</option>
+								))}
+							</select>
+						</div>
 					</div>
 				)}
 			</div>

@@ -235,6 +235,11 @@ msgstr "Aucune vente trouvée."
 msgid "Page"
 msgstr "Page"
 
+#: src/admin/pages/Feed.js
+#: src/admin/pages/Sales.js
+msgid "Results per page"
+msgstr "Résultats par page"
+
 #: src/admin/pages/Sales.js:649
 msgid "Previous"
 msgstr "Précédent"

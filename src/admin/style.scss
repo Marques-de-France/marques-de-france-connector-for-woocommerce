@@ -308,12 +308,18 @@
 	display: flex;
 	font-size: 13px;
 	gap: 12px;
-	justify-content: flex-end;
+	justify-content: space-between;
 	margin-top: 16px;
 
 	&__info {
 		color: #555;
 	}
+}
+
+.mdf-pagination-content {
+	display: flex;
+	gap: 8px;
+	align-items: center;
 }
 
 // Settings

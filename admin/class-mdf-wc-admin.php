@@ -1074,10 +1074,9 @@ class MDFCFORWC_Admin {
 			];
 		}
 
-		$total       = count( $raw_items );
-		$total_pages = (int) ceil( $total / $per_page );
-		$offset      = ( $page - 1 ) * $per_page;
-		$items       = array_slice( $raw_items, $offset, $per_page );
+		$total       = max( 1, (int) $wp_query->found_posts );
+		$total_pages = max( 1, (int) $wp_query->max_num_pages );
+		$items       = $raw_items;
 
 		$response = [
 			'products'    => $items,
