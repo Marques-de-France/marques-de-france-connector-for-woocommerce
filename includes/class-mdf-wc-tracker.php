@@ -118,7 +118,7 @@ class MDFCFORWC_Tracker {
 		}
 
 		// Don't record self-referrals
-		$site_host    = wp_parse_url( home_url(), PHP_URL_HOST );
+		$site_host    = wp_parse_url( MDFCFORWC_Settings::get_site_url(), PHP_URL_HOST );
 		$referer_host = wp_parse_url( $referer, PHP_URL_HOST );
 		if ( $site_host && $referer_host && $site_host === $referer_host ) {
 			return;

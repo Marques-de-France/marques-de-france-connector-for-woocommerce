@@ -53,13 +53,19 @@ class MDFCFORWC_Settings {
 		// Use the raw option values from the database instead of home_url()/site_url().
 		// Under WP-CLI activation, WordPress core can resolve those helpers as 'http:'
 		// because $_SERVER['HTTP_HOST'] is not available in the CLI runtime.
-		$raw_home   = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'home' ) );
-		$raw_site   = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'siteurl' ) );
-		$site_url   = is_string( $raw_home ) && '' !== trim( $raw_home ) ? trim( $raw_home ) : '';
-		$site_url   = '' !== $site_url ? $site_url : ( is_string( $raw_site ) && '' !== trim( $raw_site ) ? trim( $raw_site ) : '' );
+		$raw_home = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'home' ) );
+		$raw_site = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'siteurl' ) );
 
+		$site_url = is_string( $raw_home ) && '' !== trim( $raw_home ) ? trim( $raw_home ) : '';
+		$site_url = '' !== $site_url ? $site_url : ( is_string( $raw_site ) && '' !== trim( $raw_site ) ? trim( $raw_site ) : '' );
+
+		// Final safety net: if the DB options are somehow unavailable, fall back to the
+		// stored WordPress option values rather than to home_url()/site_url().
 		if ( '' === $site_url ) {
-			$site_url = home_url();
+			$site_url = (string) get_option( 'home', '' );
+		}
+		if ( '' === $site_url ) {
+			$site_url = (string) get_option( 'siteurl', '' );
 		}
 
 		return rtrim( $site_url, '/' );
