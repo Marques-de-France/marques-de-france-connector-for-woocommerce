@@ -5,4 +5,4 @@ node_modules
 package.json
 package-lock.json
 webpack.config.js
-src/
+src/admin/

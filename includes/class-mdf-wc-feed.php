@@ -12,8 +12,9 @@
  *   Paginated: ?per_page=200&page=1 (default: 200 items per page).
  *
  * Authentication:
- *   ?token=<secureToken>  — same token stored in plugin settings.
- *   No user auth required — the token itself gates access.
+ *   ?token=<secureToken>  — optional when no secure token is configured.
+ *   When a token is configured, it gates access to the feed.
+ *   No user auth required.
  *
  * @package MDFCFORWC_Connector
  */
@@ -54,7 +55,7 @@ class MDFCFORWC_Feed {
 				'permission_callback' => '__return_true', // token-gated inside callback
 				'args'                => [
 					'token'    => [
-						'required'          => true,
+						'required'          => false,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 					],
@@ -82,16 +83,19 @@ class MDFCFORWC_Feed {
 		$per_page = min( 500, max( 1, $request->get_param( 'per_page' ) ) );
 		$page     = max( 1, $request->get_param( 'page' ) );
 
-		// Token gate — constant-time comparison
 		$stored_token = MDFCFORWC_Settings::get_secure_token();
-		if ( '' === $stored_token ) {
-			return new WP_Error( 'not_configured', 'Plugin not configured.', [ 'status' => 503 ] );
-		}
 
-		$token_a = hash( 'sha256', $token );
-		$token_b = hash( 'sha256', $stored_token );
-		if ( ! hash_equals( $token_b, $token_a ) ) {
-			return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+		if ( '' !== $stored_token ) {
+			$provided_token = (string) $token;
+			if ( '' === $provided_token ) {
+				return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+			}
+
+			$token_a = hash( 'sha256', $provided_token );
+			$token_b = hash( 'sha256', $stored_token );
+			if ( ! hash_equals( $token_b, $token_a ) ) {
+				return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+			}
 		}
 
 		// Query products

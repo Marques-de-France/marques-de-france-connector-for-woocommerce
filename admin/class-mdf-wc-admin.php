@@ -872,13 +872,6 @@ class MDFCFORWC_Admin {
 	}
 
 	public function rest_hub_status() {
-		if ( ! MDFCFORWC_Settings::is_configured() ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[MDF-WC] hub-status: not configured (token is empty)' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			}
-			return rest_ensure_response( [ 'connected' => false, 'reason' => 'not_configured' ] );
-		}
-
 		$hub_url  = MDFCFORWC_Settings::get_hub_url();
 		$token    = MDFCFORWC_Settings::get_secure_token();
 		$site_url = MDFCFORWC_Settings::get_site_url();

@@ -6,14 +6,13 @@ import LoadingState from '../components/LoadingState';
 import KpiCard from '../components/KpiCard';
 import RevenueChart from '../components/RevenueChart';
 
-const { configured, settingsUrl } = window.mdfcforwcAdmin || {};
+const { settingsUrl } = window.mdfcforwcAdmin || {};
 
 
 
-export default function Dashboard() {
+export default function Dashboard( { hubStatus } ) {
 	const [ stats, setStats ] = useState( null );
 	const [ chartData, setChartData ] = useState( null );
-	const [ hubStatus, setHubStatus ] = useState( null );
 	const [ loading, setLoading ] = useState( true );
 	const [ error, setError ] = useState( null );
 
@@ -27,13 +26,7 @@ export default function Dashboard() {
 						path: '/mdfcforwc/v1/admin/analytics?granularity=month',
 					} ),
 				];
-				if ( configured ) {
-					requests.push(
-						apiFetch( { path: '/mdfcforwc/v1/admin/hub-status' } )
-					);
-				}
-				// Use allSettled so a hub-status timeout or analytics failure
-				// does not wipe out the stats that loaded successfully.
+				// Use allSettled so an analytics failure does not wipe out stats.
 				const results = await Promise.allSettled( requests );
 				if ( results[ 0 ].status === 'fulfilled' ) {
 					setStats( results[ 0 ].value );
@@ -47,9 +40,6 @@ export default function Dashboard() {
 				}
 				if ( results[ 1 ].status === 'fulfilled' ) {
 					setChartData( results[ 1 ].value );
-				}
-				if ( results[ 2 ] && results[ 2 ].status === 'fulfilled' ) {
-					setHubStatus( results[ 2 ].value );
 				}
 			} finally {
 				setLoading( false );
@@ -70,52 +60,6 @@ export default function Dashboard() {
 		return <div className="mdf-error">{ error }</div>;
 	}
 
-	// Show onboarding if plugin not configured
-	if ( ! stats?.configured ) {
-		return (
-			<div className="mdf-page">
-				<div className="mdf-onboarding">
-					<h2 className="mdf-onboarding__title">
-						{ __(
-							'Activate your store',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</h2>
-					<div className="mdf-onboarding__steps">
-						<div className="mdf-onboarding__step mdf-onboarding__step--done">
-							<div className="mdf-onboarding__step-badge">✓</div>
-							<div className="mdf-onboarding__step-label">
-								{ __(
-									'Store registered',
-									'marques-de-france-connector-for-woocommerce'
-								) }
-							</div>
-						</div>
-						<div className="mdf-onboarding__connector" />
-						<div className="mdf-onboarding__step mdf-onboarding__step--active">
-							<div className="mdf-onboarding__step-badge">2</div>
-							<div className="mdf-onboarding__step-label">
-								{ __(
-									'Enter your activation code',
-									'marques-de-france-connector-for-woocommerce'
-								) }
-							</div>
-						</div>
-					</div>
-					<Button
-						variant="primary"
-						className="mdf-onboarding__cta"
-						href={ settingsUrl }
-					>
-						{ __(
-							'Enter my activation code',
-							'marques-de-france-connector-for-woocommerce'
-						) }
-					</Button>
-				</div>
-			</div>
-		);
-	}
 
 	const currency = stats?.currency || 'EUR';
 	const formatAmount = (

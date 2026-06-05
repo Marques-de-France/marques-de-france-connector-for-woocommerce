@@ -91,10 +91,6 @@ msgstr "Confirmé"
 msgid "Total Revenue"
 msgstr "Chiffre d’affaires total"
 
-#: src/admin/pages/Dashboard.js:273
-msgid "Confirmed"
-msgstr "Confirmés"
-
 #: src/admin/pages/Dashboard.js:282
 msgid "This Month"
 msgstr "Ce mois-ci"
@@ -118,6 +114,22 @@ msgstr "en attente de synchronisation"
 #: src/admin/pages/Dashboard.js:323
 msgid "Sales over the last 12 months"
 msgstr "Ventes sur les 12 derniers mois"
+
+#: src/admin/pages/PendingApproval.js:1
+msgid "Access not authorized"
+msgstr "Accès non autorisé"
+
+#: src/admin/pages/PendingApproval.js:1
+msgid "You are not authorized to use the application because your brand is not listed on our guide Marques de France."
+msgstr "Vous n’êtes pas autorisé à utiliser l’application car votre marque n’est pas répertoriée dans notre guide Marques de France."
+
+#: src/admin/pages/PendingApproval.js:1
+msgid "If you have French manufactured products, you can register your brand on"
+msgstr "Si vous avez des produits fabriqués en France, vous pouvez inscrire votre marque sur"
+
+#: src/admin/pages/PendingApproval.js:1
+msgid " now."
+msgstr " dès maintenant."
 
 #: src/admin/pages/Dashboard.js:334
 msgid "No data for the selected period."
@@ -533,7 +545,7 @@ msgid ""
 msgstr ""
 "Pour ajouter l'étiquette à plusieurs produits à la fois, sélectionnez-les dans la"
 " liste des produits, puis choisissez Modifier dans le menu Actions groupées "
-"et ajoutez l'étiquette dans le champ "Étiquettes produit"."
+"et ajoutez l'étiquette dans le champ \"Étiquettes produit\"."
 
 msgid "Auto-Draft"
 msgstr "Brouillon auto"
