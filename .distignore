@@ -1,4 +1,5 @@
 .git
+.gitignore
 .github
 .distignore
 node_modules

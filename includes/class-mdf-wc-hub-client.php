@@ -316,7 +316,7 @@ class MDFCFORWC_Hub_Client {
 		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) >= 400 ) {
 			$message = is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_body( $response );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[MDF-WC] Hub sync failed for local row ' . $sale->order_id . ': ' . $message );
+				error_log( '[MDF-WC] Hub sync failed for local row ' . $sale->order_id . ': ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}
 			return;
 		}

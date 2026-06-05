@@ -847,18 +847,19 @@ class MDFCFORWC_Admin {
 		$sort_col_quoted   = '`' . esc_sql( $sort_col ) . '`';
 		$where_sql         = $conditions ? ' WHERE ' . implode( ' AND ', $conditions ) : '';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$total_sql = 'SELECT COUNT(*) FROM ' . $table_name_quoted . $where_sql;
-		$total     = (int) ( $params
-			? $wpdb->get_var( $wpdb->prepare( $total_sql, ...$params ) )
-			: $wpdb->get_var( $total_sql )
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// Table name and sort column are escaped with esc_sql(); all WHERE clause values go through $wpdb->prepare() placeholders above.
+		$count_base = 'SELECT COUNT(*) FROM ' . $table_name_quoted . $where_sql;
+		$total      = (int) ( $params
+			? $wpdb->get_var( $wpdb->prepare( $count_base, ...$params ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			: $wpdb->get_var( $count_base ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		);
 
-		$rows_sql = 'SELECT * FROM ' . $table_name_quoted . $where_sql . ' ORDER BY ' . $sort_col_quoted . ( $sort_asc ? ' ASC' : ' DESC' ) . ' LIMIT %d OFFSET %d';
-		$rows     = $wpdb->get_results(
+		$rows_base = 'SELECT * FROM ' . $table_name_quoted . $where_sql . ' ORDER BY ' . $sort_col_quoted . ( $sort_asc ? ' ASC' : ' DESC' ) . ' LIMIT %d OFFSET %d';
+		$rows      = $wpdb->get_results(
 			$params
-				? $wpdb->prepare( $rows_sql, ...array_merge( $params, [ $per_page, $offset ] ) )
-				: $wpdb->prepare( 'SELECT * FROM ' . $table_name_quoted . $where_sql . ' ORDER BY ' . $sort_col_quoted . ( $sort_asc ? ' ASC' : ' DESC' ) . ' LIMIT %d OFFSET %d', $per_page, $offset ),
+				? $wpdb->prepare( $rows_base, ...array_merge( $params, [ $per_page, $offset ] ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				: $wpdb->prepare( $rows_base, $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
 		// phpcs:enable

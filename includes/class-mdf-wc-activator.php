@@ -113,6 +113,7 @@ class MDFCFORWC_Activator {
 			INNER JOIN `{$groups_table}` g ON g.group_id = a.group_id
 			WHERE a.hook IN ('mdfcforwc_flush_unsynced_sales', 'mdfcforwc_retry_hub_sync')
 			  AND g.slug = 'mdf-wc'";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Schema-level cleanup: table names escaped via esc_sql(), hook values are hard-coded string literals with no user input.
 		$wpdb->query( $legacy_sql );
 
 		// Schedule the hourly flush of unsynced sales via Action Scheduler.

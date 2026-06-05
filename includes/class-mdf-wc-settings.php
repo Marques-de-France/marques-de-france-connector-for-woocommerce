@@ -53,7 +53,9 @@ class MDFCFORWC_Settings {
 		// Use the raw option values from the database instead of home_url()/site_url().
 		// Under WP-CLI activation, WordPress core can resolve those helpers as 'http:'
 		// because $_SERVER['HTTP_HOST'] is not available in the CLI runtime.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional direct query: home_url()/site_url() return 'http:' under WP-CLI where $_SERVER['HTTP_HOST'] is absent.
 		$raw_home = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'home' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Same reason as above.
 		$raw_site = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'siteurl' ) );
 
 		$site_url = is_string( $raw_home ) && '' !== trim( $raw_home ) ? trim( $raw_home ) : '';

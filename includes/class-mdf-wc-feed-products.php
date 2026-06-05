@@ -27,10 +27,9 @@ class MDFCFORWC_Feed_Products {
 	 */
 	public static function get_selected_product_ids(): array {
 		global $wpdb;
-		$table = self::table();
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table = esc_sql( self::table() ); // table name comes from $wpdb->prefix, not user input
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Read-only schema query; table name is escaped.
 		$rows = $wpdb->get_col( "SELECT product_id FROM `{$table}` ORDER BY added_at DESC" );
-		// phpcs:enable
 		return array_map( 'intval', $rows ?: [] );
 	}
 
@@ -42,6 +41,7 @@ class MDFCFORWC_Feed_Products {
 	 */
 	public static function add_product( int $product_id ): bool {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Write operation; caching is not applicable.
 		$result = $wpdb->replace(
 			self::table(),
 			[ 'product_id' => $product_id ],
@@ -58,6 +58,7 @@ class MDFCFORWC_Feed_Products {
 	 */
 	public static function remove_product( int $product_id ): bool {
 		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Write operation; caching is not applicable.
 		$result = $wpdb->delete(
 			self::table(),
 			[ 'product_id' => $product_id ],
@@ -74,8 +75,8 @@ class MDFCFORWC_Feed_Products {
 	 */
 	public static function is_in_feed( int $product_id ): bool {
 		global $wpdb;
-		$table = self::table();
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table = esc_sql( self::table() ); // table name from $wpdb->prefix, not user input
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name escaped via esc_sql(); product_id is an int placeholder.
 		$count = (int) $wpdb->get_var(
 			$wpdb->prepare( "SELECT COUNT(*) FROM `{$table}` WHERE product_id = %d", $product_id )
 		);
@@ -90,10 +91,9 @@ class MDFCFORWC_Feed_Products {
 	 */
 	public static function get_count(): int {
 		global $wpdb;
-		$table = self::table();
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table = esc_sql( self::table() ); // table name from $wpdb->prefix, not user input
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Read-only COUNT; table name is escaped.
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
-		// phpcs:enable
 	}
 
 	/**
@@ -132,10 +132,11 @@ class MDFCFORWC_Feed_Products {
 			$placeholders[] = '(%d, %s)';
 		}
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare,PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// Table name is from $wpdb->prefix (not user input). Placeholders are built programmatically from the $tagged_posts array; values are spread as positional args.
 		$sql = $wpdb->prepare(
 			'INSERT IGNORE INTO `' . $table . '` (product_id, added_at) VALUES ' . implode( ', ', $placeholders ),
-			$values
+			...$values
 		);
 		$wpdb->query( $sql );
 		// phpcs:enable
