@@ -51,12 +51,13 @@ function mdfcforwc_activate() {
 }
 
 function mdfcforwc_deactivate() {
-	// Cancel scheduled Action Scheduler actions on deactivation
+	// Cancel scheduled Action Scheduler actions on deactivation.
 	if ( function_exists( 'as_unschedule_all_actions' ) ) {
 		as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' );
+		as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales' );
 	}
-	// Reset backfill flag so it re-runs on next activation (handles reinstalls).
-	delete_option( 'mdfcforwc_backfill_done' );
+	// Keep the backfill completion flag on deactivate so re-activation does not
+	// wipe the merchant's existing sales table again.
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +85,7 @@ function mdfcforwc_init() {
 	MDFCFORWC_Settings::get_instance();
 	MDFCFORWC_Tracker::get_instance();
 	MDFCFORWC_Attribution::get_instance();
+	MDFCFORWC_Hub_Client::get_instance();
 	MDFCFORWC_Feed::get_instance();
 	MDFCFORWC_Admin::get_instance();
 }

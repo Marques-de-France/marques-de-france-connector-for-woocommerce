@@ -21,10 +21,10 @@ class MDFCFORWC_Activator {
 		self::create_tables();
 		self::schedule_actions();
 		self::register_with_hub();
-		// Truncate and refill from Hub on every activation.
-		// This guarantees a clean state after reinstalls (stale rows from previous
-		// installs are wiped). Only runs if the plugin is already configured.
-		if ( MDFCFORWC_Settings::is_configured() ) {
+		// Refresh the local sales table from the Hub once per installation.
+		// Do not wipe the table on every re-activation, otherwise a simple
+		// deactivate/activate cycle erases merchants' existing sales history.
+		if ( MDFCFORWC_Settings::is_configured() && '1' !== get_option( 'mdfcforwc_backfill_done', '0' ) ) {
 			$count = self::backfill_from_hub( true ); // truncate_first = true
 			if ( $count >= 0 ) {
 				update_option( 'mdfcforwc_backfill_done', '1' );
@@ -103,16 +103,32 @@ class MDFCFORWC_Activator {
 	}
 
 	private static function schedule_actions() {
-		// Schedule the hourly flush of unsynced sales via Action Scheduler
-		if ( function_exists( 'as_has_scheduled_action' ) &&
-			! as_has_scheduled_action( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' ) ) {
-			as_schedule_recurring_action(
-				time() + HOUR_IN_SECONDS,
-				HOUR_IN_SECONDS,
-				'mdfcforwc_flush_unsynced_sales',
-				[],
-				'mdf-wc'
-			);
+		global $wpdb;
+
+		// Remove any legacy custom-group Action Scheduler rows from old runtime installs.
+		// This prevents the stale 'mdf-wc' jobs from blocking the default-group path.
+		$actions_table = esc_sql( $wpdb->prefix . 'actionscheduler_actions' );
+		$groups_table  = esc_sql( $wpdb->prefix . 'actionscheduler_groups' );
+		$legacy_sql    = "DELETE a FROM `{$actions_table}` a
+			INNER JOIN `{$groups_table}` g ON g.group_id = a.group_id
+			WHERE a.hook IN ('mdfcforwc_flush_unsynced_sales', 'mdfcforwc_retry_hub_sync')
+			  AND g.slug = 'mdf-wc'";
+		$wpdb->query( $legacy_sql );
+
+		// Schedule the hourly flush of unsynced sales via Action Scheduler.
+		// Use the default group so the recurring hook is available in the
+		// runtime WordPress environment without relying on a custom group slug.
+		if ( function_exists( 'as_has_scheduled_action' ) ) {
+			as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' );
+			as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales' );
+
+			if ( ! as_has_scheduled_action( 'mdfcforwc_flush_unsynced_sales' ) ) {
+				as_schedule_recurring_action(
+					time() + HOUR_IN_SECONDS,
+					HOUR_IN_SECONDS,
+					'mdfcforwc_flush_unsynced_sales'
+				);
+			}
 		}
 	}
 

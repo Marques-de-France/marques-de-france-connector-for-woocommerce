@@ -224,8 +224,7 @@ class MDFCFORWC_Attribution {
 
 		// Trigger Hub sync
 		if ( $wpdb->insert_id ) {
-			$hub_client = new MDFCFORWC_Hub_Client();
-			$hub_client->sync_sale( $order );
+			MDFCFORWC_Hub_Client::get_instance()->sync_sale( $order );
 		}
 	}
 
