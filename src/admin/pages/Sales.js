@@ -235,6 +235,9 @@ export default function Sales() {
 
 	const handleGranularityChange = (value) => {
 		setGranularity(value);
+
+		// When the chart switches to monthly aggregation, use the
+		// last 12 months as the default range for the analytics query.
 		if (value === 'month') {
 			setAnalyticsRange('12m');
 		}
@@ -306,11 +309,13 @@ export default function Sales() {
 					label={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
 					value={formatAmount(totalRevenue, currency)}
 					subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
+					loading={analyticsLoading}
 				/>
 				<KpiCard
 					label={__('Sales', 'marques-de-france-connector-for-woocommerce')}
 					value={String(totalSales)}
 					subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
+					loading={analyticsLoading}
 				/>
 			</div>
 
@@ -378,7 +383,7 @@ export default function Sales() {
 						onClick={() => setIsFromPickerOpen((open) => !open)}
 					>
 						{dateFrom
-							? new Intl.DateTimeFormat(undefined, {
+							? new Intl.DateTimeFormat('fr-FR', {
 								day: '2-digit',
 								month: '2-digit',
 								year: 'numeric',
@@ -408,7 +413,7 @@ export default function Sales() {
 						onClick={() => setIsToPickerOpen((open) => !open)}
 					>
 						{dateTo
-							? new Intl.DateTimeFormat(undefined, {
+							? new Intl.DateTimeFormat('fr-FR', {
 								day: '2-digit',
 								month: '2-digit',
 								year: 'numeric',
@@ -613,7 +618,7 @@ export default function Sales() {
 										</td>
 										<td>
 											{row.created_at
-												? new Intl.DateTimeFormat(undefined, {
+												? new Intl.DateTimeFormat('fr-FR', {
 													day: '2-digit',
 													month: '2-digit',
 													year: 'numeric',
