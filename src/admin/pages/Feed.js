@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "@wordpress/element";
-import { __ } from "@wordpress/i18n";
+import { __, _n, sprintf } from "@wordpress/i18n";
 import apiFetch from "@wordpress/api-fetch";
 import {
 	Button,
@@ -29,6 +29,7 @@ export default function Feed() {
 	const [feedSearch, setFeedSearch] = useState("");
 	const [resultsPerPage, setResultsPerPage] = useState(PER_PAGE);
 	const [feedPage, setFeedPage] = useState(1);
+	const [feedTotal, setFeedTotal] = useState(0);
 	const [feedTotalPages, setFeedTotalPages] = useState(1);
 	const [managePage, setManagePage] = useState(1);
 	const [manageTotalPages, setManageTotalPages] = useState(1);
@@ -65,6 +66,7 @@ export default function Feed() {
 					}`,
 			});
 			setProducts(data.products || []);
+			setFeedTotal(data.total || 0);
 			setInFeedCount(data.inFeedCount ?? data.total ?? 0);
 			setMode(nextMode);
 			setFeedPage(page);
@@ -543,6 +545,11 @@ export default function Feed() {
 					/>
 				) : (
 					<>
+						{manageTotal > 0 && (
+							<p className="mdf-sales__summary">
+								{sprintf(_n("%d product", "%d products", manageTotal, "marques-de-france-connector-for-woocommerce"), manageTotal)}
+							</p>
+						)}
 						<div className="mdf-table-wrap">
 							<table className="mdf-table">
 								<thead>
@@ -660,6 +667,27 @@ export default function Feed() {
 															>
 																{product.name}
 															</a>
+															{Number(product.total_variants || 0) > 0 && (
+																<span
+																	style={{
+																		marginLeft: 8,
+																		display: "inline-flex",
+																		alignItems: "center",
+																		padding: "2px 8px",
+																		borderRadius: 999,
+																		background: "#0000000f",
+																		color: "#616161",
+																		fontSize: 11,
+																		fontWeight: 600,
+																		lineHeight: 1.2,
+																	}}
+																>
+																	{sprintf(
+																		_n("%d variation", "%d variations", product.total_variants, "marques-de-france-connector-for-woocommerce"),
+																		product.total_variants,
+																	)}
+																</span>
+															)}
 														</div>
 													</div>
 												</td>
@@ -808,6 +836,11 @@ export default function Feed() {
 						</Button>
 					)}
 				</form>
+				{feedTotal > 0 && (
+					<p className="mdf-sales__summary">
+						{sprintf(_n("%d product", "%d products", feedTotal, "marques-de-france-connector-for-woocommerce"), feedTotal)}
+					</p>
+				)}
 				<div className="mdf-table-wrap">
 					<table className="mdf-table">
 						<thead>
@@ -923,6 +956,27 @@ export default function Feed() {
 														>
 															{product.name}
 														</a>
+														{Number(product.total_variants || 0) > 0 && (
+															<span
+																style={{
+																	marginLeft: 8,
+																	display: "inline-flex",
+																	alignItems: "center",
+																	padding: "2px 8px",
+																	borderRadius: 999,
+																	background: "#0000000f",
+																	color: "#616161",
+																	fontSize: 11,
+																	fontWeight: 600,
+																	lineHeight: 1.2,
+																}}
+															>
+																{sprintf(
+																	_n("%d variation", "%d variations", product.total_variants, "marques-de-france-connector-for-woocommerce"),
+																	product.total_variants,
+																)}
+															</span>
+														)}
 													</div>
 												</div>
 											</td>

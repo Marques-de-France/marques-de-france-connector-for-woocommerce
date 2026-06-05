@@ -366,6 +366,22 @@
       "Results per page": [
         "Résultats par page"
       ],
+      "%d product": [
+        "%d produit",
+        "%d produits"
+      ],
+      "%d products": [
+        "%d produit",
+        "%d produits"
+      ],
+      "%d variation": [
+        "%d variante",
+        "%d variantes"
+      ],
+      "%d variations": [
+        "%d variante",
+        "%d variantes"
+      ],
       "How to include products in the feed?": [
         "Comment inclure des produits dans le flux ?"
       ],

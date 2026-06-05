@@ -223,12 +223,24 @@ class MDFCFORWC_Admin {
 			]
 		);
 
-		// Enable JS translations (loads languages/mdfcforwc-admin-{locale}-{hash}.json)
-		wp_set_script_translations(
-			'mdfcforwc-admin',
-			'marques-de-france-connector-for-woocommerce',
-			MDFCFORWC_PLUGIN_DIR . 'languages/'
-		);
+		$locale = get_user_locale();
+		$translation_file = MDFCFORWC_PLUGIN_DIR . 'languages/marques-de-france-connector-for-woocommerce-' . $locale . '-mdfcforwc-admin.json';
+
+		if ( file_exists( $translation_file ) ) {
+			$translations = wp_json_file_decode( $translation_file, [ 'associative' => true ] );
+
+			if ( is_array( $translations ) && ! empty( $translations['locale_data'] ) ) {
+				wp_add_inline_script(
+					'mdfcforwc-admin',
+					'( function( domain, translations ) {' .
+						'var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;' .
+						'localeData[""].domain = domain;' .
+						'wp.i18n.setLocaleData( localeData, domain );' .
+					'} )( "marques-de-france-connector-for-woocommerce", ' . wp_json_encode( $translations ) . ' );',
+					'before'
+				);
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------------------
@@ -459,20 +471,36 @@ class MDFCFORWC_Admin {
 			$image_src = $image_id ? wp_get_attachment_image_src( $image_id, 'thumbnail' ) : false;
 			$image     = $image_src ? $image_src[0] : wc_placeholder_img_src();
 
-			$brand_post = function_exists( 'get_field' ) ? get_field( 'product_listing', $product->get_id() ) : null;
-			$brand      = ( $brand_post && isset( $brand_post->post_title ) ) ? $brand_post->post_title : '';
+			$brand = $this->get_product_brand( $product->get_id() );
+
+			$total_variants     = 0;
+			$available_variants = 0;
+
+			if ( $product->is_type( 'variable' ) ) {
+				$variation_ids  = $product->get_children();
+				$total_variants = count( $variation_ids );
+				foreach ( $variation_ids as $variation_id ) {
+					$variation = wc_get_product( $variation_id );
+					if ( $variation && $variation->is_in_stock() && $variation->is_purchasable() ) {
+						$available_variants++;
+					}
+				}
+			}
 
 			$items[] = [
-				'id'           => $product->get_id(),
-				'name'         => $product->get_name(),
-				'image'        => $image,
-				'price'        => (float) $product->get_price(),
-				'price_html'   => $product->get_price_html(),
-				'brand'        => $brand,
-				'status'       => get_post_status( $product->get_id() ),
-				'availability' => $product->is_in_stock() ? 'in stock' : 'out of stock',
-				'inFeed'       => isset( $feed_ids_set[ $product->get_id() ] ),
-				'edit_url'     => get_edit_post_link( $product->get_id(), 'raw' ),
+				'id'                 => $product->get_id(),
+				'name'               => $product->get_name(),
+				'image'              => $image,
+				'price'              => (float) $product->get_price(),
+				'price_html'         => $product->get_price_html(),
+				'brand'              => $brand,
+				'status'             => get_post_status( $product->get_id() ),
+				'availability'       => $product->is_in_stock() ? 'in stock' : 'out of stock',
+				'inFeed'             => isset( $feed_ids_set[ $product->get_id() ] ),
+				'type'               => $product->get_type(),
+				'total_variants'     => $total_variants,
+				'available_variants' => $available_variants,
+				'edit_url'           => get_edit_post_link( $product->get_id(), 'raw' ),
 			];
 		}
 
@@ -485,6 +513,15 @@ class MDFCFORWC_Admin {
 			'currency'    => get_woocommerce_currency(),
 			'inFeedCount' => MDFCFORWC_Feed_Products::get_count(),
 		] );
+	}
+
+	private function get_product_brand( int $product_id ): string {
+		$terms = get_the_terms( $product_id, 'product_brand' );
+		if ( $terms && ! is_wp_error( $terms ) ) {
+			return $terms[0]->name;
+		}
+
+		return get_bloginfo( 'name' );
 	}
 
 	public function rest_add_feed_product( WP_REST_Request $request ): WP_REST_Response {
@@ -1051,8 +1088,7 @@ class MDFCFORWC_Admin {
 				}
 			}
 
-			$brand_post = function_exists( 'get_field' ) ? get_field( 'product_listing', $product->get_id() ) : null;
-			$brand      = ( $brand_post && isset( $brand_post->post_title ) ) ? $brand_post->post_title : '';
+			$brand = $this->get_product_brand( $product->get_id() );
 
 			$raw_items[] = [
 				'id'                 => $product->get_id(),

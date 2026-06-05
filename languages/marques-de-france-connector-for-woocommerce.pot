@@ -223,6 +223,18 @@ msgstr ""
 msgid "Results per page"
 msgstr ""
 
+#: src/admin/pages/Feed.js
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/admin/pages/Feed.js
+msgid "%d variation"
+msgid_plural "%d variations"
+msgstr[0] ""
+msgstr[1] ""
+
 #: src/admin/pages/Sales.js:649
 msgid "Previous"
 msgstr ""

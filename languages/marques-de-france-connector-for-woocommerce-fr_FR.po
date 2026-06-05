@@ -240,6 +240,18 @@ msgstr "Page"
 msgid "Results per page"
 msgstr "Résultats par page"
 
+#: src/admin/pages/Feed.js
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] "%d produit"
+msgstr[1] "%d produits"
+
+#: src/admin/pages/Feed.js
+msgid "%d variation"
+msgid_plural "%d variations"
+msgstr[0] "%d variante"
+msgstr[1] "%d variantes"
+
 #: src/admin/pages/Sales.js:649
 msgid "Previous"
 msgstr "Précédent"
