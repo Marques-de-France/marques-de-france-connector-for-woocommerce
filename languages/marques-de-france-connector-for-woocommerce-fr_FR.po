@@ -421,7 +421,7 @@ msgid "Cancel"
 msgstr "Annuler"
 
 msgid "Change"
-msgstr "Modifier"
+msgstr "Changer"
 
 msgid "Change mode"
 msgstr "Changer de mode"
@@ -521,7 +521,7 @@ msgid "Via the product tag field (recommended)"
 msgstr "Via le champ Étiquettes produit (recommandé)"
 
 msgid "Simply add the tag "
-msgstr "Ajoutez simplement le tag "
+msgstr "Ajoutez simplement l'étiquette produit "
 
 msgid ""
 " to each of your products manufactured in France. This is the simplest and "
@@ -535,7 +535,7 @@ msgid ""
 "product tag field is used to display information in your theme."
 msgstr ""
 "Sélectionnez manuellement les produits directement depuis cette extension."
-" Choisissez cette option si votre champ de tag produit est utilisé pour "
+" Choisissez cette option si votre champ d'étiquette produit est utilisé pour "
 "afficher des informations dans votre thème."
 
 msgid ""

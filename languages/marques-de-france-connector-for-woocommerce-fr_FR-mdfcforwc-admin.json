@@ -283,7 +283,7 @@
         "Annuler"
       ],
       "Change": [
-        "Modifier"
+        "Changer"
       ],
       "Change mode": [
         "Changer de mode"
@@ -379,13 +379,13 @@
         "Via le champ Étiquettes produit (recommandé)"
       ],
       "Simply add the tag ": [
-        "Ajoutez simplement le tag "
+        "Ajoutez simplement l'étiquette produit "
       ],
       " to each of your products manufactured in France. This is the simplest and most direct method.": [
         " à chacun de vos produits fabriqués en France. C’est la méthode la plus simple et directe."
       ],
       "Manually select products directly from this app. Choose this option if your product tag field is used to display information in your theme.": [
-        "Sélectionnez manuellement les produits directement depuis cette extension. Choisissez cette option si votre champ de tag produit est utilisé pour afficher des informations dans votre thème."
+        "Sélectionnez manuellement les produits directement depuis cette extension. Choisissez cette option si votre champ d'étiquette produit est utilisé pour afficher des informations dans votre thème."
       ],
       "To add the tag to multiple products at once, select them in the product list, then choose Edit from the Bulk actions dropdown and add the tag in the Tags field.": [
         "Pour ajouter l'étiquette à plusieurs produits à la fois, sélectionnez-les dans la liste des produits, puis choisissez Modifier dans le menu Actions groupées et ajoutez l'étiquette dans le champ Étiquettes produit."
