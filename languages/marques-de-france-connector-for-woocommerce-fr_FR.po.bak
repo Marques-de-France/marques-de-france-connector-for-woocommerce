@@ -1,271 +1,310 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR Marques de France
+# French translations for Marques de France package.
+# Copyright (C) 2026 Marques de France
 # This file is distributed under the same license as the Marques de France package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Emmanuel Montecer <emmanuelmontecer@mac-1.home>, 2026.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Marques de France 1.1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-04 12:13+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2026-06-04 12:13+0200\n"
+"Last-Translator: Emmanuel Montecer <emmanuelmontecer@mac-1.home>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
 #: src/admin/App.js:10 admin/class-mdf-wc-admin.php:78
 #: admin/class-mdf-wc-admin.php:79
 msgid "Dashboard"
-msgstr ""
+msgstr "Tableau de bord"
+msgstr "Tableau de bord"
 
 #: src/admin/App.js:11 src/admin/pages/Settings.js:113
 msgid "Product Feed"
-msgstr ""
+msgstr "Flux de produits"
+msgstr "Flux de produits"
 
 #: src/admin/App.js:12 src/admin/pages/Dashboard.js:167
 #: src/admin/pages/Sales.js:230 src/admin/pages/Sales.js:267
 msgid "Sales"
-msgstr ""
+msgstr "Ventes"
+msgstr "Ventes"
 
 #: src/admin/App.js:13 admin/class-mdf-wc-admin.php:108
 #: admin/class-mdf-wc-admin.php:109
 msgid "Settings"
-msgstr ""
+msgstr "Paramètres"
+msgstr "Paramètres"
 
 #: src/admin/pages/Dashboard.js:64
 msgid "Failed to load data."
-msgstr ""
+msgstr "Échec du chargement des données."
+msgstr "Échec du chargement des données."
 
 #: src/admin/pages/Dashboard.js:78 src/admin/pages/Sales.js:349
 #: src/admin/pages/Sales.js:552
 msgid "Loading…"
-msgstr ""
+msgstr "Chargement…"
+msgstr "Chargement…"
 
 #: src/admin/pages/Dashboard.js:94
 msgid "Activate your store"
-msgstr ""
+msgstr "Activez votre boutique"
+msgstr "Activez votre boutique"
 
 #: src/admin/pages/Dashboard.js:103
 msgid "Store registered"
-msgstr ""
+msgstr "Boutique enregistrée"
+msgstr "Boutique enregistrée"
 
 #: src/admin/pages/Dashboard.js:113
 msgid "Enter your activation code"
-msgstr ""
+msgstr "Saisissez votre code d’activation"
+msgstr "Saisissez votre code d’activation"
 
 #: src/admin/pages/Dashboard.js:125
 msgid "Enter my activation code"
-msgstr ""
+msgstr "Saisir mon code d’activation"
+msgstr "Saisir mon code d’activation"
 
 #: src/admin/pages/Dashboard.js:152 src/admin/pages/Sales.js:253
 msgid "Revenue"
-msgstr ""
+msgstr "Chiffre d’affaires"
+msgstr "Chiffre d’affaires"
 
 #: src/admin/pages/Dashboard.js:213
 msgid "Hub connected"
-msgstr ""
+msgstr "Hub connecté"
+msgstr "Hub connecté"
 
 #: src/admin/pages/Dashboard.js:217
 msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
-msgstr ""
+msgstr "✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les Paramètres."
+msgstr "✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les Paramètres."
 
 #: src/admin/pages/Dashboard.js:228
 msgid "Total Sales"
-msgstr ""
+msgstr "Ventes totales"
+msgstr "Ventes totales"
 
 #: src/admin/pages/Dashboard.js:237 src/admin/pages/Dashboard.js:255
 msgid "All time"
-msgstr ""
+msgstr "Depuis toujours"
+msgstr "Depuis toujours"
 
 #: src/admin/pages/Dashboard.js:246 src/admin/pages/Sales.js:395
 msgid "Confirmed"
-msgstr ""
+msgstr "Confirmé"
+msgstr "Confirmé"
 
 #: src/admin/pages/Dashboard.js:264
 msgid "Total Revenue"
-msgstr ""
+msgstr "Chiffre d’affaires total"
+msgstr "Chiffre d’affaires total"
 
 #: src/admin/pages/Dashboard.js:273
 msgid "Confirmed"
-msgstr ""
+msgstr "Confirmés"
+msgstr "Confirmés"
 
 #: src/admin/pages/Dashboard.js:282
 msgid "This Month"
-msgstr ""
+msgstr "Ce mois-ci"
+msgstr "Ce mois-ci"
 
 #: src/admin/pages/Dashboard.js:291 src/admin/pages/Sales.js:455
 msgid "sales"
-msgstr ""
+msgstr "ventes"
+msgstr "ventes"
 
 #: src/admin/pages/Dashboard.js:301
 msgid "Unsynced"
-msgstr ""
+msgstr "Non synchronisé"
+msgstr "Non synchronisé"
 
 #: src/admin/pages/Dashboard.js:310
 msgid "pending Hub sync"
-msgstr ""
+msgstr "en attente de synchronisation"
+msgstr "en attente de synchronisation"
 
 #: src/admin/pages/Dashboard.js:323
 msgid "Sales over the last 12 months"
-msgstr ""
+msgstr "Ventes sur les 12 derniers mois"
+msgstr "Ventes sur les 12 derniers mois"
 
 #: src/admin/pages/Dashboard.js:334
 msgid "No data for the selected period."
-msgstr ""
+msgstr "Aucune donnée pour la période sélectionnée."
+msgstr "Aucune donnée pour la période sélectionnée."
 
 #: src/admin/pages/Sales.js:86
 msgid "Last 7 days"
-msgstr ""
+msgstr "7 derniers jours"
+msgstr "7 derniers jours"
 
 #: src/admin/pages/Sales.js:91
 msgid "Last 28 days"
-msgstr ""
+msgstr "28 derniers jours"
+msgstr "28 derniers jours"
 
 #: src/admin/pages/Sales.js:98
 msgid "Last 90 days"
-msgstr ""
+msgstr "90 derniers jours"
+msgstr "90 derniers jours"
 
 #: src/admin/pages/Sales.js:105
 msgid "Last 12 months"
-msgstr ""
+msgstr "12 derniers mois"
+msgstr "12 derniers mois"
 
 #: src/admin/pages/Sales.js:111
 msgid "Last year"
-msgstr ""
+msgstr "L’année dernière"
+msgstr "L’année dernière"
 
 #: src/admin/pages/Sales.js:115
 msgid "This year"
-msgstr ""
+msgstr "Cette année"
+msgstr "Cette année"
 
 #: src/admin/pages/Sales.js:177
 msgid "Failed to load sales."
-msgstr ""
+msgstr "Échec du chargement des ventes."
+msgstr "Échec du chargement des ventes."
 
 #: src/admin/pages/Sales.js:295
 msgid "Revenue over time"
-msgstr ""
+msgstr "Chiffre d’affaires dans le temps"
+msgstr "Chiffre d’affaires dans le temps"
 
 #: src/admin/pages/Sales.js:324
 msgid "Daily"
-msgstr ""
+msgstr "Journalier"
+msgstr "Journalier"
 
 #: src/admin/pages/Sales.js:338
 msgid "Monthly"
-msgstr ""
+msgstr "Mensuel"
+msgstr "Mensuel"
 
 #: src/admin/pages/Sales.js:370
 msgid "Search order ID…"
-msgstr ""
+msgstr "Rechercher un numéro de commande…"
+msgstr "Rechercher un numéro de commande…"
 
 #: src/admin/pages/Sales.js:389
 msgid "All statuses"
-msgstr ""
+msgstr "Tous les statuts"
+msgstr "Tous les statuts"
 
 #: src/admin/pages/Sales.js:401
 msgid "Cancelled"
-msgstr ""
+msgstr "Annulé"
+msgstr "Annulé"
 
 #: src/admin/pages/Sales.js:407
 msgid "Refunded"
-msgstr ""
+msgstr "Remboursé"
+msgstr "Remboursé"
 
 #: src/admin/pages/Sales.js:413
 msgid "Pending"
-msgstr ""
+msgstr "En attente"
+msgstr "En attente"
 
 #: src/admin/pages/Sales.js:419
 msgid "From"
-msgstr ""
+msgstr "Du"
+msgstr "Du"
 
 #: src/admin/pages/Sales.js:431
 msgid "To"
-msgstr ""
+msgstr "Au"
+msgstr "Au"
 
 #: src/admin/pages/Sales.js:444
 msgid "Reset"
-msgstr ""
+msgstr "Réinitialiser"
+msgstr "Réinitialiser"
 
 #: src/admin/pages/Sales.js:477
 msgid "Order"
-msgstr ""
+msgstr "Commande"
+msgstr "Commande"
 
 #: src/admin/pages/Sales.js:485
 msgid "Attribution"
-msgstr ""
+msgstr "Attribution"
+msgstr "Attribution"
 
 #: src/admin/pages/Sales.js:500
 msgid "Amount"
-msgstr ""
+msgstr "Montant"
+msgstr "Montant"
 
 #: src/admin/pages/Sales.js:517
 msgid "Status"
-msgstr ""
+msgstr "Statut"
+msgstr "Statut"
 
 #: src/admin/pages/Sales.js:536
 msgid "Date"
-msgstr ""
+msgstr "Date"
+msgstr "Date"
 
 #: src/admin/pages/Sales.js:576
 msgid "No sales found."
-msgstr ""
+msgstr "Aucune vente trouvée."
+msgstr "Aucune vente trouvée."
 
 #: src/admin/pages/Sales.js:638
 msgid "Page"
-msgstr ""
-
-#: src/admin/pages/Feed.js
-#: src/admin/pages/Sales.js
-msgid "Results per page"
-msgstr ""
-
-#: src/admin/pages/Feed.js
-msgid "%d product"
-msgid_plural "%d products"
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/admin/pages/Feed.js
-msgid "%d variation"
-msgid_plural "%d variations"
-msgstr[0] ""
-msgstr[1] ""
+msgstr "Page"
+msgstr "Page"
 
 #: src/admin/pages/Sales.js:649
 msgid "Previous"
-msgstr ""
+msgstr "Précédent"
+msgstr "Précédent"
 
 #: src/admin/pages/Sales.js:659
 msgid "Next"
-msgstr ""
+msgstr "Suivant"
+msgstr "Suivant"
 
 #: src/admin/pages/Settings.js:27
 msgid "Settings saved."
-msgstr ""
+msgstr "Paramètres enregistrés."
+msgstr "Paramètres enregistrés."
 
 #: src/admin/pages/Settings.js:35
 msgid "Failed to save settings."
-msgstr ""
+msgstr "Échec de l’enregistrement des paramètres."
+msgstr "Échec de l’enregistrement des paramètres."
 
 #: src/admin/pages/Settings.js:59
 msgid "Connection"
-msgstr ""
+msgstr "Connexion"
+msgstr "Connexion"
 
 #: src/admin/pages/Settings.js:80
 msgid "Secure Token"
-msgstr ""
+msgstr "Code d’accès sécurisé"
+msgstr "Code d’accès sécurisé"
 
 #: src/admin/pages/Settings.js:94
 msgid "The token provided by Marques de France when your store was registered."
-msgstr ""
+msgstr "Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."
+msgstr "Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."
 
 #: src/admin/pages/Settings.js:101
 msgid "Save settings"
-msgstr ""
+msgstr "Enregistrer les paramètres"
+msgstr "Enregistrer les paramètres"
 
 #: src/admin/pages/Settings.js:119
 msgid ""
@@ -275,24 +314,29 @@ msgstr ""
 
 #: src/admin/pages/Settings.js:128
 msgid "Copied!"
-msgstr ""
+msgstr "Copié !"
+msgstr "Copié !"
 
 #: src/admin/pages/Settings.js:132
 msgid "Copy URL"
-msgstr ""
+msgstr "Copier l’URL"
+msgstr "Copier l’URL"
 
 #: src/admin/pages/Settings.js:143
 msgid "Preview"
-msgstr ""
+msgstr "Aperçu"
+msgstr "Aperçu"
 
 #: admin/class-mdf-wc-admin.php:66 admin/class-mdf-wc-admin.php:67
 #: admin/class-mdf-wc-admin.php:609 admin/class-mdf-wc-admin.php:639
 msgid "Marques de France"
-msgstr ""
+msgstr "Marques de France"
+msgstr "Marques de France"
 
 #: admin/class-mdf-wc-admin.php:88
 msgid "Product feed"
-msgstr ""
+msgstr "Flux de produits"
+msgstr "Flux de produits"
 
 #: admin/class-mdf-wc-admin.php:89
 msgid "Flux de produits"
@@ -300,7 +344,8 @@ msgstr ""
 
 #: admin/class-mdf-wc-admin.php:98
 msgid "Sales tracking"
-msgstr ""
+msgstr "Suivi des ventes"
+msgstr "Suivi des ventes"
 
 #: admin/class-mdf-wc-admin.php:99
 msgid "Suivi des ventes"
@@ -309,39 +354,37 @@ msgstr ""
 #: admin/class-mdf-wc-admin.php:563
 #, php-format
 msgid ""
-"<strong>Marques de France</strong>: %1$d sale has not been synchronized with "
-"Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check your "
-"connection "
+"<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF "
+"Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
 "settings</a>."
 msgid_plural ""
-"<strong>Marques de France</strong>: %1$d sales have not been synchronized "
-"with Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check "
-"your connection "
+"<strong>Marques de France</strong>: %1$d sales have not been synced to the "
+"MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection "
 "settings</a>."
 msgstr[0] ""
 msgstr[1] ""
 
 #: admin/class-mdf-wc-admin.php:610
 msgid ""
-"Could not contact Marques de France. Please check your connection settings "
-"and try again."
+"Could not reach the MDF Hub. Check your connection settings and try again."
 msgstr ""
 
 #: admin/class-mdf-wc-admin.php:617
 #, php-format
-msgid "Restored %d sale from Marques de France."
-msgid_plural "Restored %d sales from Marques de France."
+msgid "Marques de France: %d sale restored from the MDF Hub."
+msgid_plural "Marques de France: %d sales restored from the MDF Hub."
 msgstr[0] ""
 msgstr[1] ""
 
 #: admin/class-mdf-wc-admin.php:640
 msgid ""
-"Your local sales history may be incomplete. This can happen after "
-"reinstalling the plugin. Click below to restore it from Marques de France."
+"Sales data may be out of sync (e.g. after a plugin reinstall). Click below "
+"to restore from the MDF Hub — this will replace the local sales table with "
+"the Hub's records."
 msgstr ""
 
 #: admin/class-mdf-wc-admin.php:646
-msgid "Restore sales from Marques de France"
+msgid "Restore sales from Hub"
 msgstr ""
 
 #: admin/class-mdf-wc-admin.php:659
@@ -350,48 +393,60 @@ msgstr ""
 
 #: admin/class-mdf-wc-admin.php:1124
 msgid "Marques de France – Attribution"
-msgstr ""
+msgstr "Marques de France – Attribution"
+msgstr "Marques de France – Attribution"
 
 #: admin/class-mdf-wc-admin.php:1146
 msgid "No attribution detected for this order."
-msgstr ""
+msgstr "Aucune attribution détectée pour cette commande."
+msgstr "Aucune attribution détectée pour cette commande."
 
 #: admin/class-mdf-wc-admin.php:1151
 msgid "Source"
-msgstr ""
+msgstr "Source"
+msgstr "Source"
 
 #: admin/class-mdf-wc-admin.php:1152
 msgid "UTM Source"
-msgstr ""
+msgstr "UTM Source"
+msgstr "UTM Source"
 
 #: admin/class-mdf-wc-admin.php:1153
 msgid "UTM Medium"
-msgstr ""
+msgstr "UTM Medium"
+msgstr "UTM Medium"
 
 #: admin/class-mdf-wc-admin.php:1154
 msgid "UTM Campaign"
-msgstr ""
+msgstr "UTM Campaign"
+msgstr "UTM Campaign"
 
 #: admin/class-mdf-wc-admin.php:1155
 msgid "UTM Content"
-msgstr ""
+msgstr "UTM Content"
+msgstr "UTM Content"
 
 #: admin/class-mdf-wc-admin.php:1156
 msgid "UTM Term"
-msgstr ""
+msgstr "UTM Term"
+msgstr "UTM Term"
 
 #: admin/class-mdf-wc-admin.php:1157
 msgid "Landing Site"
-msgstr ""
+msgstr "Site d’arrivée"
+msgstr "Site d’arrivée"
 
 #: admin/class-mdf-wc-admin.php:1158
 msgid "Referring Site"
-msgstr ""
+msgstr "Site référent"
+msgstr "Site référent"
 
 #: admin/class-mdf-wc-admin.php:1159
 msgid "Ref Param"
-msgstr ""
+msgstr "Paramètre ref"
+msgstr "Paramètre ref"
 
 #: marques-de-france-connector-for-woocommerce.php:117
 msgid "Marques de France requires WooCommerce to be installed and active."
-msgstr ""
+msgstr "Marques de France nécessite que WooCommerce soit installé et activé."
+msgstr "Marques de France nécessite que WooCommerce soit installé et activé."

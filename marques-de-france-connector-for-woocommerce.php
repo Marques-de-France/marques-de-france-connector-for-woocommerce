@@ -3,7 +3,7 @@
  * Plugin Name: Marques de France
  * Plugin URI:  https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce
  * Description: Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform.
- * Version:     1.1.0
+ * Version:     1.2.0
  * Author:      Marques de France
  * Author URI:  https://www.marques-de-france.fr
  * License:     GPL-2.0-or-later
@@ -11,7 +11,7 @@
  * Text Domain: marques-de-france-connector-for-woocommerce
  * Domain Path: /languages
  * Requires at least: 6.5
- * Tested up to:      6.9
+ * Tested up to:      7.0
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
  *
@@ -26,8 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constants
 // ---------------------------------------------------------------------------
 
-define( 'MDFCFORWC_VERSION',     '1.1.0' );
-define( 'MDFCFORWC_DB_VERSION',  '1.1.0' );
+define( 'MDFCFORWC_VERSION',     '1.2.0' );
+define( 'MDFCFORWC_DB_VERSION',  '1.2.0' );
 define( 'MDFCFORWC_PLUGIN_FILE', __FILE__ );
 define( 'MDFCFORWC_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'MDFCFORWC_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
@@ -51,12 +51,13 @@ function mdfcforwc_activate() {
 }
 
 function mdfcforwc_deactivate() {
-	// Cancel scheduled Action Scheduler actions on deactivation
+	// Cancel scheduled Action Scheduler actions on deactivation.
 	if ( function_exists( 'as_unschedule_all_actions' ) ) {
 		as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' );
+		as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales' );
 	}
-	// Reset backfill flag so it re-runs on next activation (handles reinstalls).
-	delete_option( 'mdfcforwc_backfill_done' );
+	// Keep the backfill completion flag on deactivate so re-activation does not
+	// wipe the merchant's existing sales table again.
 }
 
 // ---------------------------------------------------------------------------
@@ -84,6 +85,7 @@ function mdfcforwc_init() {
 	MDFCFORWC_Settings::get_instance();
 	MDFCFORWC_Tracker::get_instance();
 	MDFCFORWC_Attribution::get_instance();
+	MDFCFORWC_Hub_Client::get_instance();
 	MDFCFORWC_Feed::get_instance();
 	MDFCFORWC_Admin::get_instance();
 }
@@ -102,8 +104,9 @@ function mdfcforwc_autoloader( $class_name ) {
 		'MDFCFORWC_Tracker'     => 'includes/class-mdf-wc-tracker.php',
 		'MDFCFORWC_Attribution' => 'includes/class-mdf-wc-attribution.php',
 		'MDFCFORWC_Hub_Client'  => 'includes/class-mdf-wc-hub-client.php',
-		'MDFCFORWC_Feed'        => 'includes/class-mdf-wc-feed.php',
-		'MDFCFORWC_Admin'       => 'admin/class-mdf-wc-admin.php',
+		'MDFCFORWC_Feed'          => 'includes/class-mdf-wc-feed.php',
+		'MDFCFORWC_Feed_Products' => 'includes/class-mdf-wc-feed-products.php',
+		'MDFCFORWC_Admin'         => 'admin/class-mdf-wc-admin.php',
 	];
 
 	if ( isset( $map[ $class_name ] ) ) {

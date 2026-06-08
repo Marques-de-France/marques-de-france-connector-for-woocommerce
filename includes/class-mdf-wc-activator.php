@@ -21,10 +21,10 @@ class MDFCFORWC_Activator {
 		self::create_tables();
 		self::schedule_actions();
 		self::register_with_hub();
-		// Truncate and refill from Hub on every activation.
-		// This guarantees a clean state after reinstalls (stale rows from previous
-		// installs are wiped). Only runs if the plugin is already configured.
-		if ( MDFCFORWC_Settings::is_configured() ) {
+		// Refresh the local sales table from the Hub once per installation.
+		// Do not wipe the table on every re-activation, otherwise a simple
+		// deactivate/activate cycle erases merchants' existing sales history.
+		if ( MDFCFORWC_Settings::is_configured() && '1' !== get_option( 'mdfcforwc_backfill_done', '0' ) ) {
 			$count = self::backfill_from_hub( true ); // truncate_first = true
 			if ( $count >= 0 ) {
 				update_option( 'mdfcforwc_backfill_done', '1' );
@@ -69,21 +69,67 @@ class MDFCFORWC_Activator {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
+		// Create feed_products table for SERVERLIST mode.
+		self::create_feed_products_table( $charset_collate );
+
 		// Store the DB version for future migrations
 		update_option( 'mdfcforwc_db_version', MDFCFORWC_DB_VERSION );
 	}
 
+	/**
+	 * Creates (or verifies existence of) the feed_products table.
+	 * Safe to call multiple times — uses CREATE TABLE IF NOT EXISTS via dbDelta().
+	 *
+	 * @param string $charset_collate Optional. Falls back to $wpdb->get_charset_collate().
+	 */
+	private static function create_feed_products_table( string $charset_collate = '' ): void {
+		global $wpdb;
+
+		if ( '' === $charset_collate ) {
+			$charset_collate = $wpdb->get_charset_collate();
+		}
+
+		$table = $wpdb->prefix . 'mdfcforwc_feed_products';
+		$sql   = "CREATE TABLE IF NOT EXISTS {$table} (
+			id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			product_id BIGINT UNSIGNED NOT NULL,
+			added_at   DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id),
+			UNIQUE KEY product_id (product_id)
+		) {$charset_collate};";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+	}
+
 	private static function schedule_actions() {
-		// Schedule the hourly flush of unsynced sales via Action Scheduler
-		if ( function_exists( 'as_has_scheduled_action' ) &&
-			! as_has_scheduled_action( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' ) ) {
-			as_schedule_recurring_action(
-				time() + HOUR_IN_SECONDS,
-				HOUR_IN_SECONDS,
-				'mdfcforwc_flush_unsynced_sales',
-				[],
-				'mdf-wc'
-			);
+		global $wpdb;
+
+		// Remove any legacy custom-group Action Scheduler rows from old runtime installs.
+		// This prevents the stale 'mdf-wc' jobs from blocking the default-group path.
+		$actions_table = esc_sql( $wpdb->prefix . 'actionscheduler_actions' );
+		$groups_table  = esc_sql( $wpdb->prefix . 'actionscheduler_groups' );
+		$legacy_sql    = "DELETE a FROM `{$actions_table}` a
+			INNER JOIN `{$groups_table}` g ON g.group_id = a.group_id
+			WHERE a.hook IN ('mdfcforwc_flush_unsynced_sales', 'mdfcforwc_retry_hub_sync')
+			  AND g.slug = 'mdf-wc'";
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- Schema-level cleanup: table names escaped via esc_sql(), hook values are hard-coded string literals with no user input.
+		$wpdb->query( $legacy_sql );
+
+		// Schedule the hourly flush of unsynced sales via Action Scheduler.
+		// Use the default group so the recurring hook is available in the
+		// runtime WordPress environment without relying on a custom group slug.
+		if ( function_exists( 'as_has_scheduled_action' ) ) {
+			as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales', [], 'mdf-wc' );
+			as_unschedule_all_actions( 'mdfcforwc_flush_unsynced_sales' );
+
+			if ( ! as_has_scheduled_action( 'mdfcforwc_flush_unsynced_sales' ) ) {
+				as_schedule_recurring_action(
+					time() + HOUR_IN_SECONDS,
+					HOUR_IN_SECONDS,
+					'mdfcforwc_flush_unsynced_sales'
+				);
+			}
 		}
 	}
 
@@ -97,6 +143,9 @@ class MDFCFORWC_Activator {
 	public static function maybe_upgrade() {
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
+
+		// Ensure the feed_products table exists (introduced in DB version 1.2.0).
+		self::create_feed_products_table();
 
 		// Add hub_sync_attempts column (introduced in DB version 1.1.0).
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.SchemaChange
@@ -121,13 +170,13 @@ class MDFCFORWC_Activator {
 	 */
 	private static function register_with_hub() {
 		$hub_url  = rtrim( MDFCFORWC_HUB_URL, '/' );
-		$site_url = home_url();
+		$site_url = MDFCFORWC_Settings::get_site_url();
 
 		$response = wp_remote_post(
 			$hub_url . '/api/wc/self-register',
 			[
 				'timeout'   => 10,
-				'sslverify' => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+				'sslverify' => ! ( defined( 'MDFCFORWC_DISABLE_SSL_VERIFY' ) && MDFCFORWC_DISABLE_SSL_VERIFY ),
 				'headers'   => [ 'Content-Type' => 'application/json' ],
 				'body'      => wp_json_encode( [ 'siteUrl' => $site_url ] ),
 			]
@@ -176,7 +225,7 @@ class MDFCFORWC_Activator {
 
 		$hub_url  = rtrim( MDFCFORWC_Settings::get_hub_url(), '/' );
 		$token    = MDFCFORWC_Settings::get_secure_token();
-		$site_url = home_url();
+		$site_url = MDFCFORWC_Settings::get_site_url();
 
 		// ---------------------------------------------------------------------------
 		// Fetch all sales pages from the Hub before touching the local DB.

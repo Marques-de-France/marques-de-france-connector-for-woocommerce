@@ -45,8 +45,55 @@ class MDFCFORWC_Settings {
 		return rtrim( MDFCFORWC_HUB_URL, '/' );
 	}
 
+	public static function get_site_url(): string {
+		global $wpdb;
+
+		$site_url = '';
+
+		// Use the raw option values from the database instead of home_url()/site_url().
+		// Under WP-CLI activation, WordPress core can resolve those helpers as 'http:'
+		// because $_SERVER['HTTP_HOST'] is not available in the CLI runtime.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional direct query: home_url()/site_url() return 'http:' under WP-CLI where $_SERVER['HTTP_HOST'] is absent.
+		$raw_home = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'home' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Same reason as above.
+		$raw_site = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->prefix}options WHERE option_name = %s LIMIT 1", 'siteurl' ) );
+
+		$site_url = is_string( $raw_home ) && '' !== trim( $raw_home ) ? trim( $raw_home ) : '';
+		$site_url = '' !== $site_url ? $site_url : ( is_string( $raw_site ) && '' !== trim( $raw_site ) ? trim( $raw_site ) : '' );
+
+		// Final safety net: if the DB options are somehow unavailable, fall back to the
+		// stored WordPress option values rather than to home_url()/site_url().
+		if ( '' === $site_url ) {
+			$site_url = (string) get_option( 'home', '' );
+		}
+		if ( '' === $site_url ) {
+			$site_url = (string) get_option( 'siteurl', '' );
+		}
+
+		return rtrim( $site_url, '/' );
+	}
+
 	public static function is_configured(): bool {
 		return '' !== self::get_secure_token();
+	}
+
+	/**
+	 * Returns the current feed filter mode: 'TAG' (default) or 'SERVERLIST'.
+	 */
+	public static function get_feed_filter_mode(): string {
+		return (string) get_option( 'mdfcforwc_feed_filter_mode', 'TAG' );
+	}
+
+	/**
+	 * Persists the feed filter mode. Only 'TAG' and 'SERVERLIST' are accepted.
+	 *
+	 * @param string $mode 'TAG' | 'SERVERLIST'.
+	 */
+	public static function set_feed_filter_mode( string $mode ): void {
+		if ( ! in_array( $mode, [ 'TAG', 'SERVERLIST' ], true ) ) {
+			return;
+		}
+		update_option( 'mdfcforwc_feed_filter_mode', $mode );
 	}
 
 

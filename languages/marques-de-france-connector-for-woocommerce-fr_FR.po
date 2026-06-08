@@ -1,706 +1,634 @@
+# French translations for Marques de France package.
 # Copyright (C) 2026 Marques de France
-# This file is distributed under the GPL-2.0-or-later.
+# This file is distributed under the same license as the Marques de France package.
+# Emmanuel Montecer <emmanuelmontecer@mac-1.home>, 2026.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: Marques de France 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/marques-de-france-connector-for-woocommerce\n"
-"Last-Translator: Marques de France <contact@marques-de-france.fr>\n"
-"Language-Team: French <fr@li.org>\n"
-"Language: fr_FR\n"
+"Project-Id-Version: Marques de France 1.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-04 12:13+0200\n"
+"PO-Revision-Date: 2026-06-04 12:18+0200\n"
+"Last-Translator: Emmanuel Montecer <emmanuelmontecer@mac-1.home>\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-04-07T14:17:31+00:00\n"
-"PO-Revision-Date: 2026-04-07 14:00+0000\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: WP-CLI 2.12.0\n"
-"X-Domain: marques-de-france-connector-for-woocommerce\n"
 
-#. Plugin Name of the plugin
-#. Author of the plugin
-#: marques-de-france-connector-for-woocommerce.php
-#: admin/class-mdf-wc-admin.php:60
-#: admin/class-mdf-wc-admin.php:61
-#: build/index.js:1
-#: src/admin/App.js:36
-msgid "Marques de France"
-msgstr "Marques de France"
-
-#. Plugin URI of the plugin
-#. Author URI of the plugin
-#: marques-de-france-connector-for-woocommerce.php
-msgid "https://www.marques-de-france.fr"
-msgstr "https://www.marques-de-france.fr"
-
-#. Description of the plugin
-#: marques-de-france-connector-for-woocommerce.php
-msgid "Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform."
-msgstr "Connectez votre boutique WooCommerce au guide Marques de France. Suivez les ventes attribuées, générez un flux de produits et synchronisez automatiquement les données avec la plateforme."
-
-#: admin/class-mdf-wc-admin.php:72
-#: admin/class-mdf-wc-admin.php:73
-#: build/index.js:1
-#: src/admin/App.js:14
+#: src/admin/App.js:10 admin/class-mdf-wc-admin.php:78
+#: admin/class-mdf-wc-admin.php:79
 msgid "Dashboard"
 msgstr "Tableau de bord"
 
-#: admin/class-mdf-wc-admin.php:82
-#: admin/class-mdf-wc-admin.php:83
-#: build/index.js:1
-#: src/admin/App.js:15
-msgid "Sales"
-msgstr "Ventes"
-
-#: admin/class-mdf-wc-admin.php
-#: build/index.js:1
-#: src/admin/App.js
-msgid "Sales tracking"
-msgstr "Suivi des ventes"
-
-#: admin/class-mdf-wc-admin.php
-msgid "Flux de produits"
-msgstr "Flux de produits"
-
-#: admin/class-mdf-wc-admin.php:92
-#: admin/class-mdf-wc-admin.php:93
-#: build/index.js:1
-#: src/admin/App.js:16
-msgid "Settings"
-msgstr "Paramètres"
-
-#: admin/class-mdf-wc-admin.php:439
-msgid "Marques de France – Attribution"
-msgstr "Marques de France – Attribution"
-
-#: admin/class-mdf-wc-admin.php:462
-msgid "No attribution detected for this order."
-msgstr "Aucune attribution détectée pour cette commande."
-
-#: admin/class-mdf-wc-admin.php:467
-msgid "Source"
-msgstr "Source"
-
-#: admin/class-mdf-wc-admin.php:468
-msgid "UTM Source"
-msgstr "UTM Source"
-
-#: admin/class-mdf-wc-admin.php:469
-msgid "UTM Medium"
-msgstr "UTM Medium"
-
-#: admin/class-mdf-wc-admin.php:470
-msgid "UTM Campaign"
-msgstr "UTM Campaign"
-
-#: admin/class-mdf-wc-admin.php:471
-msgid "UTM Content"
-msgstr "UTM Content"
-
-#: admin/class-mdf-wc-admin.php:472
-msgid "UTM Term"
-msgstr "UTM Term"
-
-#: admin/class-mdf-wc-admin.php:473
-msgid "Landing Site"
-msgstr "Page d’arrivée"
-
-#: admin/class-mdf-wc-admin.php:474
-msgid "Referring Site"
-msgstr "Site référent"
-
-#: admin/class-mdf-wc-admin.php:475
-msgid "Ref Param"
-msgstr "Paramètre ref"
-
-#: marques-de-france-connector-for-woocommerce.php:116
-msgid "Marques de France requires WooCommerce to be installed and active."
-msgstr "Marques de France nécessite que WooCommerce soit installé et activé."
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:31
-msgid "No data for the selected period."
-msgstr "Aucune donnée pour la période sélectionnée."
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:72
-msgid "Failed to load data."
-msgstr "Échec du chargement des données."
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:106
-msgid "✓ Connected"
-msgstr "✓ Connecté"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:108
-msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
-msgstr "✗ Code d’accès invalide — veuillez ressaisir votre code d’accès dans les Paramètres."
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:109
-msgid "✗ Not connected"
-msgstr "✗ Non connecté"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:117
-msgid "Total Sales"
-msgstr "Ventes totales"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:119
-msgid "attributed"
-msgstr "attribuées"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:122
-msgid "Total Revenue"
-msgstr "Chiffre d’affaires total"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:124
-msgid "confirmed"
-msgstr "confirmés"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:127
-msgid "This Month"
-msgstr "Ce mois-ci"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:129
-#: src/admin/pages/Sales.js:148
-msgid "sales"
-msgstr "ventes"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:133
-msgid "Unsynced"
-msgstr "Non synchronisé"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:135
-msgid "pending Hub sync"
-msgstr "en attente de synchronisation"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js
-msgid "Revenue over time"
-msgstr "Chiffre d’affaires dans le temps"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js
-msgid "Sales over the last 12 months"
-msgstr "Ventes sur les 12 derniers mois"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js
-msgid "Revenue"
-msgstr "Chiffre d’affaires"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js
-msgid "Daily"
-msgstr "Journalier"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js
-msgid "Monthly"
-msgstr "Mensuel"
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:88
-msgid "Plugin not configured. Please go to "
-msgstr "Extension non configurée. Rendez-vous dans les "
-
-#: build/index.js:1
-msgid "Activate your store"
-msgstr "Activez votre boutique"
-
-#: build/index.js:1
-msgid "Store registered"
-msgstr "Boutique enregistrée"
-
-#: build/index.js:1
-msgid "Enter your activation code"
-msgstr "Saisir votre code d’activation"
-
-#: build/index.js:1
-msgid "Your store has been successfully registered. Our team will send you your activation code by email, it may take a few hours. Once received, enter it in the "
-msgstr "Votre boutique a bien été enregistrée. Notre équipe va vous envoyer votre code d’activation par email, cela peut prendre quelques heures. Une fois reçu, saisissez-le dans l’onglet "
-
-#: build/index.js:1
-msgid "Settings tab"
-msgstr "Paramètres"
-
-#: build/index.js:1
-msgid " to complete the setup."
-msgstr " pour finaliser la configuration."
-
-#: build/index.js:1
-msgid "Enter my activation code"
-msgstr "Saisir mon code d’activation"
-
-#: build/index.js:1
-msgid "Token saved. Store connected."
-msgstr "Code d’accès enregistré. Boutique connectée."
-
-#: build/index.js:1
-msgid "Token saved but connection failed. Please check your access code."
-msgstr "Code d’accès enregistré mais la connexion a échoué. Vérifiez votre code d’accès."
-
-#: build/index.js:1
-msgid "Token saved but connection check failed."
-msgstr "Code d’accès enregistré mais la vérification de connexion a échoué."
-
-#: build/index.js:1
-#: src/admin/pages/Dashboard.js:88
-msgid " and enter your Secure Token."
-msgstr " pour saisir votre code d’accès."
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:75
-msgid "Failed to load sales."
-msgstr "Échec du chargement des ventes."
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:109
-msgid "Search order ID…"
-msgstr "Rechercher un numéro de commande…"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:117
-msgid "All statuses"
-msgstr "Tous les statuts"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:118
-msgid "Confirmed"
-msgstr "Confirmée"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:119
-msgid "Cancelled"
-msgstr "Annulée"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:120
-msgid "Refunded"
-msgstr "Remboursée"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "Pending"
-msgstr "En attente"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "DD"
-msgstr "JJ"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "YYYY"
-msgstr "AAAA"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:130
-msgid "From"
-msgstr "Du"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:137
-msgid "To"
-msgstr "Au"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:140
-msgid "Reset"
-msgstr "Réinitialiser"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:157
-msgid "Order"
-msgstr "Commande"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:159
-msgid "Attribution"
-msgstr "Attribution"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:161
-msgid "Amount"
-msgstr "Montant"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:164
-msgid "Status"
-msgstr "Statut"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:167
-msgid "Date"
-msgstr "Date"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:169
-msgid "Synced"
-msgstr "Synchronisé"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:176
-msgid "No sales found."
-msgstr "Aucune vente trouvée."
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:214
-msgid "Previous"
-msgstr "Précédent"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js:222
-msgid "Next"
-msgstr "Suivant"
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:83
-msgid "Connection"
-msgstr "Connexion"
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:87
-msgid "Access code"
-msgstr "Code d’accès"
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js
-msgid "The access code provided by Marques de France when your store was registered."
-msgstr "Le code d’accès fourni par Marques de France lors de l’enregistrement de votre boutique."
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:50
-msgid "Settings saved."
-msgstr "Paramètres enregistrés."
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:55
-msgid "Failed to save settings."
-msgstr "Échec de l’enregistrement des paramètres."
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:102
-msgid "Save settings"
-msgstr "Enregistrer les paramètres"
-
-#: build/index.js:1
-#: src/admin/pages/Settings.js:110
+#: src/admin/App.js:11 src/admin/pages/Settings.js:113
 msgid "Product Feed"
 msgstr "Flux de produits"
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:114
-msgid "Share this URL with Marques de France to enable your product feed in the directory."
-msgstr "Partagez cette URL avec Marques de France pour activer votre flux de produits dans l’annuaire."
+#: src/admin/App.js:12 src/admin/pages/Dashboard.js:167
+#: src/admin/pages/Sales.js:230 src/admin/pages/Sales.js:267
+msgid "Sales"
+msgstr "Ventes"
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:119
-msgid "Copied!"
-msgstr "Copié !"
+#: src/admin/App.js:13 admin/class-mdf-wc-admin.php:108
+#: admin/class-mdf-wc-admin.php:109
+msgid "Settings"
+msgstr "Paramètres"
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:119
-msgid "Copy URL"
-msgstr "Copier l’URL"
+#: src/admin/pages/Dashboard.js:64
+msgid "Failed to load data."
+msgstr "Échec du chargement des données."
 
-#: build/index.js:1
-#: src/admin/pages/Settings.js:122
-msgid "Preview"
-msgstr "Aperçu"
+#: src/admin/pages/Dashboard.js:78 src/admin/pages/Sales.js:349
+#: src/admin/pages/Sales.js:552
+msgid "Loading…"
+msgstr "Chargement…"
 
-#: build/index.js:1
-#: src/admin/App.js:17
-msgid "Product feed"
-msgstr "Flux de produits"
+#: src/admin/pages/Dashboard.js:94
+msgid "Activate your store"
+msgstr "Activez votre boutique"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Failed to load products."
-msgstr "Échec du chargement des produits."
+#: src/admin/pages/Dashboard.js:103
+msgid "Store registered"
+msgstr "Boutique enregistrée"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Search by name or SKU…"
-msgstr "Rechercher par nom ou SKU…"
+#: src/admin/pages/Dashboard.js:113
+msgid "Enter your activation code"
+msgstr "Saisissez votre code d’activation"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Name A › Z"
-msgstr "Nom A › Z"
+#: src/admin/pages/Dashboard.js:125
+msgid "Enter my activation code"
+msgstr "Saisir mon code d’activation"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Name Z › A"
-msgstr "Nom Z › A"
+#: src/admin/pages/Dashboard.js:152 src/admin/pages/Sales.js:253
+msgid "Revenue"
+msgstr "Chiffre d’affaires"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Price: low to high"
-msgstr "Prix : croissant"
+#: src/admin/pages/Dashboard.js:213
+msgid "✓ Connected"
+msgstr "✓ Connecté"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Price: high to low"
-msgstr "Prix : décroissant"
+#: src/admin/pages/Dashboard.js:217
+msgid "✗ Invalid token — please re-enter your Secure Token in Settings."
+msgstr ""
+"✗ Code d’accès invalide, veuillez ressaisir votre code d’accès dans les "
+"Paramètres."
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Refresh"
-msgstr "Actualiser"
+#: src/admin/pages/Dashboard.js:228
+msgid "Total Sales"
+msgstr "Ventes totales"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "How to include products in the feed?"
-msgstr "Comment inclure des produits dans le flux ?"
+#: src/admin/pages/Dashboard.js:237 src/admin/pages/Dashboard.js:255
+msgid "All time"
+msgstr "Depuis toujours"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Only products with the"
-msgstr "Seuls les produits avec la balise"
+#: src/admin/pages/Dashboard.js:246 src/admin/pages/Sales.js:395
+msgid "Confirmed"
+msgstr "Confirmé"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "tag appear in the feed and will be listed on Marques de France. Add this tag to any product made in France to include it on Marques de France."
-msgstr "apparaissent dans le flux et seront référencés sur Marques de France. Ajoutez cette balise à tout produit fabriqué en France pour l’inclure sur Marques de France."
+#: src/admin/pages/Dashboard.js:264
+msgid "Total Revenue"
+msgstr "Chiffre d’affaires total"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Bulk add tag"
-msgstr "Ajouter l’étiquette en masse"
+#: src/admin/pages/Dashboard.js:282
+msgid "This Month"
+msgstr "Ce mois-ci"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "How to do it?"
-msgstr "Comment faire ?"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "How to add the marques-de-france tag?"
-msgstr "Comment ajouter l’étiquette marques-de-france ?"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Go to Products"
-msgstr "Accéder aux produits"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "From your WordPress admin, go to Products."
-msgstr "Depuis votre administration WordPress, rendez-vous dans Produits."
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Select a product"
-msgstr "Sélectionner un produit"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Open a product made in France."
-msgstr "Ouvrez un produit fabriqué en France."
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Add the tag"
-msgstr "Ajouter l’étiquette"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "In the product page, add the tag"
-msgstr "Dans la fiche produit, ajoutez l’étiquette"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "in the Tags field."
-msgstr "dans le champ Étiquettes."
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Save"
-msgstr "Enregistrer"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Click Update. The product will appear in the feed."
-msgstr "Cliquez sur Mettre à jour. Le produit apparaîtra dans le flux."
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "How to bulk edit?"
-msgstr "Comment modifier en masse ?"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "To add the tag to multiple products at once, select them in the product list, then choose Edit from the Bulk actions dropdown and add the tag in the Tags field."
-msgstr "Pour ajouter l’étiquette à plusieurs produits en même temps, sélectionnez-les dans la liste des produits, puis choisissez Modifier dans le menu Actions groupées et ajoutez l’étiquette dans le champ Étiquettes."
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "product"
-msgid_plural "products"
-msgstr[0] "produit"
-msgstr[1] "produits"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Product"
-msgstr "Produit"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Category"
-msgstr "Catégorie"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Brand"
-msgstr "Marque"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Tag"
-msgstr "Étiquette"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "SKU"
-msgstr "SKU"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Price"
-msgstr "Prix"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Availability"
-msgstr "Disponibilité"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "No products found."
-msgstr "Aucun produit trouvé."
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "variants in stock"
-msgstr "variantes en stock"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "variants"
-msgstr "variantes"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "En stock"
-msgstr "En stock"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Hors stock"
-msgstr "Hors stock"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Précommande"
-msgstr "Précommande"
-
-#: src/admin/pages/Feed.js
-msgid "Category A→Z"
-msgstr "Catégorie A→Z"
-
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Brand A › Z"
-msgstr "Marque A › Z"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js
+#: src/admin/pages/Dashboard.js:291 src/admin/pages/Sales.js:455
 msgid "sale"
-msgid_plural "sales"
-msgstr[0] "vente"
-msgstr[1] "ventes"
+msgstr "vente"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "0 products"
-msgstr "0 produit"
+#: src/admin/pages/Dashboard.js:291 src/admin/pages/Sales.js:455
+msgid "sales"
+msgstr "ventes"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "%1$d–%2$d of %3$d products"
-msgstr "%1$d–%2$d sur %3$d produits"
+#: src/admin/pages/Dashboard.js:301
+msgid "Unsynced"
+msgstr "Non synchronisé"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Previous page"
-msgstr "Page précédente"
+#: src/admin/pages/Dashboard.js:310
+msgid "pending Hub sync"
+msgstr "en attente de synchronisation"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Page %1$d of %2$d"
-msgstr "Page %1$d sur %2$d"
+#: src/admin/pages/Dashboard.js:323
+msgid "Sales over the last 12 months"
+msgstr "Ventes sur les 12 derniers mois"
 
-#: build/index.js:1
-#: src/admin/pages/Feed.js
-msgid "Next page"
-msgstr "Page suivante"
+#: src/admin/pages/PendingApproval.js:1
+msgid "Access not authorized"
+msgstr "Accès non autorisé"
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "Sales analytics"
-msgstr "Analyse des ventes"
+#: src/admin/pages/PendingApproval.js:1
+msgid "You are not authorized to use the application because your brand is not listed on our guide Marques de France."
+msgstr "Vous n’êtes pas autorisé à utiliser l’application car votre marque n’est pas répertoriée dans notre guide Marques de France."
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "Today"
-msgstr "Aujourd’hui"
+#: src/admin/pages/PendingApproval.js:1
+msgid "If you have French manufactured products, you can register your brand on"
+msgstr "Si vous avez des produits fabriqués en France, vous pouvez inscrire votre marque sur"
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "Yesterday"
-msgstr "Hier"
+#: src/admin/pages/PendingApproval.js:1
+msgid " now."
+msgstr " dès maintenant."
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
+#: src/admin/pages/Dashboard.js:334
+msgid "No data for the selected period."
+msgstr "Aucune donnée pour la période sélectionnée."
+
+#: src/admin/pages/Sales.js:86
 msgid "Last 7 days"
 msgstr "7 derniers jours"
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
+#: src/admin/pages/Sales.js:91
 msgid "Last 28 days"
 msgstr "28 derniers jours"
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
+#: src/admin/pages/Sales.js:98
 msgid "Last 90 days"
 msgstr "90 derniers jours"
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
+#: src/admin/pages/Sales.js:105
 msgid "Last 12 months"
 msgstr "12 derniers mois"
 
-#: build/index.js:1
-#: src/admin/pages/Sales.js
-msgid "This year"
-msgstr "Cette année"
-
-#: build/index.js:1
-#: src/admin/pages/Sales.js
+#: src/admin/pages/Sales.js:111
 msgid "Last year"
 msgstr "L’année dernière"
 
-#: build/index.js:1
+#: src/admin/pages/Sales.js:115
+msgid "This year"
+msgstr "Cette année"
+
+#: src/admin/pages/Sales.js:177
+msgid "Failed to load sales."
+msgstr "Échec du chargement des ventes."
+
+#: src/admin/pages/Sales.js:295
+msgid "Revenue over time"
+msgstr "Chiffre d’affaires dans le temps"
+
+#: src/admin/pages/Sales.js:324
+msgid "Daily"
+msgstr "Journalier"
+
+#: src/admin/pages/Sales.js:338
+msgid "Monthly"
+msgstr "Mensuel"
+
+#: src/admin/pages/Sales.js:370
+msgid "Search order ID…"
+msgstr "Rechercher un numéro de commande…"
+
+#: src/admin/pages/Sales.js:389
+msgid "All statuses"
+msgstr "Tous les statuts"
+
+#: src/admin/pages/Sales.js:401
+msgid "Cancelled"
+msgstr "Annulé"
+
+#: src/admin/pages/Sales.js:407
+msgid "Refunded"
+msgstr "Remboursé"
+
+#: src/admin/pages/Sales.js:413
+msgid "Pending"
+msgstr "En attente"
+
+#: src/admin/pages/Sales.js:419
+msgid "From"
+msgstr "Du"
+
+#: src/admin/pages/Sales.js:431
+msgid "To"
+msgstr "Au"
+
+#: src/admin/pages/Sales.js:444
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: src/admin/pages/Sales.js:477
+msgid "Order"
+msgstr "Commande"
+
+#: src/admin/pages/Sales.js:485
+msgid "Attribution"
+msgstr "Attribution"
+
+#: src/admin/pages/Sales.js:500
+msgid "Amount"
+msgstr "Montant"
+
+#: src/admin/pages/Sales.js:517
+msgid "Status"
+msgstr "Statut"
+
+#: src/admin/pages/Sales.js:536
+msgid "Date"
+msgstr "Date"
+
+#: src/admin/pages/Sales.js:576
+msgid "No sales found."
+msgstr "Aucune vente trouvée."
+
+#: src/admin/pages/Sales.js:638
+msgid "Page"
+msgstr "Page"
+
+#: src/admin/pages/Feed.js
 #: src/admin/pages/Sales.js
-msgid "Failed to load analytics data."
-msgstr "Échec du chargement des données analytiques."
+msgid "Results per page"
+msgstr "Résultats par page"
+
+#: src/admin/pages/Feed.js
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] "%d produit"
+msgstr[1] "%d produits"
+
+#: src/admin/pages/Feed.js
+msgid "%d variation"
+msgid_plural "%d variations"
+msgstr[0] "%d variante"
+msgstr[1] "%d variantes"
+
+#: src/admin/pages/Sales.js:649
+msgid "Previous"
+msgstr "Précédent"
+
+#: src/admin/pages/Sales.js:659
+msgid "Next"
+msgstr "Suivant"
+
+#: src/admin/pages/Settings.js:27
+msgid "Settings saved."
+msgstr "Paramètres enregistrés."
+
+#: src/admin/pages/Settings.js:35
+msgid "Failed to save settings."
+msgstr "Échec de l’enregistrement des paramètres."
+
+#: src/admin/pages/Settings.js:59
+msgid "Connection"
+msgstr "Connexion"
+
+#: src/admin/pages/Settings.js:80
+msgid "Secure Token"
+msgstr "Code d’accès sécurisé"
+
+#: src/admin/pages/Settings.js:94
+msgid ""
+"The token provided by Marques de France when your store was registered."
+msgstr ""
+"Le code d’accès fourni par Marques de France lors de l’enregistrement de "
+"votre boutique."
+
+#: src/admin/pages/Settings.js:101
+msgid "Save settings"
+msgstr "Enregistrer les paramètres"
+
+#: src/admin/pages/Settings.js:119
+msgid ""
+"Share this URL with Marques de France to enable your product feed in the "
+"directory."
+msgstr ""
+"Partagez cette URL avec Marques de France pour activer votre flux de "
+"produits dans l’annuaire."
+
+#: src/admin/pages/Settings.js:128
+msgid "Copied!"
+msgstr "Copié !"
+
+#: src/admin/pages/Settings.js:132
+msgid "Copy URL"
+msgstr "Copier l’URL"
+
+#: src/admin/pages/Settings.js:143
+msgid "Preview"
+msgstr "Aperçu"
+
+#: admin/class-mdf-wc-admin.php:66 admin/class-mdf-wc-admin.php:67
+#: admin/class-mdf-wc-admin.php:609 admin/class-mdf-wc-admin.php:639
+msgid "Marques de France"
+msgstr "Marques de France"
+
+#: admin/class-mdf-wc-admin.php:88
+msgid "Product feed"
+msgstr "Flux de produits"
+
+#: admin/class-mdf-wc-admin.php:89
+msgid "Flux de produits"
+msgstr "Flux de produits"
+
+#: admin/class-mdf-wc-admin.php:98
+msgid "Sales tracking"
+msgstr "Suivi des ventes"
+
+#: admin/class-mdf-wc-admin.php:99
+msgid "Suivi des ventes"
+msgstr "Suivi des ventes"
+
+#: admin/class-mdf-wc-admin.php:563
+#, php-format
+msgid ""
+"<strong>Marques de France</strong>: %1$d sale has not been synchronized with "
+"Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check your "
+"settings</a>."
+msgid_plural ""
+"<strong>Marques de France</strong>: %1$d sales have not been synchronized "
+"with Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check "
+"your connection"
+" settings</a>."
+msgstr[0] ""
+"<strong>Marques de France</strong> : %1$d vente n’a pas été synchronisée avec "
+"Marques de France depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos "
+"paramètres de connexion</a>."
+msgstr[1] ""
+"<strong>Marques de France</strong> : %1$d ventes n’ont pas été synchronisées "
+"avec Marques de France depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez "
+"vos "
+"paramètres de connexion</a>."
+
+#: admin/class-mdf-wc-admin.php:610
+msgid ""
+"Could not contact Marques de France. Please check your connection settings "
+"and try again."
+msgstr ""
+"Impossible de contacter Marques de France. Vérifiez vos paramètres de "
+"connexion et réessayez."
+
+#: admin/class-mdf-wc-admin.php:617
+#, php-format
+msgid "Restored %d sale from Marques de France."
+msgid_plural "Restored %d sales from Marques de France."
+msgstr[0] "%d vente restaurée depuis Marques de France."
+msgstr[1] "%d ventes restaurées depuis Marques de France."
+
+#: admin/class-mdf-wc-admin.php:640
+msgid ""
+"Your local sales history may be incomplete. This can happen after "
+"reinstalling the plugin. Click below to restore it from Marques de France."
+msgstr ""
+"L’historique des ventes peut être incomplet. Cela peut arriver après "
+"la réinstallation du plugin. Cliquez ci-dessous pour le restaurer depuis "
+"Marques de France."
+
+#: admin/class-mdf-wc-admin.php:646
+msgid "Restore sales from Marques de France"
+msgstr "Restaurer les ventes depuis Marques de France"
+
+#: admin/class-mdf-wc-admin.php:659
+msgid "You do not have permission to perform this action."
+msgstr "Vous n’avez pas la permission d’effectuer cette action."
+
+#: admin/class-mdf-wc-admin.php:1124
+msgid "Marques de France – Attribution"
+msgstr "Marques de France – Attribution"
+
+#: admin/class-mdf-wc-admin.php:1146
+msgid "No attribution detected for this order."
+msgstr "Aucune attribution détectée pour cette commande."
+
+#: admin/class-mdf-wc-admin.php:1151
+msgid "Source"
+msgstr "Source"
+
+#: admin/class-mdf-wc-admin.php:1152
+msgid "UTM Source"
+msgstr "UTM Source"
+
+#: admin/class-mdf-wc-admin.php:1153
+msgid "UTM Medium"
+msgstr "UTM Medium"
+
+#: admin/class-mdf-wc-admin.php:1154
+msgid "UTM Campaign"
+msgstr "UTM Campaign"
+
+#: admin/class-mdf-wc-admin.php:1155
+msgid "UTM Content"
+msgstr "UTM Content"
+
+#: admin/class-mdf-wc-admin.php:1156
+msgid "UTM Term"
+msgstr "UTM Term"
+
+#: admin/class-mdf-wc-admin.php:1157
+msgid "Landing Site"
+msgstr "Site d’arrivée"
+
+#: admin/class-mdf-wc-admin.php:1158
+msgid "Referring Site"
+msgstr "Site référent"
+
+#: admin/class-mdf-wc-admin.php:1159
+msgid "Ref Param"
+msgstr "Paramètre ref"
+
+#: marques-de-france-connector-for-woocommerce.php:117
+msgid "Marques de France requires WooCommerce to be installed and active."
+msgstr "Marques de France nécessite que WooCommerce soit installé et activé."
+
+msgid "Back to feed"
+msgstr "Retour au flux"
+
+msgid "Brand"
+msgstr "Marque"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Change"
+msgstr "Changer"
+
+msgid "Change mode"
+msgstr "Changer de mode"
+
+msgid "Draft"
+msgstr "Brouillon"
+
+msgid "Edit products in bulk"
+msgstr "Modifier les produits en lot"
+
+msgid "How to add the marques-de-france tag?"
+msgstr "Comment ajouter le tag marques-de-france ?"
+
+msgid "How to bulk edit?"
+msgstr "Comment modifier en lot ?"
+
+msgid "How to do ?"
+msgstr "Comment faire ?"
+
+msgid "Inherit"
+msgstr "Hérité"
+
+msgid "On selected period"
+msgstr "Sur la période sélectionnée"
+
+msgid "Price"
+msgstr "Prix"
+
+msgid "Private"
+msgstr "Privé"
+
+msgid "Publish"
+msgstr "Publié"
+
+msgid "Save"
+msgstr "Enregistrer"
+
+msgid "Saving…"
+msgstr "Enregistrement…"
+
+msgid "Scheduled"
+msgstr "Planifié"
+
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Selection method"
+msgstr "Méthode de sélection"
+
+msgid "Trash"
+msgstr "Corbeille"
+
+msgid "marques-de-france"
+msgstr "marques-de-france"
+
+msgid "Go to Products"
+msgstr "Aller dans Produits"
+
+msgid "From your WordPress admin, go to Products."
+msgstr "Dans votre administration WordPress, allez dans le menu Produits."
+
+msgid "Select a product"
+msgstr "Sélectionnez un produit"
+
+msgid "Open a product made in France."
+msgstr "Ouvrez un produit fabriqué en France."
+
+msgid "Add the tag "
+msgstr "Ajoutez le tag "
+
+msgid "In the product page, add the tag "
+msgstr "Dans la page d'étidion du produit, ajoutez l'étiquette produit "
+
+msgid "in the Tags field."
+msgstr "dans le champ Étiquette produit."
+
+msgid "Click Update. The product will appear in the feed."
+msgstr "Cliquez sur Mettre à jour. Le produit apparaîtra dans le flux."
+
+msgid "How to include products in the feed?"
+msgstr "Comment inclure des produits dans le flux ?"
+
+msgid "Add the "
+msgstr "Ajoutez le "
+
+msgid ""
+" to the products you want to list on Marques de France. Selected "
+"products must be manufactured in France."
+msgstr ""
+" tag aux produits que vous souhaitez afficher sur Marques de France. Les "
+"produits sélectionnés doivent être fabriqués en France."
+
+msgid "Via the product tag field (Recommended)"
+msgstr "Via le champ Étiquettes produit (recommandé)"
+
+msgid "Via the product tag field (recommended)"
+msgstr "Via le champ Étiquettes produit (recommandé)"
+
+msgid "Simply add the tag "
+msgstr "Ajoutez simplement l'étiquette produit "
+
+msgid ""
+" to each of your products manufactured in France. This is the simplest and "
+"most direct method."
+msgstr ""
+" à chacun de vos produits fabriqués en France. C’est la méthode la plus "
+"simple et directe."
+
+msgid ""
+"Manually select products directly from this app. Choose this option if your "
+"product tag field is used to display information in your theme."
+msgstr ""
+"Sélectionnez manuellement les produits directement depuis cette extension."
+" Choisissez cette option si votre champ d'étiquette produit est utilisé pour "
+"afficher des informations dans votre thème."
+
+msgid ""
+"To add the tag to multiple products at once, select them in the product "
+"list, then choose Edit from the Bulk actions dropdown and add the tag in the"
+" Tags field."
+msgstr ""
+"Pour ajouter l'étiquette à plusieurs produits à la fois, sélectionnez-les dans la"
+" liste des produits, puis choisissez Modifier dans le menu Actions groupées "
+"et ajoutez l'étiquette dans le champ \"Étiquettes produit\"."
+
+msgid "Auto-Draft"
+msgstr "Brouillon auto"
+
+msgid "Availability"
+msgstr "Disponibilité"
+
+msgid ""
+"Changing the feed mode will update how products are selected. Continue?"
+msgstr ""
+"Le changement de mode de flux mettra à jour la manière dont les produits "
+"sont sélectionnés. Continuer ?"
+
+msgid "Failed to load the feed data."
+msgstr "Échec du chargement des données du flux."
+
+msgid "Failed to load the product selection list."
+msgstr "Échec du chargement de la liste de sélection des produits."
+
+msgid "Modify selection"
+msgstr "Modifier la sélection"
+
+msgid "No products are currently returned in the feed view."
+msgstr "Aucun produit n’est actuellement affiché dans la vue du flux."
+
+msgid "No products are currently selected for the feed."
+msgstr "Aucun produit n’est actuellement sélectionné pour le flux."
+
+msgid ""
+"Only select products manufactured in France. These are the products that "
+"will appear in the Marques de France guide."
+msgstr ""
+"Sélectionnez uniquement les produits fabriqués en France. Ce sont les "
+"produits qui apparaîtront dans le guide Marques de France."
+
+msgid ""
+"Out-of-stock, inactive, or products missing a price, image, or brand are "
+"automatically excluded from the feed."
+msgstr ""
+"Les produits en rupture de stock, inactifs ou sans prix, image ou marque "
+"sont automatiquement exclus du flux."
+
+msgid "Product"
+msgstr "Produit"
+
+msgid "Saving feed mode…"
+msgstr "Enregistrement du mode de flux…"
+
+msgid "Search products or brands"
+msgstr "Rechercher des produits ou des marques"
+
+msgid "Unable to update the feed mode."
+msgstr "Impossible de mettre à jour le mode de flux."
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "Via manual selection from this app"
+msgstr "Via la sélection manuelle depuis cette extension"
+
+msgid "Via the product tag field"
+msgstr "Via le champ de tag produit"
+
+msgid "In stock"
+msgstr "En stock"
+
+msgid "Out of stock"
+msgstr "Rupture de stock"

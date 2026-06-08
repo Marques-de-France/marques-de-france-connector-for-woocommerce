@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MDFCFORWC_Admin {
 
 	const MENU_SLUG         = 'marques-de-france-connector-for-woocommerce';
-	const CAPABILITY        = 'manage_woocommerce';
+	const CAPABILITY        = 'manage_options';
 	const REST_NAMESPACE    = 'mdfcforwc/v1';
 
 	private static ?self $instance = null;
@@ -56,6 +56,25 @@ class MDFCFORWC_Admin {
 		$settings->register();
 	}
 
+	private function user_can_access(): bool {
+		return current_user_can( self::CAPABILITY ) || current_user_can( 'manage_woocommerce' );
+	}
+
+	private function sync_sales_from_hub_if_needed(): void {
+		if ( ! MDFCFORWC_Settings::is_configured() ) {
+			return;
+		}
+
+		$cache_key = 'mdfcforwc_sales_sync_from_hub';
+		if ( false !== get_transient( $cache_key ) ) {
+			return;
+		}
+
+		require_once MDFCFORWC_PLUGIN_DIR . 'includes/class-mdf-wc-activator.php';
+		MDFCFORWC_Activator::backfill_from_hub( false );
+		set_transient( $cache_key, 1, 5 * MINUTE_IN_SECONDS );
+	}
+
 	// ---------------------------------------------------------------------------
 	// Admin Menu
 	// ---------------------------------------------------------------------------
@@ -86,7 +105,7 @@ class MDFCFORWC_Admin {
 		add_submenu_page(
 			self::MENU_SLUG,
 			__( 'Product feed', 'marques-de-france-connector-for-woocommerce' ),
-			__( 'Flux de produits', 'marques-de-france-connector-for-woocommerce' ),
+			__( 'Product feed', 'marques-de-france-connector-for-woocommerce' ),
 			self::CAPABILITY,
 			self::MENU_SLUG . '-feed',
 			[ $this, 'render_page_feed' ]
@@ -96,7 +115,7 @@ class MDFCFORWC_Admin {
 		add_submenu_page(
 			self::MENU_SLUG,
 			__( 'Sales tracking', 'marques-de-france-connector-for-woocommerce' ),
-			__( 'Suivi des ventes', 'marques-de-france-connector-for-woocommerce' ),
+			__( 'Sales tracking', 'marques-de-france-connector-for-woocommerce' ),
 			self::CAPABILITY,
 			self::MENU_SLUG . '-sales',
 			[ $this, 'render_page_sales' ]
@@ -157,11 +176,19 @@ class MDFCFORWC_Admin {
 
 		$asset = require $asset_file;
 
+		$script_version = file_exists( MDFCFORWC_PLUGIN_DIR . 'build/index.js' )
+			? filemtime( MDFCFORWC_PLUGIN_DIR . 'build/index.js' )
+			: $asset['version'];
+
+		$style_version = file_exists( MDFCFORWC_PLUGIN_DIR . 'build/style-index.css' )
+			? filemtime( MDFCFORWC_PLUGIN_DIR . 'build/style-index.css' )
+			: $asset['version'];
+
 		wp_enqueue_script(
 			'mdfcforwc-admin',
 			MDFCFORWC_PLUGIN_URL . 'build/index.js',
 			$asset['dependencies'],
-			$asset['version'],
+			$script_version,
 			true
 		);
 
@@ -169,30 +196,51 @@ class MDFCFORWC_Admin {
 			'mdfcforwc-admin',
 			MDFCFORWC_PLUGIN_URL . 'build/style-index.css',
 			[ 'wp-components' ],
-			$asset['version']
+			$style_version
 		);
 
-		// Pass data to JS
+		// Pass data to JS.
+		// The raw token is intentionally omitted — compose the signed feed URL
+		// server-side so it never appears in the page source.
+		$token    = MDFCFORWC_Settings::get_secure_token();
+		$feed_url = $token
+			? esc_url_raw( add_query_arg( 'token', $token, rest_url( 'mdfcforwc/v1/feed' ) ) )
+			: esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) );
+
 		wp_localize_script(
 			'mdfcforwc-admin',
 			'mdfcforwcAdmin',
 			[
-				'restUrl'     => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
-				'nonce'       => wp_create_nonce( 'wp_rest' ),
-				'feedUrl'     => esc_url_raw( rest_url( 'mdfcforwc/v1/feed' ) ),
-				'token'       => MDFCFORWC_Settings::get_secure_token(),
-				'configured'  => MDFCFORWC_Settings::is_configured(),
-				'siteUrl'     => home_url(),
-				'settingsUrl' => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
+				'restUrl'        => esc_url_raw( rest_url( self::REST_NAMESPACE . '/' ) ),
+				'nonce'          => wp_create_nonce( 'wp_rest' ),
+				'feedUrl'        => $feed_url,
+				'feedFilterMode' => MDFCFORWC_Settings::get_feed_filter_mode(),
+				'configured'     => MDFCFORWC_Settings::is_configured(),
+				'siteUrl'        => MDFCFORWC_Settings::get_site_url(),
+				'pluginUrl'      => MDFCFORWC_PLUGIN_URL,
+				'settingsUrl'    => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-settings' ) ),
+				'feedAdminUrl'   => esc_url( admin_url( 'admin.php?page=' . self::MENU_SLUG . '-feed' ) ),
 			]
 		);
 
-		// Enable JS translations (loads languages/mdfcforwc-admin-{locale}-{hash}.json)
-		wp_set_script_translations(
-			'mdfcforwc-admin',
-			'marques-de-france-connector-for-woocommerce',
-			MDFCFORWC_PLUGIN_DIR . 'languages/'
-		);
+		$locale = get_user_locale();
+		$translation_file = MDFCFORWC_PLUGIN_DIR . 'languages/marques-de-france-connector-for-woocommerce-' . $locale . '-mdfcforwc-admin.json';
+
+		if ( file_exists( $translation_file ) ) {
+			$translations = wp_json_file_decode( $translation_file, [ 'associative' => true ] );
+
+			if ( is_array( $translations ) && ! empty( $translations['locale_data'] ) ) {
+				wp_add_inline_script(
+					'mdfcforwc-admin',
+					'( function( domain, translations ) {' .
+						'var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;' .
+						'localeData[""].domain = domain;' .
+						'wp.i18n.setLocaleData( localeData, domain );' .
+					'} )( "marques-de-france-connector-for-woocommerce", ' . wp_json_encode( $translations ) . ' );',
+					'before'
+				);
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------------------
@@ -205,7 +253,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_stats' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 		] );
 
@@ -214,7 +262,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_analytics' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'dateFrom'    => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
@@ -228,7 +276,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_sales' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'page'     => [ 'type' => 'integer', 'default' => 1 ],
@@ -247,7 +295,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_hub_status' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 		] );
 
@@ -256,7 +304,7 @@ class MDFCFORWC_Admin {
 			'methods'             => WP_REST_Server::READABLE,
 			'callback'            => [ $this, 'rest_products' ],
 			'permission_callback' => function () {
-				return current_user_can( self::CAPABILITY );
+				return $this->user_can_access();
 			},
 			'args' => [
 				'search'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
@@ -267,6 +315,8 @@ class MDFCFORWC_Admin {
 		] );
 
 		// POST /wp-json/mdfcforwc/v1/admin/settings — save secure token
+		// Requires manage_options only (not shop managers) because changing the
+		// token breaks feed delivery and sales sync for the entire store.
 		register_rest_route( self::REST_NAMESPACE, '/admin/settings', [
 			'methods'             => WP_REST_Server::CREATABLE,
 			'permission_callback' => function () {
@@ -281,12 +331,220 @@ class MDFCFORWC_Admin {
 			],
 			'callback' => [ $this, 'rest_save_settings' ],
 		] );
+
+		// GET + PATCH /wp-json/mdfcforwc/v1/admin/feed-settings
+		register_rest_route( self::REST_NAMESPACE, '/admin/feed-settings', [
+			[
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => [ $this, 'rest_get_feed_settings' ],
+				'permission_callback' => function () {
+					return $this->user_can_access();
+				},
+			],
+			[
+				'methods'             => 'PATCH',
+				'callback'            => [ $this, 'rest_update_feed_settings' ],
+				'permission_callback' => function () {
+					return $this->user_can_access();
+				},
+				'args' => [
+					'feedFilterMode' => [
+						'type'              => 'string',
+						'required'          => true,
+						'enum'              => [ 'TAG', 'SERVERLIST' ],
+						'sanitize_callback' => 'sanitize_text_field',
+					],
+				],
+			],
+		] );
+
+		// GET /wp-json/mdfcforwc/v1/admin/all-products
+		register_rest_route( self::REST_NAMESPACE, '/admin/all-products', [
+			'methods'             => WP_REST_Server::READABLE,
+			'callback'            => [ $this, 'rest_all_products' ],
+			'permission_callback' => function () {
+				return $this->user_can_access();
+			},
+			'args' => [
+				'search'   => [ 'type' => 'string',  'sanitize_callback' => 'sanitize_text_field' ],
+				'page'     => [ 'type' => 'integer', 'default' => 1,  'sanitize_callback' => 'absint' ],
+				'per_page' => [ 'type' => 'integer', 'default' => 25, 'sanitize_callback' => 'absint' ],
+			],
+		] );
+
+		// POST /wp-json/mdfcforwc/v1/admin/feed-products
+		register_rest_route( self::REST_NAMESPACE, '/admin/feed-products', [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => [ $this, 'rest_add_feed_product' ],
+			'permission_callback' => function () {
+				return $this->user_can_access();
+			},
+			'args' => [
+				'productId' => [
+					'type'              => 'integer',
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				],
+			],
+		] );
+
+		// DELETE /wp-json/mdfcforwc/v1/admin/feed-products/(?P<productId>[0-9]+)
+		register_rest_route( self::REST_NAMESPACE, '/admin/feed-products/(?P<productId>[0-9]+)', [
+			'methods'             => WP_REST_Server::DELETABLE,
+			'callback'            => [ $this, 'rest_remove_feed_product' ],
+			'permission_callback' => function () {
+				return $this->user_can_access();
+			},
+		] );
 	}
 
 	public function rest_save_settings( WP_REST_Request $request ): WP_REST_Response {
 		$token = $request->get_param( 'mdfcforwc_secure_token' );
 		update_option( 'mdfcforwc_secure_token', $token );
 		return new WP_REST_Response( [ 'success' => true ], 200 );
+	}
+
+	public function rest_get_feed_settings(): WP_REST_Response {
+		return new WP_REST_Response(
+			[ 'feedFilterMode' => MDFCFORWC_Settings::get_feed_filter_mode() ],
+			200
+		);
+	}
+
+	public function rest_update_feed_settings( WP_REST_Request $request ): WP_REST_Response {
+		$new_mode     = $request->get_param( 'feedFilterMode' );
+		$current_mode = MDFCFORWC_Settings::get_feed_filter_mode();
+
+		// Auto-import tagged products when switching TAG → SERVERLIST.
+		if ( 'SERVERLIST' === $new_mode && 'TAG' === $current_mode ) {
+			MDFCFORWC_Feed_Products::import_tagged_products();
+		}
+
+		MDFCFORWC_Settings::set_feed_filter_mode( $new_mode );
+		return new WP_REST_Response( [ 'feedFilterMode' => $new_mode ], 200 );
+	}
+
+	public function rest_all_products( WP_REST_Request $request ): WP_REST_Response {
+		$search   = $request->get_param( 'search' );
+		$page     = max( 1, (int) $request->get_param( 'page' ) );
+		$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
+
+		$wp_args = [
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => $per_page,
+			'paged'          => $page,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		];
+
+		if ( $search ) {
+			$wp_args['s']              = $search;
+			$this->product_search_term = $search;
+			add_filter( 'posts_search', [ $this, 'extend_product_search_with_sku' ], 10, 2 );
+		}
+
+		$wp_query = new WP_Query( $wp_args );
+
+		if ( $search ) {
+			remove_filter( 'posts_search', [ $this, 'extend_product_search_with_sku' ], 10 );
+			$this->product_search_term = '';
+		}
+
+		$total       = (int) $wp_query->found_posts;
+		$total_pages = (int) ceil( $total / $per_page );
+
+		// Pre-fetch all feed product IDs for O(1) lookup in the loop.
+		$feed_ids     = MDFCFORWC_Feed_Products::get_selected_product_ids();
+		$feed_ids_set = array_flip( $feed_ids );
+
+		$items = [];
+
+		foreach ( $wp_query->posts as $post ) {
+			$product = wc_get_product( $post->ID );
+
+			if ( ! $product ) {
+				continue;
+			}
+
+			$image_id  = $product->get_image_id();
+			$image_src = $image_id ? wp_get_attachment_image_src( $image_id, 'thumbnail' ) : false;
+			$image     = $image_src ? $image_src[0] : wc_placeholder_img_src();
+
+			$brand = $this->get_product_brand( $product->get_id() );
+
+			$total_variants     = 0;
+			$available_variants = 0;
+
+			if ( $product->is_type( 'variable' ) ) {
+				$variation_ids  = $product->get_children();
+				$total_variants = count( $variation_ids );
+				foreach ( $variation_ids as $variation_id ) {
+					$variation = wc_get_product( $variation_id );
+					if ( $variation && $variation->is_in_stock() && $variation->is_purchasable() ) {
+						$available_variants++;
+					}
+				}
+			}
+
+			$items[] = [
+				'id'                 => $product->get_id(),
+				'name'               => $product->get_name(),
+				'image'              => $image,
+				'price'              => (float) $product->get_price(),
+				'price_html'         => $product->get_price_html(),
+				'brand'              => $brand,
+				'status'             => get_post_status( $product->get_id() ),
+				'availability'       => $product->is_in_stock() ? 'in stock' : 'out of stock',
+				'inFeed'             => isset( $feed_ids_set[ $product->get_id() ] ),
+				'type'               => $product->get_type(),
+				'total_variants'     => $total_variants,
+				'available_variants' => $available_variants,
+				'edit_url'           => get_edit_post_link( $product->get_id(), 'raw' ),
+			];
+		}
+
+		return rest_ensure_response( [
+			'products'    => $items,
+			'total'       => $total,
+			'total_pages' => $total_pages,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'currency'    => get_woocommerce_currency(),
+			'inFeedCount' => MDFCFORWC_Feed_Products::get_count(),
+		] );
+	}
+
+	private function get_product_brand( int $product_id ): string {
+		$terms = get_the_terms( $product_id, 'product_brand' );
+		if ( $terms && ! is_wp_error( $terms ) ) {
+			return $terms[0]->name;
+		}
+
+		return get_bloginfo( 'name' );
+	}
+
+	public function rest_add_feed_product( WP_REST_Request $request ): WP_REST_Response {
+		$product_id = (int) $request->get_param( 'productId' );
+
+		if ( ! get_post( $product_id ) ) {
+			return new WP_REST_Response( [ 'error' => 'Product not found' ], 404 );
+		}
+
+		$success = MDFCFORWC_Feed_Products::add_product( $product_id );
+		return new WP_REST_Response(
+			[ 'success' => $success, 'inFeedCount' => MDFCFORWC_Feed_Products::get_count() ],
+			$success ? 200 : 500
+		);
+	}
+
+	public function rest_remove_feed_product( WP_REST_Request $request ): WP_REST_Response {
+		$product_id = (int) $request->get_param( 'productId' );
+		$success    = MDFCFORWC_Feed_Products::remove_product( $product_id );
+		return new WP_REST_Response(
+			[ 'success' => $success, 'inFeedCount' => MDFCFORWC_Feed_Products::get_count() ],
+			$success ? 200 : 500
+		);
 	}
 
 	// ── REST Callbacks ──────────────────────────────────────────────────────────
@@ -300,7 +558,7 @@ class MDFCFORWC_Admin {
 	 * so the notice disappears as soon as all rows are resolved.
 	 */
 	public function render_unsynced_notice() {
-		if ( ! current_user_can( self::CAPABILITY ) ) {
+		if ( ! $this->user_can_access() ) {
 			return;
 		}
 
@@ -333,8 +591,8 @@ class MDFCFORWC_Admin {
 		echo '<p>';
 		/* translators: 1: number of unsynced sales, 2: URL of the plugin settings page */
 		$notice = _n(
-			'<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\u00a0hours. <a href="%2$s">Check your connection settings</a>.',
-			'<strong>Marques de France</strong>: %1$d sales have not been synced to the MDF Hub for more than 24\u00a0hours. <a href="%2$s">Check your connection settings</a>.',
+			'<strong>Marques de France</strong>: %1$d sale has not been synchronized with Marques de France for more than 24\u00a0hours. <a href="%2$s">Check your connection settings</a>.',
+			'<strong>Marques de France</strong>: %1$d sales have not been synchronized with Marques de France for more than 24\u00a0hours. <a href="%2$s">Check your connection settings</a>.',
 			$count,
 			'marques-de-france-connector-for-woocommerce'
 		);
@@ -352,7 +610,7 @@ class MDFCFORWC_Admin {
 	 * The notice disappears once the backfill has been run.
 	 */
 	public function render_backfill_notice() {
-		if ( ! current_user_can( self::CAPABILITY ) ) {
+		if ( ! $this->user_can_access() ) {
 			return;
 		}
 
@@ -380,15 +638,15 @@ class MDFCFORWC_Admin {
 			if ( 'error' === $backfill_result ) {
 				echo '<div class="notice notice-error is-dismissible"><p>';
 				echo '<strong>' . esc_html__( 'Marques de France', 'marques-de-france-connector-for-woocommerce' ) . '</strong> — ';
-				echo esc_html__( 'Could not reach the MDF Hub. Check your connection settings and try again.', 'marques-de-france-connector-for-woocommerce' );
+				echo esc_html__( 'Could not contact Marques de France. Please check your connection settings and try again.', 'marques-de-france-connector-for-woocommerce' );
 				echo '</p></div>';
 			} else {
 				echo '<div class="notice notice-success is-dismissible"><p>';
 				printf(
 					/* translators: %d: number of sales restored */
 					esc_html( _n(
-						'Marques de France: %d sale restored from the MDF Hub.',
-						'Marques de France: %d sales restored from the MDF Hub.',
+						'Restored %d sale from Marques de France.',
+						'Restored %d sales from Marques de France.',
 						(int) $backfill_result,
 						'marques-de-france-connector-for-woocommerce'
 					) ),
@@ -410,13 +668,13 @@ class MDFCFORWC_Admin {
 
 		echo '<div class="notice notice-warning">';
 		echo '<p><strong>' . esc_html__( 'Marques de France', 'marques-de-france-connector-for-woocommerce' ) . '</strong> — ';
-		echo esc_html__( 'Sales data may be out of sync (e.g. after a plugin reinstall). Click below to restore from the MDF Hub — this will replace the local sales table with the Hub\'s records.', 'marques-de-france-connector-for-woocommerce' );
+		echo esc_html__( 'Your local sales history may be incomplete. This can happen after reinstalling the plugin. Click below to restore it from Marques de France.', 'marques-de-france-connector-for-woocommerce' );
 		echo '</p>';
 		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="margin-bottom:10px">';
 		echo '<input type="hidden" name="action" value="mdfcforwc_backfill" />';
 		wp_nonce_field( 'mdfcforwc_backfill', 'mdfcforwc_backfill_nonce' );
 		echo '<button type="submit" class="button button-primary">';
-		echo esc_html__( 'Restore sales from Hub', 'marques-de-france-connector-for-woocommerce' );
+		echo esc_html__( 'Restore sales from Marques de France', 'marques-de-france-connector-for-woocommerce' );
 		echo '</button>';
 		echo '</form>';
 		echo '</div>';
@@ -428,7 +686,7 @@ class MDFCFORWC_Admin {
 	public function handle_backfill() {
 		check_admin_referer( 'mdfcforwc_backfill', 'mdfcforwc_backfill_nonce' );
 
-		if ( ! current_user_can( self::CAPABILITY ) ) {
+		if ( ! $this->user_can_access() ) {
 			wp_die( esc_html__( 'You do not have permission to perform this action.', 'marques-de-france-connector-for-woocommerce' ) );
 		}
 
@@ -451,6 +709,7 @@ class MDFCFORWC_Admin {
 	// ── REST Callbacks ──────────────────────────────────────────────────────────
 
 	public function rest_stats() {
+		$this->sync_sales_from_hub_if_needed();
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
@@ -489,14 +748,26 @@ class MDFCFORWC_Admin {
 	}
 
 	public function rest_analytics( WP_REST_Request $request ) {
+		$this->sync_sales_from_hub_if_needed();
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
-		$date_from   = $request->get_param( 'dateFrom' ) ?: gmdate( 'Y-m-01', strtotime( '-11 months' ) );
-		$date_to     = $request->get_param( 'dateTo' )   ?: gmdate( 'Y-m-t' ); // end of current month
-		$granularity = in_array( $request->get_param( 'granularity' ), [ 'day', 'month' ], true )
+		$date_from_raw = $request->get_param( 'dateFrom' ) ?: gmdate( 'Y-m-01', strtotime( '-11 months' ) );
+		$date_to_raw   = $request->get_param( 'dateTo' )   ?: gmdate( 'Y-m-t' );
+		$granularity   = in_array( $request->get_param( 'granularity' ), [ 'day', 'month' ], true )
 			? $request->get_param( 'granularity' )
 			: 'month';
+
+		// Validate date parameters before using them in SQL.
+		if ( ! DateTime::createFromFormat( 'Y-m-d', $date_from_raw ) ) {
+			return new WP_Error( 'invalid_date', 'dateFrom must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+		if ( ! DateTime::createFromFormat( 'Y-m-d', $date_to_raw ) ) {
+			return new WP_Error( 'invalid_date', 'dateTo must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+
+		$date_from = $date_from_raw;
+		$date_to   = $date_to_raw;
 
 		$from_dt = $date_from . ' 00:00:00';
 		$to_dt   = $date_to   . ' 23:59:59';
@@ -549,6 +820,7 @@ class MDFCFORWC_Admin {
 	}
 
 	public function rest_sales( WP_REST_Request $request ) {
+		$this->sync_sales_from_hub_if_needed();
 		global $wpdb;
 		// Raw table name — %i placeholder (WP 6.2+) backtick-quotes it safely.
 		$table_name = $wpdb->prefix . 'mdfcforwc_sales';
@@ -563,76 +835,70 @@ class MDFCFORWC_Admin {
 		$sort_f    = $request->get_param( 'sortField' );
 		$sort_d    = $request->get_param( 'sortDir' );
 
-		// Whitelist-validate sort column; %i will backtick-quote it — no interpolation.
+		// Validate date parameters before appending time components for SQL.
+		if ( $date_from && ! DateTime::createFromFormat( 'Y-m-d', $date_from ) ) {
+			return new WP_Error( 'invalid_date', 'dateFrom must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+		if ( $date_to && ! DateTime::createFromFormat( 'Y-m-d', $date_to ) ) {
+			return new WP_Error( 'invalid_date', 'dateTo must be in Y-m-d format.', [ 'status' => 400 ] );
+		}
+
 		$valid_fields = [ 'created_at', 'amount', 'order_id', 'status' ];
 		$sort_col     = in_array( $sort_f, $valid_fields, true ) ? $sort_f : 'created_at';
 		$sort_asc     = ( $sort_d === 'asc' );
 
-		// Conditional-flag WHERE params — all user values handled by %d/%s placeholders.
-		$status_active    = ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded' ], true ) ) ? 1 : 0;
-		$status_val       = $status_active ? $status : '';
-		$search_active    = $search ? 1 : 0;
-		$like_val         = $search ? '%' . $wpdb->esc_like( $search ) . '%' : '';
-		$date_from_active = $date_from ? 1 : 0;
+		$status_active    = ( $status && in_array( $status, [ 'confirmed', 'cancelled', 'refunded', 'pending' ], true ) ) ? 1 : 0;
+		$status_val       = $status_active ? sanitize_text_field( $status ) : '';
+		$search_active    = ! empty( $search ) ? 1 : 0;
+		$like_val         = $search_active ? '%' . $wpdb->esc_like( sanitize_text_field( $search ) ) . '%' : '';
+		$date_from_active = ! empty( $date_from ) ? 1 : 0;
 		$date_from_val    = $date_from_active ? sanitize_text_field( $date_from ) . ' 00:00:00' : '';
-		$date_to_active   = $date_to ? 1 : 0;
+		$date_to_active   = ! empty( $date_to ) ? 1 : 0;
 		$date_to_val      = $date_to_active ? sanitize_text_field( $date_to ) . ' 23:59:59' : '';
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare(
-				'SELECT COUNT(*) FROM %i
-				WHERE ( %d = 0 OR status = %s )
-				  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-				  AND ( %d = 0 OR created_at >= %s )
-				  AND ( %d = 0 OR created_at <= %s )',
-				$table_name,
-				$status_active, $status_val,
-				$search_active, $like_val, $like_val,
-				$date_from_active, $date_from_val,
-				$date_to_active, $date_to_val
-			)
+		$conditions = [];
+		$params     = [];
+
+		if ( $status_active ) {
+			$conditions[] = 'status = %s';
+			$params[]     = $status_val;
+		}
+
+		if ( $search_active ) {
+			$conditions[] = '( order_id LIKE %s OR order_number LIKE %s )';
+			$params[]     = $like_val;
+			$params[]     = $like_val;
+		}
+
+		if ( $date_from_active ) {
+			$conditions[] = 'created_at >= %s';
+			$params[]     = $date_from_val;
+		}
+
+		if ( $date_to_active ) {
+			$conditions[] = 'created_at <= %s';
+			$params[]     = $date_to_val;
+		}
+
+		$table_name_quoted = '`' . esc_sql( $table_name ) . '`';
+		$sort_col_quoted   = '`' . esc_sql( $sort_col ) . '`';
+		$where_sql         = $conditions ? ' WHERE ' . implode( ' AND ', $conditions ) : '';
+
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared,PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// Table name and sort column are escaped with esc_sql(); all WHERE clause values go through $wpdb->prepare() placeholders above.
+		$count_base = 'SELECT COUNT(*) FROM ' . $table_name_quoted . $where_sql;
+		$total      = (int) ( $params
+			? $wpdb->get_var( $wpdb->prepare( $count_base, ...$params ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			: $wpdb->get_var( $count_base ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		);
 
-		// Two static query templates (ASC / DESC) keep the direction keyword as a
-		// SQL literal. %i (WP 6.2+) handles table name and sort column safely.
-		$where_params = [
-			$table_name,
-			$status_active, $status_val,
-			$search_active, $like_val, $like_val,
-			$date_from_active, $date_from_val,
-			$date_to_active, $date_to_val,
-			$sort_col,
-			$per_page, $offset,
-		];
-
-		if ( $sort_asc ) {
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT * FROM %i
-					WHERE ( %d = 0 OR status = %s )
-					  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-					  AND ( %d = 0 OR created_at >= %s )
-					  AND ( %d = 0 OR created_at <= %s )
-					ORDER BY %i ASC LIMIT %d OFFSET %d',
-					...$where_params
-				),
-				ARRAY_A
-			);
-		} else {
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					'SELECT * FROM %i
-					WHERE ( %d = 0 OR status = %s )
-					  AND ( %d = 0 OR ( order_id LIKE %s OR order_number LIKE %s ) )
-					  AND ( %d = 0 OR created_at >= %s )
-					  AND ( %d = 0 OR created_at <= %s )
-					ORDER BY %i DESC LIMIT %d OFFSET %d',
-					...$where_params
-				),
-				ARRAY_A
-			);
-		}
+		$rows_base = 'SELECT * FROM ' . $table_name_quoted . $where_sql . ' ORDER BY ' . $sort_col_quoted . ( $sort_asc ? ' ASC' : ' DESC' ) . ' LIMIT %d OFFSET %d';
+		$rows      = $wpdb->get_results(
+			$params
+				? $wpdb->prepare( $rows_base, ...array_merge( $params, [ $per_page, $offset ] ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				: $wpdb->prepare( $rows_base, $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			ARRAY_A
+		);
 		// phpcs:enable
 
 		return rest_ensure_response( [
@@ -644,16 +910,9 @@ class MDFCFORWC_Admin {
 	}
 
 	public function rest_hub_status() {
-		if ( ! MDFCFORWC_Settings::is_configured() ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				error_log( '[MDF-WC] hub-status: not configured (token is empty)' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			}
-			return rest_ensure_response( [ 'connected' => false, 'reason' => 'not_configured' ] );
-		}
-
 		$hub_url  = MDFCFORWC_Settings::get_hub_url();
 		$token    = MDFCFORWC_Settings::get_secure_token();
-		$site_url = home_url();
+		$site_url = MDFCFORWC_Settings::get_site_url();
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			error_log( '[MDF-WC] hub-status ping — hub_url: ' . $hub_url . ', shop: ' . $site_url . ', token: ' . substr( $token, 0, 8 ) . '…' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
@@ -661,7 +920,7 @@ class MDFCFORWC_Admin {
 
 		$response = wp_remote_get( $hub_url . '/api/wc/status', [
 			'timeout'   => 8,
-			'sslverify' => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
+			'sslverify' => ! ( defined( 'MDFCFORWC_DISABLE_SSL_VERIFY' ) && MDFCFORWC_DISABLE_SSL_VERIFY ),
 			'headers'   => [
 				'X-MDF-Token'      => $token,
 				'X-MDF-Shop'       => $site_url,
@@ -705,6 +964,7 @@ class MDFCFORWC_Admin {
 		$sort     = $request->get_param( 'sort' ) ?: 'name-asc';
 		$page     = max( 1, (int) $request->get_param( 'page' ) );
 		$per_page = min( 100, max( 1, (int) $request->get_param( 'per_page' ) ) );
+		$mode     = MDFCFORWC_Settings::get_feed_filter_mode();
 
 		// Map sort option to WP_Query args (WC-native 'price' orderby is unavailable
 		// when using WP_Query directly, so price sorts use meta_value_num + _price).
@@ -727,14 +987,33 @@ class MDFCFORWC_Admin {
 			'paged'          => $page,
 			'orderby'        => $order_args['orderby'],
 			'order'          => $order_args['order'],
-			'tax_query'      => [
+		];
+
+		if ( 'SERVERLIST' === $mode ) {
+			// SERVERLIST mode: show only products explicitly selected for the feed.
+			$feed_ids = MDFCFORWC_Feed_Products::get_selected_product_ids();
+			if ( empty( $feed_ids ) ) {
+				return rest_ensure_response( [
+					'products'    => [],
+					'total'       => 0,
+					'total_pages' => 1,
+					'page'        => $page,
+					'per_page'    => $per_page,
+					'currency'    => get_woocommerce_currency(),
+					'inFeedCount' => 0,
+				] );
+			}
+			$wp_args['post__in'] = $feed_ids;
+		} else {
+			// TAG mode: products with the 'marques-de-france' tag, in-stock, non-virtual.
+			$wp_args['tax_query'] = [
 				[
 					'taxonomy' => 'product_tag',
 					'field'    => 'slug',
 					'terms'    => 'marques-de-france',
 				],
-			],
-			'meta_query'     => [
+			];
+			$wp_args['meta_query'] = [
 				'relation' => 'AND',
 				[
 					'key'     => '_virtual',
@@ -745,8 +1024,8 @@ class MDFCFORWC_Admin {
 					'key'   => '_stock_status',
 					'value' => 'instock',
 				],
-			],
-		];
+			];
+		}
 
 		if ( isset( $order_args['meta_key'] ) ) {
 			$wp_args['meta_key'] = $order_args['meta_key'];
@@ -765,15 +1044,25 @@ class MDFCFORWC_Admin {
 			$this->product_search_term = '';
 		}
 
-		$total       = (int) $wp_query->found_posts;
-		$total_pages = (int) ceil( $total / $per_page );
-
-		$items = [];
+		$raw_items = [];
 
 		foreach ( $wp_query->posts as $post ) {
 			$product = wc_get_product( $post->ID );
 
 			if ( ! $product ) {
+				continue;
+			}
+
+			if ( $product->is_virtual() ) {
+				continue;
+			}
+
+			if ( ! $product->is_in_stock() ) {
+				continue;
+			}
+
+			$price = (float) $product->get_price();
+			if ( $price <= 0 ) {
 				continue;
 			}
 
@@ -789,25 +1078,31 @@ class MDFCFORWC_Admin {
 				$total_variants = count( $variation_ids );
 				foreach ( $variation_ids as $vid ) {
 					$v = wc_get_product( $vid );
-					if ( $v && $v->is_in_stock() ) {
+					if ( $v && $v->is_in_stock() && $v->is_purchasable() ) {
 						$available_variants++;
 					}
 				}
+
+				if ( 0 === $available_variants ) {
+					continue;
+				}
 			}
 
-			$brand_post = function_exists( 'get_field' ) ? get_field( 'product_listing', $product->get_id() ) : null;
-			$brand      = ( $brand_post && isset( $brand_post->post_title ) ) ? $brand_post->post_title : '';
+			$brand = $this->get_product_brand( $product->get_id() );
 
-			$items[] = [
+			$raw_items[] = [
 				'id'                 => $product->get_id(),
 				'name'               => $product->get_name(),
 				'image'              => $image,
-				'price'              => (float) $product->get_price(),
+				'price'              => $price,
 				'price_html'         => $product->get_price_html(),
 				'currency'           => get_woocommerce_currency(),
 				'brand'              => $brand,
+				'status'             => get_post_status( $product->get_id() ),
 				'availability'       => $product->is_in_stock() ? 'in stock' : 'out of stock',
-				'has_mdf_tag'        => true, // filtered by tag at query level
+				'has_mdf_tag'        => 'SERVERLIST' === $mode
+				? has_term( 'marques-de-france', 'product_tag', $product->get_id() )
+				: true,
 				'type'               => $product->get_type(),
 				'total_variants'     => $total_variants,
 				'available_variants' => $available_variants,
@@ -815,14 +1110,24 @@ class MDFCFORWC_Admin {
 			];
 		}
 
-		return rest_ensure_response( [
+		$total       = max( 1, (int) $wp_query->found_posts );
+		$total_pages = max( 1, (int) $wp_query->max_num_pages );
+		$items       = $raw_items;
+
+		$response = [
 			'products'    => $items,
 			'total'       => $total,
 			'total_pages' => $total_pages,
 			'page'        => $page,
 			'per_page'    => $per_page,
 			'currency'    => get_woocommerce_currency(),
-		] );
+		];
+
+		if ( 'SERVERLIST' === $mode ) {
+			$response['inFeedCount'] = MDFCFORWC_Feed_Products::get_count();
+		}
+
+		return rest_ensure_response( $response );
 	}
 
 	/**

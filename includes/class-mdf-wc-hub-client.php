@@ -25,13 +25,22 @@ class MDFCFORWC_Hub_Client {
 
 	const SYNC_TIMEOUT = 5; // seconds for immediate sync
 
+	private static ?self $instance = null;
+
 	private string $hub_url;
 	private string $site_url;
 	private string $token;
 
-	public function __construct() {
+	public static function get_instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	private function __construct() {
 		$this->hub_url  = MDFCFORWC_Settings::get_hub_url();
-		$this->site_url = home_url();
+		$this->site_url = MDFCFORWC_Settings::get_site_url();
 		$this->token    = MDFCFORWC_Settings::get_secure_token();
 
 		$this->register_action_scheduler_hooks();
@@ -62,10 +71,6 @@ class MDFCFORWC_Hub_Client {
 	 * On failure, schedules an AS retry.
 	 */
 	public function sync_sale( WC_Order $order ) {
-		if ( ! MDFCFORWC_Settings::is_configured() ) {
-			return;
-		}
-
 		$attribution = MDFCFORWC_Attribution::get_order_attribution( $order );
 
 		$payload = [
@@ -83,6 +88,7 @@ class MDFCFORWC_Hub_Client {
 			'landingSite'       => $attribution['landing_site'] ?? '',
 			'referringSite'     => $attribution['referring_site'] ?? '',
 			'landingSiteRef'    => $attribution['landing_ref'] ?? '',
+			'clickId'           => $attribution['click_id'] ?? '',
 		];
 
 		$response = $this->post( '/api/wc/sales', $payload, self::SYNC_TIMEOUT );
@@ -110,11 +116,25 @@ class MDFCFORWC_Hub_Client {
 	 */
 	public function as_retry_sale( $order_id ) {
 		$order = wc_get_order( absint( $order_id ) );
-		if ( ! $order ) {
+		if ( $order ) {
+			$this->sync_sale( $order );
 			return;
 		}
 
-		$this->sync_sale( $order );
+		global $wpdb;
+		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
+
+		// Fallback for local rows that were recorded in wp_mdfcforwc_sales but do not
+		// have a live WooCommerce order object anymore (for example test/fake rows).
+		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$sale = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM `{$table}` WHERE order_id = %s LIMIT 1", (string) $order_id )
+		);
+		// phpcs:enable
+
+		if ( $sale ) {
+			$this->sync_sale_from_record( $sale );
+		}
 	}
 
 	/**
@@ -123,10 +143,6 @@ class MDFCFORWC_Hub_Client {
 	 * Skips rows that have reached the max attempt threshold (dead letter).
 	 */
 	public function flush_unsynced_sales() {
-		if ( ! MDFCFORWC_Settings::is_configured() ) {
-			return;
-		}
-
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
@@ -143,11 +159,23 @@ class MDFCFORWC_Hub_Client {
 
 		foreach ( $rows as $row ) {
 			$order = wc_get_order( absint( $row->order_id ) );
-			if ( ! $order ) {
-				continue;
-			}
+			if ( $order ) {
+				$this->sync_sale( $order );
+			} else {
+				// Fallback: local DB rows may exist even when the WC order object is gone.
+				// Sync them directly from the stored sale record so the hourly flush works.
+				// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$sale = $wpdb->get_row(
+					$wpdb->prepare( "SELECT * FROM `{$table}` WHERE order_id = %s LIMIT 1", (string) $row->order_id )
+				);
+				// phpcs:enable
 
-			$this->sync_sale( $order );
+				if ( $sale ) {
+					$this->sync_sale_from_record( $sale );
+				} else {
+					continue;
+				}
+			}
 
 			// If still unsynced after this attempt, increment the counter.
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -183,10 +211,6 @@ class MDFCFORWC_Hub_Client {
 	}
 
 	private function update_sale_status( $order_id, string $status ) {
-		if ( ! MDFCFORWC_Settings::is_configured() ) {
-			return;
-		}
-
 		// Only update if we have a local record (non-attributed orders are not in the Hub)
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
@@ -235,16 +259,21 @@ class MDFCFORWC_Hub_Client {
 			error_log( '[MDF-WC]   X-MDF-Token : ' . substr( $this->token, 0, 8 ) . '…' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 
+		$headers = [
+			'Content-Type'     => 'application/json',
+			'X-MDF-Shop'       => $this->site_url,
+			'X-Plugin-Version' => MDFCFORWC_VERSION,
+		];
+
+		if ( '' !== trim( $this->token ) ) {
+			$headers['X-MDF-Token'] = $this->token;
+		}
+
 		$response = wp_remote_post( $url, [
-			'timeout'     => $timeout,
-			'sslverify'   => ( strpos( MDFCFORWC_HUB_URL, 'flux.marques-de-france.fr' ) !== false ),
-			'headers'     => [
-				'Content-Type'     => 'application/json',
-				'X-MDF-Token'      => $this->token,
-				'X-MDF-Shop'       => $this->site_url,
-				'X-Plugin-Version' => MDFCFORWC_VERSION,
-			],
-			'body'        => wp_json_encode( $body ),
+			'timeout'   => $timeout,
+			'sslverify' => ! ( defined( 'MDFCFORWC_DISABLE_SSL_VERIFY' ) && MDFCFORWC_DISABLE_SSL_VERIFY ),
+			'headers'   => $headers,
+			'body'      => wp_json_encode( $body ),
 		] );
 
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -260,17 +289,54 @@ class MDFCFORWC_Hub_Client {
 		return $response;
 	}
 
+	private function sync_sale_from_record( $sale ) {
+		$signals = json_decode( (string) ( $sale->signals_json ?? '{}' ), true );
+		if ( ! is_array( $signals ) ) {
+			$signals = [];
+		}
+
+		$payload = [
+			'shopUrl'           => $this->site_url,
+			'orderId'           => (string) $sale->order_id,
+			'orderName'         => $sale->order_number ?? (string) $sale->order_id,
+			'amount'            => (float) $sale->amount,
+			'currency'          => $sale->currency ?? 'EUR',
+			'attributionSource' => $sale->attribution_source ?? ( $signals['source'] ?? '' ),
+			'utmSource'         => $sale->utm_source ?? ( $signals['utm_source'] ?? '' ),
+			'utmMedium'         => $sale->utm_medium ?? ( $signals['utm_medium'] ?? '' ),
+			'utmCampaign'       => $sale->utm_campaign ?? ( $signals['utm_campaign'] ?? '' ),
+			'utmContent'        => $sale->utm_content ?? ( $signals['utm_content'] ?? '' ),
+			'utmTerm'           => $sale->utm_term ?? ( $signals['utm_term'] ?? '' ),
+			'landingSite'       => $sale->landing_site ?? ( $signals['landing_site'] ?? '' ),
+			'referringSite'     => $sale->referring_site ?? ( $signals['referring_site'] ?? '' ),
+			'landingSiteRef'    => $sale->landing_ref ?? ( $signals['landing_ref'] ?? '' ),
+			'clickId'           => $signals['click_id'] ?? '',
+		];
+
+		$response = $this->post( '/api/wc/sales', $payload, self::SYNC_TIMEOUT );
+
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) >= 400 ) {
+			$message = is_wp_error( $response ) ? $response->get_error_message() : wp_remote_retrieve_body( $response );
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( '[MDF-WC] Hub sync failed for local row ' . $sale->order_id . ': ' . $message ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			}
+			return;
+		}
+
+		$this->mark_synced( (string) $sale->order_id );
+	}
+
 	private function schedule_retry( $order_id ) {
 		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
 			return;
 		}
 
-		// Check if a retry is already scheduled for this order
-		if ( as_has_scheduled_action( 'mdfcforwc_retry_hub_sync', [ (int) $order_id ], 'mdf-wc' ) ) {
+		// Check if a retry is already scheduled for this order.
+		if ( as_has_scheduled_action( 'mdfcforwc_retry_hub_sync', [ (int) $order_id ] ) ) {
 			return;
 		}
 
-		as_enqueue_async_action( 'mdfcforwc_retry_hub_sync', [ (int) $order_id ], 'mdf-wc' );
+		as_enqueue_async_action( 'mdfcforwc_retry_hub_sync', [ (int) $order_id ] );
 	}
 
 	private function mark_synced( string $order_id ) {

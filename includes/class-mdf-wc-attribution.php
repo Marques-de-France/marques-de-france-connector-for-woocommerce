@@ -38,6 +38,7 @@ class MDFCFORWC_Attribution {
 	const META_LANDING_SITE    = '_mdf_landing_site';
 	const META_REFERRING_SITE  = '_mdf_referring_site';
 	const META_LANDING_REF     = '_mdf_landing_ref';
+	const META_CLICK_ID        = '_mdf_click_id';
 	const META_SIGNALS_JSON    = '_mdf_signals_json';
 
 	private static ?self $instance = null;
@@ -94,6 +95,7 @@ class MDFCFORWC_Attribution {
 		$utm_term      = $this->read_signal( MDFCFORWC_Tracker::KEY_UTM_TERM,      'mdf_utm_term' );
 		$landing_site  = $this->read_signal( MDFCFORWC_Tracker::KEY_LANDING_SITE,  'mdf_landing_site' );
 		$landing_ref   = $this->read_signal( MDFCFORWC_Tracker::KEY_LANDING_REF,   'mdf_landing_ref' );
+		$click_id      = $this->read_signal( MDFCFORWC_Tracker::KEY_CLICK_ID,      'mdf_click_id' );
 
 		// Signal 5 (referring site): session → cookie → server-side HTTP_REFERER
 		$referring = $this->read_signal( MDFCFORWC_Tracker::KEY_REFERRING, 'mdf_referring_site' );
@@ -111,7 +113,9 @@ class MDFCFORWC_Attribution {
 		// $attributed is NOT required as a gate: mdf_* cookies/session values are
 		// only ever written by the MDF tracker, which already verified the signal.
 		$source = '';
-		if ( $landing_ref ) {
+		if ( $click_id ) {
+			$source = 'mdf_click';
+		} elseif ( $landing_ref ) {
 			$source = 'mdf_ref';
 		} elseif (
 			( $utm_source   && strpos( $utm_source,   'marques-de-france' ) !== false ) ||
@@ -138,6 +142,7 @@ class MDFCFORWC_Attribution {
 			'landing_site'   => $landing_site,
 			'referring_site' => $referring,
 			'landing_ref'    => $landing_ref,
+			'click_id'       => $click_id,
 		];
 	}
 
@@ -145,7 +150,7 @@ class MDFCFORWC_Attribution {
 	 * Returns true if the collected signals represent an MDF attribution.
 	 */
 	public function is_mdf_attributed( array $signals ): bool {
-		return in_array( $signals['source'], [ 'mdf_ref', 'utm', 'mdf_referral' ], true );
+		return in_array( $signals['source'], [ 'mdf_click', 'mdf_ref', 'utm', 'mdf_referral' ], true );
 	}
 
 	// ---------------------------------------------------------------------------
@@ -170,6 +175,7 @@ class MDFCFORWC_Attribution {
 		$order->update_meta_data( self::META_LANDING_SITE,   $signals['landing_site'] );
 		$order->update_meta_data( self::META_REFERRING_SITE, $signals['referring_site'] );
 		$order->update_meta_data( self::META_LANDING_REF,    $signals['landing_ref'] );
+		$order->update_meta_data( self::META_CLICK_ID,       $signals['click_id'] );
 		$order->update_meta_data( self::META_SIGNALS_JSON,   wp_json_encode( $signals ) );
 	}
 
@@ -224,8 +230,7 @@ class MDFCFORWC_Attribution {
 
 		// Trigger Hub sync
 		if ( $wpdb->insert_id ) {
-			$hub_client = new MDFCFORWC_Hub_Client();
-			$hub_client->sync_sale( $order );
+			MDFCFORWC_Hub_Client::get_instance()->sync_sale( $order );
 		}
 	}
 
@@ -245,6 +250,7 @@ class MDFCFORWC_Attribution {
 			'landing_site'   => $order->get_meta( self::META_LANDING_SITE ),
 			'referring_site' => $order->get_meta( self::META_REFERRING_SITE ),
 			'landing_ref'    => $order->get_meta( self::META_LANDING_REF ),
+			'click_id'       => $order->get_meta( self::META_CLICK_ID ),
 		];
 	}
 }

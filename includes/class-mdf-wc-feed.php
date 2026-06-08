@@ -12,8 +12,9 @@
  *   Paginated: ?per_page=200&page=1 (default: 200 items per page).
  *
  * Authentication:
- *   ?token=<secureToken>  — same token stored in plugin settings.
- *   No user auth required — the token itself gates access.
+ *   ?token=<secureToken>  — optional when no secure token is configured.
+ *   When a token is configured, it gates access to the feed.
+ *   No user auth required.
  *
  * @package MDFCFORWC_Connector
  */
@@ -54,7 +55,7 @@ class MDFCFORWC_Feed {
 				'permission_callback' => '__return_true', // token-gated inside callback
 				'args'                => [
 					'token'    => [
-						'required'          => true,
+						'required'          => false,
 						'type'              => 'string',
 						'sanitize_callback' => 'sanitize_text_field',
 					],
@@ -82,16 +83,19 @@ class MDFCFORWC_Feed {
 		$per_page = min( 500, max( 1, $request->get_param( 'per_page' ) ) );
 		$page     = max( 1, $request->get_param( 'page' ) );
 
-		// Token gate — constant-time comparison
 		$stored_token = MDFCFORWC_Settings::get_secure_token();
-		if ( '' === $stored_token ) {
-			return new WP_Error( 'not_configured', 'Plugin not configured.', [ 'status' => 503 ] );
-		}
 
-		$token_a = hash( 'sha256', $token );
-		$token_b = hash( 'sha256', $stored_token );
-		if ( ! hash_equals( $token_b, $token_a ) ) {
-			return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+		if ( '' !== $stored_token ) {
+			$provided_token = (string) $token;
+			if ( '' === $provided_token ) {
+				return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+			}
+
+			$token_a = hash( 'sha256', $provided_token );
+			$token_b = hash( 'sha256', $stored_token );
+			if ( ! hash_equals( $token_b, $token_a ) ) {
+				return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+			}
 		}
 
 		// Query products
@@ -118,27 +122,49 @@ class MDFCFORWC_Feed {
 	// ---------------------------------------------------------------------------
 
 	private function get_feed_products( int $per_page, int $page ): array {
-		// WC 10.7+ auto-injects a product_type tax_query via wc_get_products(), which
-		// excludes any type not registered in wc_get_product_types() (e.g. composite
-		// from WooCommerce Composite Products by SomewhereWarm). Using WP_Query
-		// directly on post_type=product bypasses that restriction entirely.
-		$wp_query = new WP_Query( [
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => $per_page,
-			'paged'          => $page,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			'no_found_rows'  => true,
-			'fields'         => 'ids',
-			'tax_query'      => [
-				[
-					'taxonomy' => 'product_tag',
-					'field'    => 'slug',
-					'terms'    => 'marques-de-france',
+		$mode = MDFCFORWC_Settings::get_feed_filter_mode();
+
+		if ( 'SERVERLIST' === $mode ) {
+			$feed_ids = MDFCFORWC_Feed_Products::get_selected_product_ids();
+			if ( empty( $feed_ids ) ) {
+				return [];
+			}
+			$query_args = [
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'post__in'       => $feed_ids,
+				'orderby'        => 'post__in',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+			];
+		} else {
+			// TAG mode: products with the 'marques-de-france' tag.
+			// WC 10.7+ auto-injects a product_type tax_query via wc_get_products(), which
+			// excludes any type not registered in wc_get_product_types() (e.g. composite
+			// from WooCommerce Composite Products by SomewhereWarm). Using WP_Query
+			// directly on post_type=product bypasses that restriction entirely.
+			$query_args = [
+				'post_type'      => 'product',
+				'post_status'    => 'publish',
+				'posts_per_page' => $per_page,
+				'paged'          => $page,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+				'tax_query'      => [
+					[
+						'taxonomy' => 'product_tag',
+						'field'    => 'slug',
+						'terms'    => 'marques-de-france',
+					],
 				],
-			],
-		] );
+			];
+		}
+
+		$wp_query = new WP_Query( $query_args );
 
 		$items = [];
 
