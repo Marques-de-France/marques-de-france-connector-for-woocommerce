@@ -219,20 +219,20 @@
       "Suivi des ventes": [
         "Suivi des ventes"
       ],
-      "<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>.": [
-        "<strong>Marques de France</strong>: %1$d sale has not been synced to the MDF Hub for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>."
+      "<strong>Marques de France</strong>: %1$d sale has not been synchronized with Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check your connection settings</a>.": [
+        "<strong>Marques de France</strong> : %1$d vente n’a pas été synchronisée avec Marques de France depuis plus de 24 heures. <a href=\"%2$s\">Vérifiez vos paramètres de connexion</a>."
       ],
-      "Could not reach the MDF Hub. Check your connection settings and try again.": [
-        "Impossible d’atteindre le Hub MDF. Vérifiez vos paramètres de connexion et réessayez."
+      "Could not contact Marques de France. Please check your connection settings and try again.": [
+        "Impossible de contacter Marques de France. Vérifiez vos paramètres de connexion et réessayez."
       ],
-      "Marques de France: %d sale restored from the MDF Hub.": [
-        "Marques de France: %d sale restored from the MDF Hub."
+      "Restored %d sale from Marques de France.": [
+        "%d vente restaurée depuis Marques de France."
       ],
-      "Sales data may be out of sync (e.g. after a plugin reinstall). Click below to restore from the MDF Hub — this will replace the local sales table with the Hub's records.": [
-        "Les données de vente peuvent être désynchronisées (par exemple après une réinstallation du plugin). Cliquez ci-dessous pour restaurer depuis le Hub MDF — cela remplacera la table locale des ventes par les enregistrements du Hub."
+      "Your local sales history may be incomplete. This can happen after reinstalling the plugin. Click below to restore it from Marques de France.": [
+        "L’historique des ventes peut être incomplet. Cela peut arriver après la réinstallation du plugin. Cliquez ci-dessous pour le restaurer depuis Marques de France."
       ],
-      "Restore sales from Hub": [
-        "Restaurer les ventes depuis le Hub"
+      "Restore sales from Marques de France": [
+        "Restaurer les ventes depuis Marques de France"
       ],
       "You do not have permission to perform this action.": [
         "Vous n’avez pas la permission d’effectuer cette action."

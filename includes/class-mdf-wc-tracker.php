@@ -112,15 +112,22 @@ class MDFCFORWC_Tracker {
 			return;
 		}
 
-		$utm_source   = isset( $_GET['utm_source'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_source'] ) ) : '';
-		$utm_medium   = isset( $_GET['utm_medium'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_medium'] ) ) : '';
-		$utm_campaign = isset( $_GET['utm_campaign'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_campaign'] ) ) : '';
-		$utm_content  = isset( $_GET['utm_content'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_content'] ) ) : '';
-		$utm_term     = isset( $_GET['utm_term'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_term'] ) ) : '';
-		$landing_ref  = isset( $_GET['ref'] ) ? sanitize_text_field( wp_unslash( $_GET['ref'] ) ) : '';
-		$click_id     = isset( $_GET['mdf_click_id'] ) ? sanitize_text_field( wp_unslash( $_GET['mdf_click_id'] ) ) : '';
+		$query_params = [];
+		$query_string = filter_input( INPUT_SERVER, 'QUERY_STRING', FILTER_UNSAFE_RAW );
+		if ( null !== $query_string ) {
+			$query_string = sanitize_text_field( wp_unslash( $query_string ) );
+			wp_parse_str( $query_string, $query_params );
+		}
+
+		$utm_source   = isset( $query_params['utm_source'] ) ? sanitize_text_field( $query_params['utm_source'] ) : '';
+		$utm_medium   = isset( $query_params['utm_medium'] ) ? sanitize_text_field( $query_params['utm_medium'] ) : '';
+		$utm_campaign = isset( $query_params['utm_campaign'] ) ? sanitize_text_field( $query_params['utm_campaign'] ) : '';
+		$utm_content  = isset( $query_params['utm_content'] ) ? sanitize_text_field( $query_params['utm_content'] ) : '';
+		$utm_term     = isset( $query_params['utm_term'] ) ? sanitize_text_field( $query_params['utm_term'] ) : '';
+		$landing_ref  = isset( $query_params['ref'] ) ? sanitize_text_field( $query_params['ref'] ) : '';
+		$click_id     = isset( $query_params['mdf_click_id'] ) ? sanitize_text_field( $query_params['mdf_click_id'] ) : '';
 		if ( '' === $landing_ref ) {
-			$landing_ref = isset( $_GET['landing_ref'] ) ? sanitize_text_field( wp_unslash( $_GET['landing_ref'] ) ) : '';
+			$landing_ref = isset( $query_params['landing_ref'] ) ? sanitize_text_field( $query_params['landing_ref'] ) : '';
 		}
 
 		$is_mdf_utm = ( '' !== $utm_source && false !== strpos( $utm_source, 'marques-de-france' ) )
