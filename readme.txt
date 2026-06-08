@@ -115,6 +115,8 @@ Initial release.
 = 1.2.0 =
 * Improvement: clearer admin notice wording for sales restore flow (partner-facing language).
 * Improvement: replaced end-user "Hub" wording with "Marques de France" in restore/sync notices.
+* Feature: added manual product selection for the feed (in addition to the `product_tag` tag mode).
+* Improvement: UI improvements across the plugin admin screens.
 * Fix: synchronized translation catalogs (POT/PO/JSON) with the updated admin copy.
 * Fix: security hardening in tracker input handling for plugin checks.
 
