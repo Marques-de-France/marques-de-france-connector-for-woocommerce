@@ -54,7 +54,7 @@ The full source code including unminified JavaScript is available on GitHub:
 2. Activate the plugin through **WP Admin > Plugins**.
 3. Navigate to **Marques de France > Settings** in your WP admin sidebar.
 4. Enter the **Secure Token** provided by Marques de France.
-5. Click **Save**. The plugin will automatically connect to the MDF Hub and begin tracking attributed sales.
+5. Click **Save**. The plugin will automatically connect to Marques de France and begin tracking attributed sales.
 
 == External Services ==
 
@@ -83,7 +83,7 @@ Your Secure Token is provided by Marques de France when you join the partner pro
 
 = Which sales are tracked? =
 
-Only sales that can be attributed to a visit originating from the Marques de France directory are recorded. Orders from other sources are not sent to the Hub.
+Only sales that can be attributed to a visit originating from the Marques de France directory are recorded. Orders from other sources are not sent to Marques de France.
 
 = What data is sent to Marques de France? =
 
@@ -100,21 +100,30 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 1. Dashboard overview: connection status, total revenue, and 12-month sales chart.
 2. Product feed: full product list with name/SKU search, brand, price, tag, and availability.
 3. Sales tracking: daily analytics chart with attributed orders table (order number, attribution, amount, status, date).
-4. Settings: Secure Token (access code) configuration to connect the store to the Marques de France Hub.
+4. Settings: Secure Token (access code) configuration to connect the store to Marques de France.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Improved partner-facing wording in admin notices and updated translations for clearer messaging.
 
 = 1.0.0 =
 Initial release.
 
 == Changelog ==
 
+= 1.2.0 =
+* Improvement: clearer admin notice wording for sales restore flow (partner-facing language).
+* Improvement: replaced end-user "Hub" wording with "Marques de France" in restore/sync notices.
+* Fix: synchronized translation catalogs (POT/PO/JSON) with the updated admin copy.
+* Fix: security hardening in tracker input handling for plugin checks.
+
 = 1.1.0 =
 * Fix: strip HTML tags from product and variation titles in the feed to prevent malformed XML.
 * Fix: expose separate `parent_image` and `variant_image` fields in the feed for simple products and variations; the main image now correctly falls back to the parent image when no variation-specific image is set.
 
 = 1.0.2 =
-* Feature: report plugin version to the Marques de France Hub on each API request via X-Plugin-Version header.
+* Feature: report plugin version to Marques de France on each API request via X-Plugin-Version header.
 * Fix: composite products (WooCommerce Composite Products by SomewhereWarm) now appear correctly in the product feed and admin product list. WC 10.7+ auto-injects a product_type tax_query that silently excludes unregistered types; both endpoints now use WP_Query directly to bypass this restriction.
 * Fix: minor French (fr_FR) translation improvements.
 
@@ -124,8 +133,8 @@ Initial release.
 = 1.0.0 =
 * Initial release.
 * Sales attribution tracking via UTM parameters and referrer signals.
-* Automatic order sync to the Marques de France Hub with immediate + retry (Action Scheduler) strategy.
-* Order cancellation and refund status propagation to the Hub.
+* Automatic order sync to Marques de France with immediate + retry (Action Scheduler) strategy.
+* Order cancellation and refund status propagation to Marques de France.
 * Product feed REST endpoint (token-gated).
-* React-powered WooCommerce admin dashboard with sales analytics chart, product feed preview, and Hub connection status.
+* React-powered WooCommerce admin dashboard with sales analytics chart, product feed preview, and connection status.
 * French (fr_FR) translation included for all admin UI strings.
