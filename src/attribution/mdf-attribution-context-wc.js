@@ -1,5 +1,5 @@
 /**
- * Marques de France WooCommerce Tracker
+ * Marques de France WooCommerce Attribution Context
  *
  * Detects attribution signals on page load (UTM parameters, referrer, landing page),
  * persists them in first-party cookies (60-day TTL, SameSite=Lax), and stamps the
@@ -8,14 +8,17 @@
  * Runs on every frontend page load. First-touch attribution: existing cookies / session
  * values are never overwritten.
  *
- * Requires: mdfcforwcConfig.ajaxUrl, mdfcforwcConfig.nonce (injected via wp_localize_script)
+ * Requires: mdfcforwcRuntime.ajaxUrl, mdfcforwcRuntime.nonce (injected via wp_localize_script)
  */
 ( function () {
 	'use strict';
 
 	var COOKIE_TTL_DAYS = 60;
-	var UTM_PARAMS      = [ 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term' ];
 	var MDF_SOURCE      = 'marques-de-france';
+
+	function getRuntime() {
+		return window.mdfcforwcRuntime || window.mdfcforwcConfig || null;
+	}
 
 	// -------------------------------------------------------------------------
 	// Cookie helpers
@@ -47,8 +50,10 @@
 	// -------------------------------------------------------------------------
 
 	function init() {
-		// Skip if WC config is not available (should not happen, but be safe).
-		if ( typeof mdfcforwcConfig === 'undefined' || ! mdfcforwcConfig.ajaxUrl ) {
+		var runtime = getRuntime();
+
+		// Skip if runtime config is not available.
+		if ( ! runtime || ! runtime.ajaxUrl ) {
 			return;
 		}
 
@@ -58,6 +63,7 @@
 		var utmCampaign = getParam( params, 'utm_campaign' );
 		var utmContent  = getParam( params, 'utm_content' );
 		var utmTerm     = getParam( params, 'utm_term' );
+		var clickId     = getParam( params, 'mdf_click_id' );
 
 		// Only attribute if this visit originates from Marques de France.
 		// Signal 1 (utm):      utm_source / utm_medium / utm_campaign contains MDF_SOURCE
@@ -70,11 +76,12 @@
 		                    ( utmCampaign.indexOf( MDF_SOURCE ) !== -1 );
 		var isMdfRef      = refParam.indexOf( MDF_SOURCE ) !== -1;
 		var isMdfReferrer = referrerUrl.indexOf( 'marques-de-france.fr' ) !== -1;
+		var hasClickId    = clickId !== '';
 
-		var isAttributed  = isMdfUtm || isMdfRef || isMdfReferrer;
+		var isAttributed  = isMdfUtm || isMdfRef || isMdfReferrer || hasClickId;
 
-		if ( mdfcforwcConfig.debug === 'true' ) {
-			console.log( '[MDF Tracker] utm=' + isMdfUtm + ' ref=' + isMdfRef + ' referrer=' + isMdfReferrer + ' attributed=' + isAttributed );
+		if ( runtime.debug === 'true' ) {
+			console.log( '[MDF Attribution] utm=' + isMdfUtm + ' ref=' + isMdfRef + ' referrer=' + isMdfReferrer + ' click=' + hasClickId + ' attributed=' + isAttributed );
 		}
 
 		// -----------------------------------------------------------------------
@@ -97,9 +104,10 @@
 			setCookie( 'mdf_landing_site',  landingUrl,  COOKIE_TTL_DAYS );
 			setCookie( 'mdf_referring_site',referrerUrl, COOKIE_TTL_DAYS );
 			setCookie( 'mdf_landing_ref',   refParam,    COOKIE_TTL_DAYS );
+			setCookie( 'mdf_click_id',      clickId,     COOKIE_TTL_DAYS );
 
 			// Stamp the WooCommerce session via AJAX.
-			stampSession( {
+			stampSession( runtime, {
 				mdf_attributed:    '1',
 				mdf_utm_source:    utmSource,
 				mdf_utm_medium:    utmMedium,
@@ -109,11 +117,12 @@
 				mdf_landing_site:  landingUrl,
 				mdf_referring_site:referrerUrl,
 				mdf_landing_ref:   refParam,
+				mdf_click_id:      clickId,
 			} );
 		} else if ( ! isAttributed && alreadyAttributed ) {
 			// Visitor returning without UTMs but cookie is still live.
 			// Re-stamp the WC session from existing cookies (safety net for new tabs).
-			stampSession( {
+			stampSession( runtime, {
 				mdf_attributed:    getCookie( 'mdf_attributed' ),
 				mdf_utm_source:    getCookie( 'mdf_utm_source' ),
 				mdf_utm_medium:    getCookie( 'mdf_utm_medium' ),
@@ -123,6 +132,7 @@
 				mdf_landing_site:  getCookie( 'mdf_landing_site' ),
 				mdf_referring_site:getCookie( 'mdf_referring_site' ),
 				mdf_landing_ref:   getCookie( 'mdf_landing_ref' ),
+				mdf_click_id:      getCookie( 'mdf_click_id' ),
 			} );
 		}
 	}
@@ -131,10 +141,10 @@
 	// AJAX session stamp
 	// -------------------------------------------------------------------------
 
-	function stampSession( data ) {
+	function stampSession( runtime, data ) {
 		var body = new URLSearchParams();
-		body.set( 'action', 'mdfcforwc_stamp_session' );
-		body.set( 'nonce',  mdfcforwcConfig.nonce );
+		body.set( 'action', runtime.action || 'mdfcforwc_apply_session_context' );
+		body.set( 'nonce',  runtime.nonce );
 
 		for ( var key in data ) {
 			if ( data[ key ] ) {
@@ -142,7 +152,7 @@
 			}
 		}
 
-		fetch( mdfcforwcConfig.ajaxUrl, {
+		fetch( runtime.ajaxUrl, {
 			method:      'POST',
 			credentials: 'same-origin',
 			headers:     { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -150,13 +160,13 @@
 		} )
 		.then( function ( res ) { return res.json(); } )
 		.then( function ( json ) {
-			if ( mdfcforwcConfig.debug === 'true' ) {
-				console.log( '[MDF Tracker] Session stamped:', json );
+			if ( runtime.debug === 'true' ) {
+				console.log( '[MDF Attribution] Session stamped:', json );
 			}
 		} )
 		.catch( function ( err ) {
-			if ( mdfcforwcConfig.debug === 'true' ) {
-				console.warn( '[MDF Tracker] Stamp error:', err );
+			if ( runtime.debug === 'true' ) {
+				console.warn( '[MDF Attribution] Stamp error:', err );
 			}
 		} );
 	}

@@ -31,6 +31,7 @@ class MDFCFORWC_Tracker {
 	const KEY_LANDING_SITE  = 'mdf_landing_site';
 	const KEY_REFERRING     = 'mdf_referring_site';
 	const KEY_LANDING_REF   = 'mdf_landing_ref';
+	const KEY_CLICK_ID      = 'mdf_click_id';
 
 	private static ?self $instance = null;
 
@@ -54,6 +55,8 @@ class MDFCFORWC_Tracker {
 		// AJAX: authenticated + non-authenticated users (works for guests)
 		add_action( 'wp_ajax_mdfcforwc_stamp_session',        [ $this, 'ajax_stamp_session' ] );
 		add_action( 'wp_ajax_nopriv_mdfcforwc_stamp_session', [ $this, 'ajax_stamp_session' ] );
+		add_action( 'wp_ajax_mdfcforwc_apply_session_context',        [ $this, 'ajax_stamp_session' ] );
+		add_action( 'wp_ajax_nopriv_mdfcforwc_apply_session_context', [ $this, 'ajax_stamp_session' ] );
 
 		// Re-stamp from cookies on checkout init (safety net if AJAX stamp was missed)
 		add_action( 'woocommerce_before_checkout_form', [ $this, 'resync_session_from_cookies' ] );
@@ -71,22 +74,30 @@ class MDFCFORWC_Tracker {
 		}
 
 		wp_enqueue_script(
-			'mdfcforwc-tracker',
-			MDFCFORWC_PLUGIN_URL . 'src/tracker/mdf-tracker-wc.js',
+			'mdfcforwc-attribution-context',
+			MDFCFORWC_PLUGIN_URL . 'src/attribution/mdf-attribution-context-wc.js',
 			[],
 			MDFCFORWC_VERSION,
 			true
 		);
 
-		// Inject runtime config for the JS tracker
+		// Inject runtime config for the JS attribution context script
 		wp_localize_script(
-			'mdfcforwc-tracker',
-			'mdfcforwcConfig',
+			'mdfcforwc-attribution-context',
+			'mdfcforwcRuntime',
 			[
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'mdfcforwc_stamp_nonce' ),
 				'debug'   => defined( 'WP_DEBUG' ) && WP_DEBUG ? 'true' : 'false',
+				'action'  => 'mdfcforwc_apply_session_context',
 			]
+		);
+
+		// Backward compatibility for integrations still reading mdfcforwcConfig.
+		wp_add_inline_script(
+			'mdfcforwc-attribution-context',
+			'window.mdfcforwcConfig = window.mdfcforwcConfig || window.mdfcforwcRuntime;',
+			'before'
 		);
 	}
 
@@ -99,6 +110,52 @@ class MDFCFORWC_Tracker {
 	public function capture_referer_server_side() {
 		if ( is_admin() || wp_doing_ajax() ) {
 			return;
+		}
+
+		$utm_source   = isset( $_GET['utm_source'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_source'] ) ) : '';
+		$utm_medium   = isset( $_GET['utm_medium'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_medium'] ) ) : '';
+		$utm_campaign = isset( $_GET['utm_campaign'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_campaign'] ) ) : '';
+		$utm_content  = isset( $_GET['utm_content'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_content'] ) ) : '';
+		$utm_term     = isset( $_GET['utm_term'] ) ? sanitize_text_field( wp_unslash( $_GET['utm_term'] ) ) : '';
+		$landing_ref  = isset( $_GET['ref'] ) ? sanitize_text_field( wp_unslash( $_GET['ref'] ) ) : '';
+		$click_id     = isset( $_GET['mdf_click_id'] ) ? sanitize_text_field( wp_unslash( $_GET['mdf_click_id'] ) ) : '';
+		if ( '' === $landing_ref ) {
+			$landing_ref = isset( $_GET['landing_ref'] ) ? sanitize_text_field( wp_unslash( $_GET['landing_ref'] ) ) : '';
+		}
+
+		$is_mdf_utm = ( '' !== $utm_source && false !== strpos( $utm_source, 'marques-de-france' ) )
+			|| ( '' !== $utm_medium && false !== strpos( $utm_medium, 'marques-de-france' ) )
+			|| ( '' !== $utm_campaign && false !== strpos( $utm_campaign, 'marques-de-france' ) );
+		$is_mdf_ref = '' !== $landing_ref && false !== strpos( $landing_ref, 'marques-de-france' );
+
+		if ( ( $is_mdf_utm || $is_mdf_ref || '' !== $click_id ) && ! $this->get_session( self::KEY_ATTRIBUTED ) ) {
+			$this->set_session( self::KEY_ATTRIBUTED, '1' );
+		}
+
+		if ( '' !== $utm_source && ! $this->get_session( self::KEY_UTM_SOURCE ) ) {
+			$this->set_session( self::KEY_UTM_SOURCE, $utm_source );
+		}
+		if ( '' !== $utm_medium && ! $this->get_session( self::KEY_UTM_MEDIUM ) ) {
+			$this->set_session( self::KEY_UTM_MEDIUM, $utm_medium );
+		}
+		if ( '' !== $utm_campaign && ! $this->get_session( self::KEY_UTM_CAMPAIGN ) ) {
+			$this->set_session( self::KEY_UTM_CAMPAIGN, $utm_campaign );
+		}
+		if ( '' !== $utm_content && ! $this->get_session( self::KEY_UTM_CONTENT ) ) {
+			$this->set_session( self::KEY_UTM_CONTENT, $utm_content );
+		}
+		if ( '' !== $utm_term && ! $this->get_session( self::KEY_UTM_TERM ) ) {
+			$this->set_session( self::KEY_UTM_TERM, $utm_term );
+		}
+		if ( '' !== $landing_ref && ! $this->get_session( self::KEY_LANDING_REF ) ) {
+			$this->set_session( self::KEY_LANDING_REF, $landing_ref );
+		}
+		if ( '' !== $click_id && ! $this->get_session( self::KEY_CLICK_ID ) ) {
+			$this->set_session( self::KEY_CLICK_ID, $click_id );
+		}
+		if ( ! $this->get_session( self::KEY_LANDING_SITE ) && ! empty( $_SERVER['REQUEST_URI'] ) ) {
+			$current_url = home_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$this->set_session( self::KEY_LANDING_SITE, esc_url_raw( substr( $current_url, 0, 2048 ) ) );
 		}
 
 		// Only run once per session (don't overwrite JS-captured signals)
@@ -155,6 +212,7 @@ class MDFCFORWC_Tracker {
 			self::KEY_LANDING_SITE,
 			self::KEY_REFERRING,
 			self::KEY_LANDING_REF,
+			self::KEY_CLICK_ID,
 		];
 
 		$stamped = 0;
@@ -198,6 +256,7 @@ class MDFCFORWC_Tracker {
 			self::KEY_LANDING_SITE => 'mdf_landing_site',
 			self::KEY_REFERRING    => 'mdf_referring_site',
 			self::KEY_LANDING_REF  => 'mdf_landing_ref',
+			self::KEY_CLICK_ID     => 'mdf_click_id',
 		];
 
 		foreach ( $cookie_map as $session_key => $cookie_name ) {

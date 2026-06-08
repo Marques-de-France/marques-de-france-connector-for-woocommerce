@@ -88,6 +88,7 @@ class MDFCFORWC_Hub_Client {
 			'landingSite'       => $attribution['landing_site'] ?? '',
 			'referringSite'     => $attribution['referring_site'] ?? '',
 			'landingSiteRef'    => $attribution['landing_ref'] ?? '',
+			'clickId'           => $attribution['click_id'] ?? '',
 		];
 
 		$response = $this->post( '/api/wc/sales', $payload, self::SYNC_TIMEOUT );
@@ -309,6 +310,7 @@ class MDFCFORWC_Hub_Client {
 			'landingSite'       => $sale->landing_site ?? ( $signals['landing_site'] ?? '' ),
 			'referringSite'     => $sale->referring_site ?? ( $signals['referring_site'] ?? '' ),
 			'landingSiteRef'    => $sale->landing_ref ?? ( $signals['landing_ref'] ?? '' ),
+			'clickId'           => $signals['click_id'] ?? '',
 		];
 
 		$response = $this->post( '/api/wc/sales', $payload, self::SYNC_TIMEOUT );
