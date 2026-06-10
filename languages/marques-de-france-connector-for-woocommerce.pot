@@ -318,8 +318,8 @@ msgid_plural ""
 "with Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check "
 "your connection "
 "settings</a>."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong>Marques de France</strong> : %1$d vente n’a pas été synchronisée avec Marques de France depuis plus de 24\\u00a0heures. <a href=\"%2$s\">Vérifiez vos paramètres de connexion</a>."
+msgstr[1] "<strong>Marques de France</strong> : %1$d ventes n’ont pas été synchronisées avec Marques de France depuis plus de 24\\u00a0heures. <a href=\"%2$s\">Vérifiez vos paramètres de connexion</a>."
 
 #: admin/class-mdf-wc-admin.php:610
 msgid ""

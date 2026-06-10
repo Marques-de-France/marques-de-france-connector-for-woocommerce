@@ -516,7 +516,7 @@ class MDFCFORWC_Feed {
 	private function get_product_brand( int $product_id ): string {
 		$terms = get_the_terms( $product_id, 'product_brand' );
 		if ( $terms && ! is_wp_error( $terms ) ) {
-			return $terms[0]->name;
+			return html_entity_decode( (string) $terms[0]->name, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		}
 		return get_bloginfo( 'name' );
 	}

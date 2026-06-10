@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.2.1 =
+Bug fixes and stability improvements for feed branding, attribution persistence, and translation accuracy.
+
 = 1.2.0 =
 Improved partner-facing wording in admin notices and updated translations for clearer messaging.
 
@@ -111,6 +114,11 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix: decode HTML entities in product brand names shown in the feed and admin UI.
+* Improvement: strengthen attribution persistence with localStorage + cookie fallback for Safari/ITP resilience.
+* Fix: sync and refresh translation strings for the latest admin experience.
 
 = 1.2.0 =
 * Improvement: clearer admin notice wording for sales restore flow (partner-facing language).

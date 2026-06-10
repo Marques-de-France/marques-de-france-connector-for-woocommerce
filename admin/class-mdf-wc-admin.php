@@ -120,16 +120,6 @@ class MDFCFORWC_Admin {
 			self::MENU_SLUG . '-sales',
 			[ $this, 'render_page_sales' ]
 		);
-
-		// Submenu 4: Settings
-		add_submenu_page(
-			self::MENU_SLUG,
-			__( 'Settings', 'marques-de-france-connector-for-woocommerce' ),
-			__( 'Settings', 'marques-de-france-connector-for-woocommerce' ),
-			self::CAPABILITY,
-			self::MENU_SLUG . '-settings',
-			[ $this, 'render_page_settings' ]
-		);
 	}
 
 	// ---------------------------------------------------------------------------
@@ -518,7 +508,7 @@ class MDFCFORWC_Admin {
 	private function get_product_brand( int $product_id ): string {
 		$terms = get_the_terms( $product_id, 'product_brand' );
 		if ( $terms && ! is_wp_error( $terms ) ) {
-			return $terms[0]->name;
+			return html_entity_decode( (string) $terms[0]->name, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		}
 
 		return get_bloginfo( 'name' );
