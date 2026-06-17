@@ -1172,7 +1172,7 @@ export default function Feed() {
 					title={__("How to add the marques-de-france tag?", "marques-de-france-connector-for-woocommerce")}
 					onRequestClose={closeGuidanceModal}
 				>
-					<div style={{ display: "grid", gap: 0 }}>
+					<div style={{ display: "grid", gap: 12 }}>
 						<div style={{ display: "grid", gap: 12 }}>
 							{[
 								{

@@ -3,7 +3,7 @@
  * Plugin Name: Marques de France
  * Plugin URI:  https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce
  * Description: Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform.
- * Version:     1.2.1
+ * Version:     1.3.0
  * Author:      Marques de France
  * Author URI:  https://www.marques-de-france.fr
  * License:     GPL-2.0-or-later
@@ -26,8 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constants
 // ---------------------------------------------------------------------------
 
-define( 'MDFCFORWC_VERSION',     '1.2.1' );
-define( 'MDFCFORWC_DB_VERSION',  '1.2.1' );
+define( 'MDFCFORWC_VERSION',     '1.3.0' );
+define( 'MDFCFORWC_DB_VERSION',  '1.3.0' );
 define( 'MDFCFORWC_PLUGIN_FILE', __FILE__ );
 define( 'MDFCFORWC_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'MDFCFORWC_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );

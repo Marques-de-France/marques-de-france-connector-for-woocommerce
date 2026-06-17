@@ -210,6 +210,7 @@ class MDFCFORWC_Attribution {
 			[
 				'order_id'          => (string) $order->get_id(),
 				'order_number'      => $order->get_order_number(),
+				'order_key'         => $order->get_order_key(),
 				'amount'            => (float) $order->get_total(),
 				'currency'          => $order->get_currency(),
 				'attribution_source' => $signals['source'],
@@ -225,7 +226,7 @@ class MDFCFORWC_Attribution {
 				'status'            => 'confirmed',
 				'hub_synced'        => 0,
 			],
-			[ '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
+			[ '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
 		// Trigger Hub sync
