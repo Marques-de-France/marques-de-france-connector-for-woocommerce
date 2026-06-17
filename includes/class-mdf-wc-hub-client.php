@@ -76,6 +76,7 @@ class MDFCFORWC_Hub_Client {
 		$payload = [
 			'shopUrl'           => $this->site_url,
 			'orderId'           => (string) $order->get_id(),
+			'orderReference'    => $order->get_order_key(),
 			'orderName'         => $order->get_order_number(),
 			'amount'            => (float) $order->get_total(),
 			'currency'          => $order->get_currency(),
@@ -298,6 +299,7 @@ class MDFCFORWC_Hub_Client {
 		$payload = [
 			'shopUrl'           => $this->site_url,
 			'orderId'           => (string) $sale->order_id,
+			'orderReference'    => $sale->order_key ?? '',
 			'orderName'         => $sale->order_number ?? (string) $sale->order_id,
 			'amount'            => (float) $sale->amount,
 			'currency'          => $sale->currency ?? 'EUR',

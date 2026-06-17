@@ -43,6 +43,7 @@ class MDFCFORWC_Activator {
 			id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			order_id        VARCHAR(64)     NOT NULL,
 			order_number    VARCHAR(64)     DEFAULT NULL,
+			order_key       VARCHAR(64)     DEFAULT NULL,
 			amount          DECIMAL(10,2)   NOT NULL,
 			currency        VARCHAR(10)     NOT NULL DEFAULT 'EUR',
 			attribution_source VARCHAR(64)  DEFAULT NULL,
@@ -152,6 +153,15 @@ class MDFCFORWC_Activator {
 		$col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'hub_sync_attempts'" );
 		if ( ! $col ) {
 			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN hub_sync_attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER hub_synced" );
+		}
+
+		// Add order_key column (introduced in DB version 1.3.0). Stores the WooCommerce
+		// order key (e.g. "wc_order_abc123") — a stable, non-sequential identifier used by
+		// the Hub for migration-safe sale de-duplication, including from the DB-flush retry
+		// path where the live WC_Order is no longer available.
+		$order_key_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'order_key'" );
+		if ( ! $order_key_col ) {
+			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN order_key VARCHAR(64) DEFAULT NULL AFTER order_number" );
 		}
 		// phpcs:enable
 

@@ -465,6 +465,15 @@
       ],
       "Out of stock": [
         "Rupture de stock"
+      ],
+      "Failed to load chart data.": [
+        "Échec du chargement des données du graphique."
+      ],
+      "Select all products on this page": [
+        "Sélectionner tous les produits sur cette page"
+      ],
+      "Unable to update the selected products.": [
+        "Impossible de mettre à jour les produits sélectionnés."
       ]
     }
   }
