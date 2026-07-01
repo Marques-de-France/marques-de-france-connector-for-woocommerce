@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -117,6 +117,10 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.3.1 =
+* Fix: always enqueue the frontend attribution tracker on storefront pages, even before the secure token is saved, so first-touch signals are not lost on unconfigured stores.
+* Improvement: persist `click_id` directly on local sales rows and include the schema migration on upgrade.
 
 = 1.3.0 =
 * Improvement: attributed sales are now de-duplicated using the WooCommerce order key (a stable, non-sequential identifier) instead of the order ID. This prevents genuine new sales from being skipped when a store's order numbering resets after a migration or reinstall. Older orders already synced are unaffected; a small database column is added automatically on upgrade.

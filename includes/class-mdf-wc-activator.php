@@ -56,6 +56,7 @@ class MDFCFORWC_Activator {
 			landing_site    TEXT            DEFAULT NULL,
 			referring_site  TEXT            DEFAULT NULL,
 			landing_ref     VARCHAR(255)    DEFAULT NULL,
+			click_id        VARCHAR(128)    DEFAULT NULL,
 			status          VARCHAR(32)     NOT NULL DEFAULT 'confirmed',
 			hub_synced      TINYINT(1)      NOT NULL DEFAULT 0,
 			hub_sync_attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0,
@@ -162,6 +163,14 @@ class MDFCFORWC_Activator {
 		$order_key_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'order_key'" );
 		if ( ! $order_key_col ) {
 			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN order_key VARCHAR(64) DEFAULT NULL AFTER order_number" );
+		}
+
+		// Add click_id column (introduced in DB version 1.3.1). Stores the MDF click
+		// identifier directly on the local sales row for easier inspection/export,
+		// while signals_json remains the backward-compatible fallback.
+		$click_id_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'click_id'" );
+		if ( ! $click_id_col ) {
+			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN click_id VARCHAR(128) DEFAULT NULL AFTER landing_ref" );
 		}
 		// phpcs:enable
 

@@ -68,10 +68,9 @@ class MDFCFORWC_Tracker {
 	// ---------------------------------------------------------------------------
 
 	public function enqueue_tracker() {
-		$settings = MDFCFORWC_Settings::get_instance();
-		if ( ! MDFCFORWC_Settings::is_configured() ) {
-			return;
-		}
+		// Attribution capture must run on every storefront page, even before the
+		// merchant completes hub configuration, otherwise first-touch signals are
+		// lost on stores where the secure token has not been saved yet.
 
 		wp_enqueue_script(
 			'mdfcforwc-attribution-context',
