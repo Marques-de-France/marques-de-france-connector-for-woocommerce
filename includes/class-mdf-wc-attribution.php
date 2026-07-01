@@ -223,10 +223,11 @@ class MDFCFORWC_Attribution {
 				'landing_site'      => $signals['landing_site'],
 				'referring_site'    => $signals['referring_site'],
 				'landing_ref'       => $signals['landing_ref'],
+				'click_id'          => $signals['click_id'],
 				'status'            => 'confirmed',
 				'hub_synced'        => 0,
 			],
-			[ '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
+			[ '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
 		// Trigger Hub sync
