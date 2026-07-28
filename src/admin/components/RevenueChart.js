@@ -46,6 +46,8 @@ export default function RevenueChart({
 	loading = false,
 	revenueLabel = __('Revenue', 'marques-de-france-connector-for-woocommerce'),
 	salesLabel = __('Sales', 'marques-de-france-connector-for-woocommerce'),
+	commissionLabel = __('Commission', 'marques-de-france-connector-for-woocommerce'),
+	showCommission = false,
 	fallbackMessage = __('No data for the selected period.', 'marques-de-france-connector-for-woocommerce'),
 }) {
 	const chartItems = data?.data || [];
@@ -79,6 +81,24 @@ export default function RevenueChart({
 				pointRadius: 4,
 				pointBackgroundColor: '#051440',
 			},
+			...(showCommission
+				? [
+						{
+							type: 'line',
+							label: commissionLabel,
+							data: chartItems.map((item) =>
+								parseFloat(Number(item.commission || 0).toFixed(2))
+							),
+							borderColor: '#ed2e38',
+							backgroundColor: 'rgba(237,46,56,0.08)',
+							yAxisID: 'y',
+							tension: 0.3,
+							fill: false,
+							pointRadius: 4,
+							pointBackgroundColor: '#ed2e38',
+						},
+				  ]
+				: []),
 			{
 				type: 'bar',
 				label: salesLabel,

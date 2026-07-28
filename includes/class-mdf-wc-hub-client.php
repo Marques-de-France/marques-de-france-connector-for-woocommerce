@@ -79,6 +79,7 @@ class MDFCFORWC_Hub_Client {
 			'orderReference'    => $order->get_order_key(),
 			'orderName'         => $order->get_order_number(),
 			'amount'            => (float) $order->get_total(),
+			'netAmount'         => MDFCFORWC_Attribution::compute_net_amount( $order ),
 			'currency'          => $order->get_currency(),
 			'attributionSource' => $attribution['source'] ?? '',
 			'utmSource'         => $attribution['utm_source'] ?? '',
@@ -102,6 +103,7 @@ class MDFCFORWC_Hub_Client {
 			$this->schedule_retry( $order->get_id() );
 		} else {
 			$this->mark_synced( (string) $order->get_id() );
+			$this->store_commission_from_response( (string) $order->get_id(), $response );
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				error_log( '[MDF-WC] Hub sync successful for order ' . $order->get_id() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 			}
@@ -302,6 +304,7 @@ class MDFCFORWC_Hub_Client {
 			'orderReference'    => $sale->order_key ?? '',
 			'orderName'         => $sale->order_number ?? (string) $sale->order_id,
 			'amount'            => (float) $sale->amount,
+			'netAmount'         => isset( $sale->net_amount ) && null !== $sale->net_amount ? (float) $sale->net_amount : null,
 			'currency'          => $sale->currency ?? 'EUR',
 			'attributionSource' => $sale->attribution_source ?? ( $signals['source'] ?? '' ),
 			'utmSource'         => $sale->utm_source ?? ( $signals['utm_source'] ?? '' ),
@@ -326,6 +329,41 @@ class MDFCFORWC_Hub_Client {
 		}
 
 		$this->mark_synced( (string) $sale->order_id );
+		$this->store_commission_from_response( (string) $sale->order_id, $response );
+	}
+
+	/**
+	 * Parse commissionAmount / commissionRate from a Hub /sales response and persist
+	 * them on the matching local sales row. The Hub owns the affiliation rate and
+	 * returns a computed snapshot; a null/absent value clears nothing existing but
+	 * is stored as-is so the display reflects the Hub's decision.
+	 *
+	 * @param string $order_id Local order_id key.
+	 * @param mixed  $response wp_remote_post response.
+	 */
+	private function store_commission_from_response( string $order_id, $response ) {
+		$body = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+		if ( ! is_array( $body ) || ! array_key_exists( 'commissionAmount', $body ) ) {
+			return;
+		}
+
+		$commission_amount = ( null === $body['commissionAmount'] ) ? null : (float) $body['commissionAmount'];
+		$commission_rate   = ( isset( $body['commissionRate'] ) && null !== $body['commissionRate'] )
+			? (float) $body['commissionRate']
+			: null;
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$wpdb->update(
+			$wpdb->prefix . 'mdfcforwc_sales',
+			[
+				'commission_amount' => $commission_amount,
+				'commission_rate'   => $commission_rate,
+			],
+			[ 'order_id' => $order_id ],
+			[ '%f', '%f' ],
+			[ '%s' ]
+		);
 	}
 
 	private function schedule_retry( $order_id ) {

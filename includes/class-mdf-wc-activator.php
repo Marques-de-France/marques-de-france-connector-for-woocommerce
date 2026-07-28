@@ -45,6 +45,9 @@ class MDFCFORWC_Activator {
 			order_number    VARCHAR(64)     DEFAULT NULL,
 			order_key       VARCHAR(64)     DEFAULT NULL,
 			amount          DECIMAL(10,2)   NOT NULL,
+			net_amount      DECIMAL(10,2)   DEFAULT NULL,
+			commission_amount DECIMAL(10,2) DEFAULT NULL,
+			commission_rate FLOAT           DEFAULT NULL,
 			currency        VARCHAR(10)     NOT NULL DEFAULT 'EUR',
 			attribution_source VARCHAR(64)  DEFAULT NULL,
 			signals_json    TEXT            DEFAULT NULL,
@@ -171,6 +174,25 @@ class MDFCFORWC_Activator {
 		$click_id_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'click_id'" );
 		if ( ! $click_id_col ) {
 			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN click_id VARCHAR(128) DEFAULT NULL AFTER landing_ref" );
+		}
+
+		// Add commission columns (introduced in DB version 1.4.0). net_amount is the
+		// tax-excluded order revenue computed locally and sent to the Hub; the Hub
+		// derives commission_amount / commission_rate from the store's affiliation
+		// rate and returns them, which are stored here for display.
+		$net_amount_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'net_amount'" );
+		if ( ! $net_amount_col ) {
+			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN net_amount DECIMAL(10,2) DEFAULT NULL AFTER amount" );
+		}
+
+		$commission_amount_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'commission_amount'" );
+		if ( ! $commission_amount_col ) {
+			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN commission_amount DECIMAL(10,2) DEFAULT NULL AFTER net_amount" );
+		}
+
+		$commission_rate_col = $wpdb->get_var( "SHOW COLUMNS FROM `{$table}` LIKE 'commission_rate'" );
+		if ( ! $commission_rate_col ) {
+			$wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN commission_rate FLOAT DEFAULT NULL AFTER commission_amount" );
 		}
 		// phpcs:enable
 
@@ -349,13 +371,16 @@ class MDFCFORWC_Activator {
 					'order_id'           => $order_id,
 					'order_number'       => sanitize_text_field( $sale['orderName'] ?? $order_id ),
 					'amount'             => (float) ( $sale['amount'] ?? 0 ),
+					'net_amount'         => isset( $sale['netAmount'] ) && null !== $sale['netAmount'] ? (float) $sale['netAmount'] : null,
+					'commission_amount'  => isset( $sale['commissionAmount'] ) && null !== $sale['commissionAmount'] ? (float) $sale['commissionAmount'] : null,
+					'commission_rate'    => isset( $sale['commissionRate'] ) && null !== $sale['commissionRate'] ? (float) $sale['commissionRate'] : null,
 					'currency'           => sanitize_text_field( $sale['currency'] ?? 'EUR' ),
 					'attribution_source' => sanitize_text_field( $sale['attributionSource'] ?? '' ),
 					'status'             => $local_status,
 					'hub_synced'         => 1,
 					'created_at'         => $created_at,
 				],
-				[ '%s', '%s', '%f', '%s', '%s', '%s', '%d', '%s' ]
+				[ '%s', '%s', '%f', '%f', '%f', '%f', '%s', '%s', '%s', '%d', '%s' ]
 			);
 
 			if ( false !== $result ) {

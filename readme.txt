@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.3.1
+Stable tag: 1.4.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.4.0 =
+Adds affiliation commission tracking (net amount, commission amount, commission rate) and displays commission metrics in the sales dashboard for eligible stores.
+
 = 1.3.0 =
 More reliable sales attribution after a store migration or reinstall. A small database update runs automatically on upgrade.
 
@@ -117,6 +120,15 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.4.0 =
+* Feature: add affiliation commission support for attributed WooCommerce sales.
+* Feature: compute and sync `net_amount` to Marques de France Hub; store Hub-derived `commission_amount` and `commission_rate` snapshots.
+* Feature: add commission KPI and chart series in the Sales admin page when affiliation is active.
+* Feature: add a Commission column in the sales table when affiliation is active.
+* Improvement: expose `affiliationActive` and commission aggregates in admin REST endpoints.
+* Improvement: include commission fields in Hub backfill for newly inserted historical rows.
+* Improvement: add automatic DB migration for `net_amount`, `commission_amount`, and `commission_rate` columns.
 
 = 1.3.1 =
 * Fix: always enqueue the frontend attribution tracker on storefront pages, even before the secure token is saved, so first-touch signals are not lost on unconfigured stores.

@@ -214,6 +214,9 @@ export default function Sales() {
 	};
 
 	const currency = analytics?.currency || sales?.currency || 'EUR';
+	const affiliationActive = Boolean(
+		analytics?.affiliationActive || sales?.affiliationActive
+	);
 	const totalRevenue = (analytics?.data || []).reduce(
 		(sum, item) => sum + Number(item.revenue || 0),
 		0
@@ -222,6 +225,11 @@ export default function Sales() {
 		(sum, item) => sum + Number(item.conversions || 0),
 		0
 	);
+	const totalCommission = (analytics?.data || []).reduce(
+		(sum, item) => sum + Number(item.commission || 0),
+		0
+	);
+	const salesColSpan = affiliationActive ? 6 : 5;
 
 	const formatAmount = (
 		v,
@@ -307,8 +315,10 @@ export default function Sales() {
 							currency={currency}
 							granularity={granularity}
 							loading={analyticsLoading}
+							showCommission={affiliationActive}
 							revenueLabel={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
 							salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
+							commissionLabel={__('Commission', 'marques-de-france-connector-for-woocommerce')}
 						/>
 					)}
 				</div>
@@ -327,6 +337,14 @@ export default function Sales() {
 					subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
 					loading={analyticsLoading}
 				/>
+				{affiliationActive && (
+					<KpiCard
+						label={__('Commission', 'marques-de-france-connector-for-woocommerce')}
+						value={formatAmount(totalCommission, currency)}
+						subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
+						loading={analyticsLoading}
+					/>
+				)}
 			</div>
 
 			<div className="mdf-chart-card">
@@ -513,6 +531,14 @@ export default function Sales() {
 										{sortIndicator('amount')}
 									</button>
 								</th>
+								{affiliationActive && (
+									<th>
+										{__(
+											'Commission',
+											'marques-de-france-connector-for-woocommerce'
+										)}
+									</th>
+								)}
 								<th>
 									<button
 										type="button"
@@ -553,7 +579,7 @@ export default function Sales() {
 							{salesLoading && (
 								<tr>
 									<td
-										colSpan={5}
+										colSpan={salesColSpan}
 										className="mdf-table__loading"
 										style={{ textAlign: 'center' }}
 									>
@@ -565,7 +591,7 @@ export default function Sales() {
 							)}
 							{!salesLoading && salesError && (
 								<tr>
-									<td colSpan={5}>
+									<td colSpan={salesColSpan}>
 										<div className="mdf-error">
 											{salesError}
 										</div>
@@ -577,7 +603,7 @@ export default function Sales() {
 								sales?.sales?.length === 0 && (
 									<tr>
 										<td
-											colSpan={5}
+											colSpan={salesColSpan}
 											className="mdf-table__empty"
 										>
 											{__(
@@ -610,6 +636,15 @@ export default function Sales() {
 											<td>
 												{formatAmount(row.amount, row.currency)}
 											</td>
+											{affiliationActive && (
+												<td>
+													{row.commission_amount !== null &&
+													row.commission_amount !== undefined &&
+													row.commission_amount !== ''
+														? formatAmount(row.commission_amount, row.currency)
+														: '—'}
+												</td>
+											)}
 											<td>
 												<span
 													style={{

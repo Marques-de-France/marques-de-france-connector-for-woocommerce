@@ -180,6 +180,38 @@ class MDFCFORWC_Attribution {
 	}
 
 	// ---------------------------------------------------------------------------
+	// Net amount (HT) helper
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Compute the tax-excluded net order revenue used as the commission base.
+	 *
+	 * Mirrors the PrestaShop connector: net = grand total minus all tax, shipping
+	 * and fees, leaving only the tax-excluded product revenue. Clamped to >= 0 so
+	 * an unusual order (e.g. fully discounted) never yields a negative base.
+	 *
+	 * @param WC_Order $order The WooCommerce order.
+	 * @return float Net amount (>= 0), rounded to 2 decimals.
+	 */
+	public static function compute_net_amount( WC_Order $order ): float {
+		$fees_total = 0.0;
+		foreach ( $order->get_fees() as $fee ) {
+			$fees_total += (float) $fee->get_total();
+		}
+
+		$net = (float) $order->get_total()
+			- (float) $order->get_total_tax()
+			- (float) $order->get_shipping_total()
+			- $fees_total;
+
+		if ( $net < 0 ) {
+			$net = 0.0;
+		}
+
+		return round( $net, 2 );
+	}
+
+	// ---------------------------------------------------------------------------
 	// Hook: record local sale in wp_mdfcforwc_sales
 	// ---------------------------------------------------------------------------
 
@@ -212,6 +244,7 @@ class MDFCFORWC_Attribution {
 				'order_number'      => $order->get_order_number(),
 				'order_key'         => $order->get_order_key(),
 				'amount'            => (float) $order->get_total(),
+				'net_amount'        => self::compute_net_amount( $order ),
 				'currency'          => $order->get_currency(),
 				'attribution_source' => $signals['source'],
 				'signals_json'      => wp_json_encode( $signals ),
@@ -227,7 +260,7 @@ class MDFCFORWC_Attribution {
 				'status'            => 'confirmed',
 				'hub_synced'        => 0,
 			],
-			[ '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
+			[ '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
 		// Trigger Hub sync
