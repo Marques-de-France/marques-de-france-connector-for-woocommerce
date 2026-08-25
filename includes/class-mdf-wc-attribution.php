@@ -54,11 +54,37 @@ class MDFCFORWC_Attribution {
 	private function __construct() {}
 
 	private function init() {
+		// Classic (shortcode) checkout.
 		// Attach attribution data to order at creation
 		add_action( 'woocommerce_checkout_create_order', [ $this, 'attach_to_order' ], 10, 2 );
 
 		// Record sale in local DB after order is saved
 		add_action( 'woocommerce_checkout_order_created', [ $this, 'record_local_sale' ], 20 );
+
+		// Block checkout. It runs through the Store API, which never calls
+		// WC_Checkout::create_order(), so neither hook above ever fires and every
+		// attributed sale was silently dropped on block-based stores.
+		add_action( 'woocommerce_store_api_checkout_order_processed', [ $this, 'handle_store_api_order' ], 20 );
+	}
+
+	// ---------------------------------------------------------------------------
+	// Hook: block checkout (Store API)
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Runs both classic steps for orders created through the block checkout.
+	 *
+	 * Safe to run alongside the classic hooks: attach_to_order() only writes meta
+	 * for attributed orders, and record_local_sale() is idempotent on order_id.
+	 */
+	public function handle_store_api_order( $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$this->attach_to_order( $order, [] );
+		$order->save();
+		$this->record_local_sale( $order );
 	}
 
 	// ---------------------------------------------------------------------------
@@ -86,7 +112,7 @@ class MDFCFORWC_Attribution {
 	 * Collect all attribution signals.
 	 * Returns an array with all keys, empty strings when a signal is absent.
 	 */
-	public function collect_signals(): array {
+	public function collect_signals( ?WC_Order $order = null ): array {
 		$attributed    = $this->read_signal( MDFCFORWC_Tracker::KEY_ATTRIBUTED,   'mdf_attributed' );
 		$utm_source    = $this->read_signal( MDFCFORWC_Tracker::KEY_UTM_SOURCE,    'mdf_utm_source' );
 		$utm_medium    = $this->read_signal( MDFCFORWC_Tracker::KEY_UTM_MEDIUM,    'mdf_utm_medium' );
@@ -106,6 +132,21 @@ class MDFCFORWC_Attribution {
 			if ( $referer_host && $referer_host !== $site_host ) {
 				$referring = $raw_referer;
 			}
+		}
+
+		// Fallback: WooCommerce's own Order Attribution (WC 8.5+), captured
+		// server-side by core. It survives everything the MDF tracker cannot:
+		// consent managers blocking our script, Safari ITP pruning storage, and
+		// cookies that never reach this request. Only fills gaps — our own
+		// signals still win, since they carry click_id and landing_ref.
+		if ( $order instanceof WC_Order ) {
+			$utm_source   = '' !== $utm_source   ? $utm_source   : (string) $order->get_meta( '_wc_order_attribution_utm_source' );
+			$utm_medium   = '' !== $utm_medium   ? $utm_medium   : (string) $order->get_meta( '_wc_order_attribution_utm_medium' );
+			$utm_campaign = '' !== $utm_campaign ? $utm_campaign : (string) $order->get_meta( '_wc_order_attribution_utm_campaign' );
+			$utm_content  = '' !== $utm_content  ? $utm_content  : (string) $order->get_meta( '_wc_order_attribution_utm_content' );
+			$utm_term     = '' !== $utm_term     ? $utm_term     : (string) $order->get_meta( '_wc_order_attribution_utm_term' );
+			$landing_site = '' !== $landing_site ? $landing_site : (string) $order->get_meta( '_wc_order_attribution_session_entry' );
+			$referring    = '' !== $referring    ? $referring    : (string) $order->get_meta( '_wc_order_attribution_referrer' );
 		}
 
 		// Determine attribution source — each signal is checked independently,
@@ -158,7 +199,7 @@ class MDFCFORWC_Attribution {
 	// ---------------------------------------------------------------------------
 
 	public function attach_to_order( WC_Order $order, array $data ) {
-		$signals = $this->collect_signals();
+		$signals = $this->collect_signals( $order );
 
 		// Only store attribution meta for MDF-attributed orders
 		if ( ! $this->is_mdf_attributed( $signals ) ) {
@@ -180,11 +221,43 @@ class MDFCFORWC_Attribution {
 	}
 
 	// ---------------------------------------------------------------------------
+	// Net amount (HT) helper
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Compute the tax-excluded net order revenue used as the commission base.
+	 *
+	 * Mirrors the PrestaShop connector: net = grand total minus all tax, shipping
+	 * and fees, leaving only the tax-excluded product revenue. Clamped to >= 0 so
+	 * an unusual order (e.g. fully discounted) never yields a negative base.
+	 *
+	 * @param WC_Order $order The WooCommerce order.
+	 * @return float Net amount (>= 0), rounded to 2 decimals.
+	 */
+	public static function compute_net_amount( WC_Order $order ): float {
+		$fees_total = 0.0;
+		foreach ( $order->get_fees() as $fee ) {
+			$fees_total += (float) $fee->get_total();
+		}
+
+		$net = (float) $order->get_total()
+			- (float) $order->get_total_tax()
+			- (float) $order->get_shipping_total()
+			- $fees_total;
+
+		if ( $net < 0 ) {
+			$net = 0.0;
+		}
+
+		return round( $net, 2 );
+	}
+
+	// ---------------------------------------------------------------------------
 	// Hook: record local sale in wp_mdfcforwc_sales
 	// ---------------------------------------------------------------------------
 
 	public function record_local_sale( WC_Order $order ) {
-		$signals = $this->collect_signals();
+		$signals = $this->collect_signals( $order );
 
 		if ( ! $this->is_mdf_attributed( $signals ) ) {
 			return; // Not an MDF-attributed order — don't record
@@ -212,6 +285,7 @@ class MDFCFORWC_Attribution {
 				'order_number'      => $order->get_order_number(),
 				'order_key'         => $order->get_order_key(),
 				'amount'            => (float) $order->get_total(),
+				'net_amount'        => self::compute_net_amount( $order ),
 				'currency'          => $order->get_currency(),
 				'attribution_source' => $signals['source'],
 				'signals_json'      => wp_json_encode( $signals ),
@@ -227,7 +301,7 @@ class MDFCFORWC_Attribution {
 				'status'            => 'confirmed',
 				'hub_synced'        => 0,
 			],
-			[ '%s', '%s', '%s', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
+			[ '%s', '%s', '%s', '%f', '%f', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d' ]
 		);
 
 		// Trigger Hub sync

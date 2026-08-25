@@ -3,7 +3,7 @@
  * Plugin Name: Marques de France
  * Plugin URI:  https://github.com/Marques-de-France/marques-de-france-connector-for-woocommerce
  * Description: Connect your WooCommerce store to the Marques de France guide. Track attributed sales, generate a product feed, and automatically sync data to the MDF platform.
- * Version:     1.3.1
+ * Version:     1.4.1
  * Author:      Marques de France
  * Author URI:  https://www.marques-de-france.fr
  * License:     GPL-2.0-or-later
@@ -11,7 +11,7 @@
  * Text Domain: marques-de-france-connector-for-woocommerce
  * Domain Path: /languages
  * Requires at least: 6.5
- * Tested up to:      7.0
+ * Tested up to:      7.1
  * Requires PHP:      7.4
  * Requires Plugins:  woocommerce
  *
@@ -26,8 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constants
 // ---------------------------------------------------------------------------
 
-define( 'MDFCFORWC_VERSION',     '1.3.1' );
-define( 'MDFCFORWC_DB_VERSION',  '1.3.1' );
+define( 'MDFCFORWC_VERSION',     '1.4.1' );
+define( 'MDFCFORWC_DB_VERSION',  '1.4.0' );
 define( 'MDFCFORWC_PLUGIN_FILE', __FILE__ );
 define( 'MDFCFORWC_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'MDFCFORWC_PLUGIN_URL',  plugin_dir_url( __FILE__ ) );
@@ -88,6 +88,36 @@ function mdfcforwc_init() {
 	MDFCFORWC_Hub_Client::get_instance();
 	MDFCFORWC_Feed::get_instance();
 	MDFCFORWC_Admin::get_instance();
+
+	// One-time recovery for tokens cleared by the Settings save bug present from
+	// 1.2.0 to 1.4.0. Activation is the only path that restores a token from the
+	// Hub, and plugin updates do not fire the activation hook, so affected stores
+	// would otherwise stay disconnected — and, since 1.4.1, serve no feed at all.
+	add_action( 'admin_init', 'mdfcforwc_maybe_recover_secure_token' );
+}
+
+/**
+ * Attempts to restore a missing secure token from the Hub.
+ *
+ * Retries once a day rather than once ever: the Hub may withhold the token until
+ * the brand is approved, so a single early attempt would fail permanently and
+ * leave the store unconfigured with no way to recover. Admin-only, so the
+ * outbound request never runs on a storefront page load.
+ */
+function mdfcforwc_maybe_recover_secure_token() {
+	// Nothing to recover.
+	if ( MDFCFORWC_Settings::is_configured() ) {
+		return;
+	}
+
+	// Back off between attempts. Set before the call so a timeout cannot retry it
+	// on every admin page load.
+	if ( false !== get_transient( 'mdfcforwc_token_recovery_backoff' ) ) {
+		return;
+	}
+	set_transient( 'mdfcforwc_token_recovery_backoff', 1, DAY_IN_SECONDS );
+
+	MDFCFORWC_Activator::register_with_hub();
 }
 
 /**

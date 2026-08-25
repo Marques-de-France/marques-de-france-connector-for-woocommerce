@@ -1,5 +1,5 @@
 {
-  "translation-revision-date": "2026-06-04 12:18+0200",
+  "translation-revision-date": "2026-08-25 11:30+0200",
   "generator": "custom-mdf-json-export",
   "domain": "marques-de-france-connector-for-woocommerce",
   "locale_data": {
@@ -474,6 +474,18 @@
       ],
       "Unable to update the selected products.": [
         "Impossible de mettre à jour les produits sélectionnés."
+      ],
+      "No changes to save.": [
+        "Aucune modification à enregistrer."
+      ],
+      "Please enter your secure token.": [
+        "Veuillez saisir votre code d’accès sécurisé."
+      ],
+      "The secure token cannot be empty.": [
+        "Le code d’accès sécurisé ne peut pas être vide."
+      ],
+      "Commission": [
+        "Commission"
       ]
     }
   }

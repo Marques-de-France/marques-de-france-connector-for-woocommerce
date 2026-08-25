@@ -19,14 +19,46 @@ export default function Settings() {
 
 	const handleSave = async ( e ) => {
 		e.preventDefault();
+
+		// The raw token is never sent to the browser, so while the field still shows
+		// the mask sentinel there is no new value to save. Posting the empty state
+		// behind the mask would wipe the stored token, which silently disables the
+		// feed's authentication and stops sales syncing to the Hub.
+		if ( isMasked ) {
+			setNotice( {
+				type: 'success',
+				message: __(
+					'No changes to save.',
+					'marques-de-france-connector-for-woocommerce'
+				),
+			} );
+			return;
+		}
+
+		const trimmedToken = token.trim();
+
+		if ( '' === trimmedToken ) {
+			setNotice( {
+				type: 'error',
+				message: __(
+					'Please enter your secure token.',
+					'marques-de-france-connector-for-woocommerce'
+				),
+			} );
+			return;
+		}
+
 		setSaving( true );
 		setNotice( null );
 		try {
 			await apiFetch( {
 				path: '/mdfcforwc/v1/admin/settings',
 				method: 'POST',
-				data: { mdfcforwc_secure_token: token },
+				data: { mdfcforwc_secure_token: trimmedToken },
 			} );
+			// Re-mask so the saved token is not left readable in the field.
+			setToken( '' );
+			setIsMasked( true );
 			setNotice( {
 				type: 'success',
 				message: __(
@@ -88,6 +120,13 @@ export default function Settings() {
 								if ( isMasked ) {
 									setIsMasked( false );
 									setToken( '' );
+								}
+							} }
+							onBlur={ () => {
+								// Left untouched after focusing: restore the mask so the
+								// stored token is not mistaken for a cleared field.
+								if ( configured && '' === token.trim() ) {
+									setIsMasked( true );
 								}
 							} }
 							onChange={ ( e ) => setToken( e.target.value ) }

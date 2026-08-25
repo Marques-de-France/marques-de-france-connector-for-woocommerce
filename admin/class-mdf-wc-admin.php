@@ -75,6 +75,15 @@ class MDFCFORWC_Admin {
 		set_transient( $cache_key, 1, 5 * MINUTE_IN_SECONDS );
 	}
 
+	/**
+	 * Whether the store has an active affiliation program, as last reported by the
+	 * Hub /status endpoint and cached in the mdfcforwc_affiliation_active option.
+	 * The Hub owns this flag; the admin UI only reflects the cached value.
+	 */
+	private function is_affiliation_active(): bool {
+		return '1' === get_option( 'mdfcforwc_affiliation_active', '0' );
+	}
+
 	// ---------------------------------------------------------------------------
 	// Admin Menu
 	// ---------------------------------------------------------------------------
@@ -119,6 +128,19 @@ class MDFCFORWC_Admin {
 			self::CAPABILITY,
 			self::MENU_SLUG . '-sales',
 			[ $this, 'render_page_sales' ]
+		);
+
+		// Submenu 4: Settings.
+		// The admin app routes between tabs with history.pushState, so this page
+		// must exist server-side too — otherwise loading or refreshing its URL
+		// directly is denied by WordPress, which has no page registered for the slug.
+		add_submenu_page(
+			self::MENU_SLUG,
+			__( 'Settings', 'marques-de-france-connector-for-woocommerce' ),
+			__( 'Settings', 'marques-de-france-connector-for-woocommerce' ),
+			self::CAPABILITY,
+			self::MENU_SLUG . '-settings',
+			[ $this, 'render_page_settings' ]
 		);
 	}
 
@@ -388,8 +410,27 @@ class MDFCFORWC_Admin {
 		] );
 	}
 
-	public function rest_save_settings( WP_REST_Request $request ): WP_REST_Response {
-		$token = $request->get_param( 'mdfcforwc_secure_token' );
+	/**
+	 * Saves the secure token.
+	 *
+	 * An empty value is rejected rather than stored. The admin UI masks the token
+	 * (the raw value is never sent to the browser), so an empty submission means
+	 * "unchanged", never "clear it". Persisting it would disable the feed's token
+	 * check and drop the X-MDF-Token header on Hub syncs.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function rest_save_settings( WP_REST_Request $request ) {
+		$token = trim( (string) $request->get_param( 'mdfcforwc_secure_token' ) );
+
+		if ( '' === $token ) {
+			return new WP_Error(
+				'mdfcforwc_empty_token',
+				__( 'The secure token cannot be empty.', 'marques-de-france-connector-for-woocommerce' ),
+				[ 'status' => 400 ]
+			);
+		}
+
 		update_option( 'mdfcforwc_secure_token', $token );
 		return new WP_REST_Response( [ 'success' => true ], 200 );
 	}
@@ -707,6 +748,7 @@ class MDFCFORWC_Admin {
 		$total     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
 		$confirmed = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE status = 'confirmed'" );
 		$revenue   = (float) $wpdb->get_var( "SELECT COALESCE(SUM(amount), 0) FROM `{$table}` WHERE status = 'confirmed'" );
+		$commission = (float) $wpdb->get_var( "SELECT COALESCE(SUM(commission_amount), 0) FROM `{$table}` WHERE status = 'confirmed'" );
 		$unsynced  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE hub_synced = 0 AND status = 'confirmed'" );
 
 		// This-month stats
@@ -714,6 +756,12 @@ class MDFCFORWC_Admin {
 		$month_rev   = (float) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COALESCE(SUM(amount), 0) FROM `{$table}` WHERE status='confirmed' AND created_at >= %s",
+				$month_start
+			)
+		);
+		$month_commission = (float) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COALESCE(SUM(commission_amount), 0) FROM `{$table}` WHERE status='confirmed' AND created_at >= %s",
 				$month_start
 			)
 		);
@@ -729,10 +777,13 @@ class MDFCFORWC_Admin {
 			'totalSales'      => $total,
 			'confirmedSales'  => $confirmed,
 			'totalRevenue'    => $revenue,
+			'totalCommission' => $commission,
 			'unsyncedSales'   => $unsynced,
 			'currency'        => get_woocommerce_currency(),
 			'monthRevenue'    => $month_rev,
+			'monthCommission' => $month_commission,
 			'monthSales'      => $month_count,
+			'affiliationActive' => $this->is_affiliation_active(),
 			'configured'      => MDFCFORWC_Settings::is_configured(),
 		] );
 	}
@@ -765,7 +816,7 @@ class MDFCFORWC_Admin {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT created_at, amount FROM `{$table}` WHERE status = 'confirmed' AND created_at BETWEEN %s AND %s ORDER BY created_at ASC",
+				"SELECT created_at, amount, commission_amount FROM `{$table}` WHERE status = 'confirmed' AND created_at BETWEEN %s AND %s ORDER BY created_at ASC",
 				$from_dt,
 				$to_dt
 			)
@@ -778,10 +829,11 @@ class MDFCFORWC_Admin {
 			$dt  = new DateTime( $row->created_at, new DateTimeZone( 'UTC' ) );
 			$key = $granularity === 'month' ? $dt->format( 'Y-m' ) : $dt->format( 'Y-m-d' );
 			if ( ! isset( $map[ $key ] ) ) {
-				$map[ $key ] = [ 'date' => $key, 'revenue' => 0, 'conversions' => 0 ];
+				$map[ $key ] = [ 'date' => $key, 'revenue' => 0, 'conversions' => 0, 'commission' => 0 ];
 			}
 			$map[ $key ]['revenue']     += (float) $row->amount;
 			$map[ $key ]['conversions'] += 1;
+			$map[ $key ]['commission']  += (float) $row->commission_amount;
 		}
 
 		// Fill gaps.
@@ -801,12 +853,12 @@ class MDFCFORWC_Admin {
 			$key = $granularity === 'month' ? $current->format( 'Y-m' ) : $current->format( 'Y-m-d' );
 			if ( ! in_array( $key, $seen, true ) ) {
 				$seen[]  = $key;
-				$data[]  = $map[ $key ] ?? [ 'date' => $key, 'revenue' => 0, 'conversions' => 0 ];
+				$data[]  = $map[ $key ] ?? [ 'date' => $key, 'revenue' => 0, 'conversions' => 0, 'commission' => 0 ];
 			}
 			$granularity === 'month' ? $current->modify( '+1 month' ) : $current->modify( '+1 day' );
 		}
 
-		return rest_ensure_response( [ 'data' => $data, 'currency' => get_woocommerce_currency() ] );
+		return rest_ensure_response( [ 'data' => $data, 'currency' => get_woocommerce_currency(), 'affiliationActive' => $this->is_affiliation_active() ] );
 	}
 
 	public function rest_sales( WP_REST_Request $request ) {
@@ -889,11 +941,19 @@ class MDFCFORWC_Admin {
 				: $wpdb->prepare( $rows_base, $per_page, $offset ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
+
+		$commission_base = 'SELECT COALESCE(SUM(commission_amount), 0) FROM ' . $table_name_quoted . $where_sql;
+		$total_commission = (float) ( $params
+			? $wpdb->get_var( $wpdb->prepare( $commission_base, ...$params ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			: $wpdb->get_var( $commission_base ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		);
 		// phpcs:enable
 
 		return rest_ensure_response( [
 			'sales'    => $rows,
 			'total'    => $total,
+			'totalCommission' => $total_commission,
+			'affiliationActive' => $this->is_affiliation_active(),
 			'page'     => $page,
 			'per_page' => $per_page,
 		] );
@@ -944,6 +1004,12 @@ class MDFCFORWC_Admin {
 		if ( is_array( $body ) ) {
 			unset( $body['error'] ); // already mapped to 'reason'
 			$result = array_merge( $result, $body );
+
+			// Cache the affiliation flag so sales/stats endpoints can reflect it without
+			// an extra Hub round-trip. The Hub is the source of truth for this value.
+			if ( array_key_exists( 'affiliationActive', $body ) ) {
+				update_option( 'mdfcforwc_affiliation_active', ! empty( $body['affiliationActive'] ) ? '1' : '0' );
+			}
 		}
 
 		return rest_ensure_response( $result );
@@ -970,11 +1036,16 @@ class MDFCFORWC_Admin {
 		// Use WP_Query directly: wc_get_products() in WC 10.7+ auto-injects a
 		// product_type tax_query restricted to types registered in wc_get_product_types(),
 		// which silently excludes composite products and other third-party types.
+		//
+		// Fetch all matching products (posts_per_page = -1) and paginate in PHP AFTER
+		// eligibility filtering. Additional filters (price <= 0, variable products with
+		// no purchasable variants) run in the loop below and cannot be expressed in the
+		// query, so paginating at the SQL level would show fewer than per_page rows and
+		// report an inflated total.
 		$wp_args = [
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => $per_page,
-			'paged'          => $page,
+			'posts_per_page' => -1,
 			'orderby'        => $order_args['orderby'],
 			'order'          => $order_args['order'],
 		];
@@ -1100,9 +1171,9 @@ class MDFCFORWC_Admin {
 			];
 		}
 
-		$total       = max( 1, (int) $wp_query->found_posts );
-		$total_pages = max( 1, (int) $wp_query->max_num_pages );
-		$items       = $raw_items;
+		$total       = count( $raw_items );
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$items       = array_slice( $raw_items, ( $page - 1 ) * $per_page, $per_page );
 
 		$response = [
 			'products'    => $items,

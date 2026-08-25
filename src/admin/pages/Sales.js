@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button, DatePicker, Popover } from '@wordpress/components';
@@ -144,8 +144,11 @@ export default function Sales() {
 	const [salesError, setSalesError] = useState(null);
 	const [isFromPickerOpen, setIsFromPickerOpen] = useState(false);
 	const [isToPickerOpen, setIsToPickerOpen] = useState(false);
-	const fromButtonRef = useRef(null);
-	const toButtonRef = useRef(null);
+	// Popover's `anchor` prop needs the resolved DOM element, so these are held in
+	// state (not a ref) to re-render the Popover once the button has mounted.
+	// Passing the setter itself as the callback ref keeps its identity stable.
+	const [fromButton, setFromButton] = useState(null);
+	const [toButton, setToButton] = useState(null);
 
 	// Fetch analytics chart data
 	useEffect(() => {
@@ -214,6 +217,9 @@ export default function Sales() {
 	};
 
 	const currency = analytics?.currency || sales?.currency || 'EUR';
+	const affiliationActive = Boolean(
+		analytics?.affiliationActive || sales?.affiliationActive
+	);
 	const totalRevenue = (analytics?.data || []).reduce(
 		(sum, item) => sum + Number(item.revenue || 0),
 		0
@@ -222,6 +228,11 @@ export default function Sales() {
 		(sum, item) => sum + Number(item.conversions || 0),
 		0
 	);
+	const totalCommission = (analytics?.data || []).reduce(
+		(sum, item) => sum + Number(item.commission || 0),
+		0
+	);
+	const salesColSpan = affiliationActive ? 6 : 5;
 
 	const formatAmount = (
 		v,
@@ -307,8 +318,10 @@ export default function Sales() {
 							currency={currency}
 							granularity={granularity}
 							loading={analyticsLoading}
+							showCommission={affiliationActive}
 							revenueLabel={__('Revenue', 'marques-de-france-connector-for-woocommerce')}
 							salesLabel={__('Sales', 'marques-de-france-connector-for-woocommerce')}
+							commissionLabel={__('Commission', 'marques-de-france-connector-for-woocommerce')}
 						/>
 					)}
 				</div>
@@ -327,6 +340,14 @@ export default function Sales() {
 					subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
 					loading={analyticsLoading}
 				/>
+				{affiliationActive && (
+					<KpiCard
+						label={__('Commission', 'marques-de-france-connector-for-woocommerce')}
+						value={formatAmount(totalCommission, currency)}
+						subLabel={__('On selected period', 'marques-de-france-connector-for-woocommerce')}
+						loading={analyticsLoading}
+					/>
+				)}
 			</div>
 
 			<div className="mdf-chart-card">
@@ -387,7 +408,7 @@ export default function Sales() {
 					</select>
 					<div className="mdf-filter-calendar" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
 						<Button
-							ref={fromButtonRef}
+							ref={setFromButton}
 							variant="secondary"
 							style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 							onClick={() => setIsFromPickerOpen((open) => !open)}
@@ -402,7 +423,7 @@ export default function Sales() {
 						</Button>
 						{isFromPickerOpen && (
 							<Popover
-								anchorRef={fromButtonRef}
+								anchor={fromButton}
 								className="mdf-date-picker-popover"
 								onClose={() => setIsFromPickerOpen(false)}
 							>
@@ -417,7 +438,7 @@ export default function Sales() {
 							</Popover>
 						)}
 						<Button
-							ref={toButtonRef}
+							ref={setToButton}
 							variant="secondary"
 							style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 							onClick={() => setIsToPickerOpen((open) => !open)}
@@ -432,7 +453,7 @@ export default function Sales() {
 						</Button>
 						{isToPickerOpen && (
 							<Popover
-								anchorRef={toButtonRef}
+								anchor={toButton}
 								className="mdf-date-picker-popover"
 								onClose={() => setIsToPickerOpen(false)}
 							>
@@ -513,6 +534,14 @@ export default function Sales() {
 										{sortIndicator('amount')}
 									</button>
 								</th>
+								{affiliationActive && (
+									<th>
+										{__(
+											'Commission',
+											'marques-de-france-connector-for-woocommerce'
+										)}
+									</th>
+								)}
 								<th>
 									<button
 										type="button"
@@ -553,7 +582,7 @@ export default function Sales() {
 							{salesLoading && (
 								<tr>
 									<td
-										colSpan={5}
+										colSpan={salesColSpan}
 										className="mdf-table__loading"
 										style={{ textAlign: 'center' }}
 									>
@@ -565,7 +594,7 @@ export default function Sales() {
 							)}
 							{!salesLoading && salesError && (
 								<tr>
-									<td colSpan={5}>
+									<td colSpan={salesColSpan}>
 										<div className="mdf-error">
 											{salesError}
 										</div>
@@ -577,7 +606,7 @@ export default function Sales() {
 								sales?.sales?.length === 0 && (
 									<tr>
 										<td
-											colSpan={5}
+											colSpan={salesColSpan}
 											className="mdf-table__empty"
 										>
 											{__(
@@ -610,6 +639,15 @@ export default function Sales() {
 											<td>
 												{formatAmount(row.amount, row.currency)}
 											</td>
+											{affiliationActive && (
+												<td>
+													{row.commission_amount !== null &&
+													row.commission_amount !== undefined &&
+													row.commission_amount !== ''
+														? formatAmount(row.commission_amount, row.currency)
+														: '—'}
+												</td>
+											)}
 											<td>
 												<span
 													style={{

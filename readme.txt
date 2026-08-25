@@ -2,8 +2,8 @@
 Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
-Tested up to: 7.0
-Stable tag: 1.3.1
+Tested up to: 7.1
+Stable tag: 1.4.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,12 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.4.1 =
+Important update. Recommended for all stores. Fixes attributed sales not being recorded on stores using the block-based checkout. Also a security fix: Stores without a stored secure token were serving their full product feed to anyone; the feed now always requires a valid token. Missing tokens are restored from Marques de France automatically. Also confirms compatibility with WordPress 7.1.
+
+= 1.4.0 =
+Adds affiliation commission tracking (net amount, commission amount, commission rate) and displays commission metrics in the sales dashboard for eligible stores.
+
 = 1.3.0 =
 More reliable sales attribution after a store migration or reinstall. A small database update runs automatically on upgrade.
 
@@ -117,6 +123,26 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.4.1 =
+* Fix: attributed sales are now recorded on stores using the block-based checkout. The block checkout runs through the WooCommerce Store API, which never triggered the hooks the plugin relied on, so every attributed sale on those stores was silently lost.
+* Improvement: fall back to WooCommerce's own order attribution data when the plugin's own tracking signals are unavailable, for example when a cookie consent banner blocks the tracker or Safari clears stored data.
+* Security: the product feed now requires a valid secure token in all cases. Since 1.2.0, a store with no stored token served its full product catalogue to any unauthenticated request.
+* Fix: a missing secure token is now restored from Marques de France automatically, retried daily from the admin, instead of only on plugin activation.
+* Feature: restore the Settings tab so a store can enter or update its secure token. It remains reachable while a store is pending approval, since a missing token is itself a reason approval fails.
+* Improvement: declare compatibility with WordPress 7.1.
+* Fix: date range pickers in the Sales screen now anchor correctly against the updated WordPress component library (migrated from the removed `anchorRef` prop).
+* Fix: the feed product selector now returns a full page of eligible products and an accurate total count, instead of dropping rows filtered out after the query.
+* Improvement: exclude development-only and superseded files from the released package.
+
+= 1.4.0 =
+* Feature: add affiliation commission support for attributed WooCommerce sales.
+* Feature: compute and sync `net_amount` to Marques de France Hub; store Hub-derived `commission_amount` and `commission_rate` snapshots.
+* Feature: add commission KPI and chart series in the Sales admin page when affiliation is active.
+* Feature: add a Commission column in the sales table when affiliation is active.
+* Improvement: expose `affiliationActive` and commission aggregates in admin REST endpoints.
+* Improvement: include commission fields in Hub backfill for newly inserted historical rows.
+* Improvement: add automatic DB migration for `net_amount`, `commission_amount`, and `commission_rate` columns.
 
 = 1.3.1 =
 * Fix: always enqueue the frontend attribution tracker on storefront pages, even before the secure token is saved, so first-touch signals are not lost on unconfigured stores.
