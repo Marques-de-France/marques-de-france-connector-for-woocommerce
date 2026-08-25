@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import { __ } from '@wordpress/i18n';
 import apiFetch from '@wordpress/api-fetch';
 import { Button, DatePicker, Popover } from '@wordpress/components';
@@ -144,8 +144,11 @@ export default function Sales() {
 	const [salesError, setSalesError] = useState(null);
 	const [isFromPickerOpen, setIsFromPickerOpen] = useState(false);
 	const [isToPickerOpen, setIsToPickerOpen] = useState(false);
-	const fromButtonRef = useRef(null);
-	const toButtonRef = useRef(null);
+	// Popover's `anchor` prop needs the resolved DOM element, so these are held in
+	// state (not a ref) to re-render the Popover once the button has mounted.
+	// Passing the setter itself as the callback ref keeps its identity stable.
+	const [fromButton, setFromButton] = useState(null);
+	const [toButton, setToButton] = useState(null);
 
 	// Fetch analytics chart data
 	useEffect(() => {
@@ -405,7 +408,7 @@ export default function Sales() {
 					</select>
 					<div className="mdf-filter-calendar" style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
 						<Button
-							ref={fromButtonRef}
+							ref={setFromButton}
 							variant="secondary"
 							style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 							onClick={() => setIsFromPickerOpen((open) => !open)}
@@ -420,7 +423,7 @@ export default function Sales() {
 						</Button>
 						{isFromPickerOpen && (
 							<Popover
-								anchorRef={fromButtonRef}
+								anchor={fromButton}
 								className="mdf-date-picker-popover"
 								onClose={() => setIsFromPickerOpen(false)}
 							>
@@ -435,7 +438,7 @@ export default function Sales() {
 							</Popover>
 						)}
 						<Button
-							ref={toButtonRef}
+							ref={setToButton}
 							variant="secondary"
 							style={{ backgroundColor: '#fff', minHeight: 40, height: 40 }}
 							onClick={() => setIsToPickerOpen((open) => !open)}
@@ -450,7 +453,7 @@ export default function Sales() {
 						</Button>
 						{isToPickerOpen && (
 							<Popover
-								anchorRef={toButtonRef}
+								anchor={toButton}
 								className="mdf-date-picker-popover"
 								onClose={() => setIsToPickerOpen(false)}
 							>

@@ -1312,6 +1312,8 @@ export default function Feed() {
 				>
 					<div style={{ display: "grid", gap: 16, minWidth: 420 }}>
 						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
 							label={__(
 								"Selection method",
 								"marques-de-france-connector-for-woocommerce",

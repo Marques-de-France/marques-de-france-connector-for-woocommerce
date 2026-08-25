@@ -12,8 +12,9 @@
  *   Paginated: ?per_page=200&page=1 (default: 200 items per page).
  *
  * Authentication:
- *   ?token=<secureToken>  — optional when no secure token is configured.
- *   When a token is configured, it gates access to the feed.
+ *   ?token=<secureToken>  — always required.
+ *   Requests without a matching token get a 403, and a store with no configured
+ *   token serves no feed at all (fail closed).
  *   No user auth required.
  *
  * @package MDFCFORWC_Connector
@@ -85,17 +86,23 @@ class MDFCFORWC_Feed {
 
 		$stored_token = MDFCFORWC_Settings::get_secure_token();
 
-		if ( '' !== $stored_token ) {
-			$provided_token = (string) $token;
-			if ( '' === $provided_token ) {
-				return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
-			}
+		// Fail closed. Previously an empty stored token skipped the check entirely,
+		// so a store with no token (or one accidentally cleared) served its whole
+		// catalogue to anyone. An unconfigured store has nothing legitimate to serve
+		// here anyway: the Hub only ever fetches this feed with a token.
+		if ( '' === $stored_token ) {
+			return new WP_Error( 'forbidden', 'Feed is not configured.', [ 'status' => 403 ] );
+		}
 
-			$token_a = hash( 'sha256', $provided_token );
-			$token_b = hash( 'sha256', $stored_token );
-			if ( ! hash_equals( $token_b, $token_a ) ) {
-				return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
-			}
+		$provided_token = (string) $token;
+		if ( '' === $provided_token ) {
+			return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
+		}
+
+		$token_a = hash( 'sha256', $provided_token );
+		$token_b = hash( 'sha256', $stored_token );
+		if ( ! hash_equals( $token_b, $token_a ) ) {
+			return new WP_Error( 'forbidden', 'Invalid token.', [ 'status' => 403 ] );
 		}
 
 		// Query products

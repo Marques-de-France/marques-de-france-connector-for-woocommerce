@@ -395,3 +395,15 @@ msgstr ""
 #: marques-de-france-connector-for-woocommerce.php:117
 msgid "Marques de France requires WooCommerce to be installed and active."
 msgstr ""
+
+msgid "No changes to save."
+msgstr ""
+
+msgid "Please enter your secure token."
+msgstr ""
+
+msgid "The secure token cannot be empty."
+msgstr ""
+
+msgid "Commission"
+msgstr ""

@@ -209,7 +209,7 @@ class MDFCFORWC_Activator {
 	 * This runs on every plugin activation (including re-activation) so that
 	 * deleted Hub entries are recreated automatically.
 	 */
-	private static function register_with_hub() {
+	public static function register_with_hub() {
 		$hub_url  = rtrim( MDFCFORWC_HUB_URL, '/' );
 		$site_url = MDFCFORWC_Settings::get_site_url();
 

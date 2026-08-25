@@ -129,6 +129,19 @@ class MDFCFORWC_Admin {
 			self::MENU_SLUG . '-sales',
 			[ $this, 'render_page_sales' ]
 		);
+
+		// Submenu 4: Settings.
+		// The admin app routes between tabs with history.pushState, so this page
+		// must exist server-side too — otherwise loading or refreshing its URL
+		// directly is denied by WordPress, which has no page registered for the slug.
+		add_submenu_page(
+			self::MENU_SLUG,
+			__( 'Settings', 'marques-de-france-connector-for-woocommerce' ),
+			__( 'Settings', 'marques-de-france-connector-for-woocommerce' ),
+			self::CAPABILITY,
+			self::MENU_SLUG . '-settings',
+			[ $this, 'render_page_settings' ]
+		);
 	}
 
 	// ---------------------------------------------------------------------------
@@ -397,8 +410,27 @@ class MDFCFORWC_Admin {
 		] );
 	}
 
-	public function rest_save_settings( WP_REST_Request $request ): WP_REST_Response {
-		$token = $request->get_param( 'mdfcforwc_secure_token' );
+	/**
+	 * Saves the secure token.
+	 *
+	 * An empty value is rejected rather than stored. The admin UI masks the token
+	 * (the raw value is never sent to the browser), so an empty submission means
+	 * "unchanged", never "clear it". Persisting it would disable the feed's token
+	 * check and drop the X-MDF-Token header on Hub syncs.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public function rest_save_settings( WP_REST_Request $request ) {
+		$token = trim( (string) $request->get_param( 'mdfcforwc_secure_token' ) );
+
+		if ( '' === $token ) {
+			return new WP_Error(
+				'mdfcforwc_empty_token',
+				__( 'The secure token cannot be empty.', 'marques-de-france-connector-for-woocommerce' ),
+				[ 'status' => 400 ]
+			);
+		}
+
 		update_option( 'mdfcforwc_secure_token', $token );
 		return new WP_REST_Response( [ 'success' => true ], 200 );
 	}
@@ -1004,11 +1036,16 @@ class MDFCFORWC_Admin {
 		// Use WP_Query directly: wc_get_products() in WC 10.7+ auto-injects a
 		// product_type tax_query restricted to types registered in wc_get_product_types(),
 		// which silently excludes composite products and other third-party types.
+		//
+		// Fetch all matching products (posts_per_page = -1) and paginate in PHP AFTER
+		// eligibility filtering. Additional filters (price <= 0, variable products with
+		// no purchasable variants) run in the loop below and cannot be expressed in the
+		// query, so paginating at the SQL level would show fewer than per_page rows and
+		// report an inflated total.
 		$wp_args = [
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => $per_page,
-			'paged'          => $page,
+			'posts_per_page' => -1,
 			'orderby'        => $order_args['orderby'],
 			'order'          => $order_args['order'],
 		];
@@ -1134,9 +1171,9 @@ class MDFCFORWC_Admin {
 			];
 		}
 
-		$total       = max( 1, (int) $wp_query->found_posts );
-		$total_pages = max( 1, (int) $wp_query->max_num_pages );
-		$items       = $raw_items;
+		$total       = count( $raw_items );
+		$total_pages = max( 1, (int) ceil( $total / $per_page ) );
+		$items       = array_slice( $raw_items, ( $page - 1 ) * $per_page, $per_page );
 
 		$response = [
 			'products'    => $items,

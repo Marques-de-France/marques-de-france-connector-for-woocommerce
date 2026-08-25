@@ -136,9 +136,16 @@ export default function RevenueChart({
 				type: 'linear',
 				position: 'right',
 				grid: { drawOnChartArea: false },
+				// Sales are whole orders, so the axis must never show 0.2, 0.4, …
+				// stepSize forces integer steps; precision stops Chart.js rounding
+				// two fractional ticks into the same duplicate label.
+				beginAtZero: true,
 				ticks: {
 					color: '#ed2e38',
-					callback: (value) => `${value}`,
+					stepSize: 1,
+					precision: 0,
+					callback: (value) =>
+						Number.isInteger(value) ? `${value}` : '',
 				},
 				title: {
 					display: true,

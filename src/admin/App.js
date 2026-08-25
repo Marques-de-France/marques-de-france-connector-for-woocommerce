@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Feed from './pages/Feed';
 import Sales from './pages/Sales';
 import PendingApproval from './pages/PendingApproval';
+import Settings from './pages/Settings';
 
 const { pluginUrl } = window.mdfcforwcAdmin || {};
 
@@ -12,6 +13,7 @@ const TABS = [
 	{ key: 'dashboard', label: __( 'Dashboard', 'marques-de-france-connector-for-woocommerce' ) },
 	{ key: 'feed', label: __( 'Product Feed', 'marques-de-france-connector-for-woocommerce' ) },
 	{ key: 'sales', label: __( 'Sales tracking', 'marques-de-france-connector-for-woocommerce' ) },
+	{ key: 'settings', label: __( 'Settings', 'marques-de-france-connector-for-woocommerce' ) },
 ];
 
 const MENU_SLUG = 'marques-de-france-connector-for-woocommerce';
@@ -25,6 +27,9 @@ function getInitialTab() {
 	}
 	if ( page.endsWith( '-feed' ) ) {
 		return 'feed';
+	}
+	if ( page.endsWith( '-settings' ) ) {
+		return 'settings';
 	}
 
 	return window.mdfcforwcAdmin?.initialPage || 'dashboard';
@@ -67,6 +72,8 @@ export default function App() {
 				return <Feed />;
 			case 'sales':
 				return <Sales />;
+			case 'settings':
+				return <Settings />;
 			default:
 				return null;
 		}
@@ -101,6 +108,14 @@ export default function App() {
 					) }
 				</div>
 				<PendingApproval />
+
+				{ /* A store can be unapproved precisely because its secure token is
+				     missing or stale, so the token form has to stay reachable here.
+				     Hiding it behind approval would make the only manual recovery
+				     path unavailable exactly when it is needed. */ }
+				<div className="mdf-admin-content">
+					<Settings />
+				</div>
 			</div>
 		);
 	}

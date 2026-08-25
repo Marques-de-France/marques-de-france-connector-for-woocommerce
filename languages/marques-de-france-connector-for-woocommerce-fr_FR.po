@@ -333,7 +333,7 @@ msgstr "Suivi des ventes"
 msgid ""
 "<strong>Marques de France</strong>: %1$d sale has not been synchronized with "
 "Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check your "
-"settings</a>."
+"connection settings</a>."
 msgid_plural ""
 "<strong>Marques de France</strong>: %1$d sales have not been synchronized "
 "with Marques de France for more than 24\\u00a0hours. <a href=\"%2$s\">Check "
@@ -641,3 +641,15 @@ msgstr "Sélectionner tous les produits sur cette page"
 
 msgid "Unable to update the selected products."
 msgstr "Impossible de mettre à jour les produits sélectionnés."
+
+msgid "No changes to save."
+msgstr "Aucune modification à enregistrer."
+
+msgid "Please enter your secure token."
+msgstr "Veuillez saisir votre code d’accès sécurisé."
+
+msgid "The secure token cannot be empty."
+msgstr "Le code d’accès sécurisé ne peut pas être vide."
+
+msgid "Commission"
+msgstr "Commission"

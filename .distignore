@@ -2,8 +2,23 @@
 .gitignore
 .github
 .distignore
+.DS_Store
 node_modules
 package.json
 package-lock.json
 webpack.config.js
+
+# Built from src/admin/ into build/ — source is not shipped.
+# src/attribution/ IS shipped: class-mdf-wc-tracker.php enqueues it raw from source.
 src/admin/
+
+# Superseded by src/attribution/mdf-attribution-context-wc.js; not enqueued anywhere.
+src/tracker/
+
+# Pre-React feed screen; not enqueued anywhere.
+assets/js/admin-feed.js
+assets/css/admin-feed.css
+
+# Translation tooling and backups — dev-only.
+languages/fill_fr_po.py
+languages/*.po.bak
