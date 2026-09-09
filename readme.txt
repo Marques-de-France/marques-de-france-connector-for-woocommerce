@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.4.2 =
+Recommended for stores using scheduled sale price dates: the product feed now exports a sale price only while the sale is in effect, so Marques de France no longer shows expired or upcoming promotions.
+
 = 1.4.1 =
 Important update. Recommended for all stores. Fixes attributed sales not being recorded on stores using the block-based checkout. Also a security fix: Stores without a stored secure token were serving their full product feed to anyone; the feed now always requires a valid token. Missing tokens are restored from Marques de France automatically. Also confirms compatibility with WordPress 7.1.
 
@@ -123,6 +126,9 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.4.2 =
+* Fix: the product feed no longer exports a sale price whose scheduled dates have expired or not yet started. The sale price now follows the product's "Sale price dates" exactly as the storefront does, so Marques de France always receives the price in effect at fetch time.
 
 = 1.4.1 =
 * Fix: attributed sales are now recorded on stores using the block-based checkout. The block checkout runs through the WooCommerce Store API, which never triggered the hooks the plugin relied on, so every attributed sale on those stores was silently lost.

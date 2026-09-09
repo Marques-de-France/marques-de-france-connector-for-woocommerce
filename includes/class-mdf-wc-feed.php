@@ -261,7 +261,10 @@ class MDFCFORWC_Feed {
 			'additional_images'   => $additional_images,
 			'price'               => $product->get_price(),
 			'regular_price'       => $product->get_regular_price(),
-			'sale_price'          => $product->get_sale_price(),
+			// is_on_sale() honours the scheduled sale dates. get_sale_price() alone returns
+			// the stored value even when the sale has expired or has not started yet
+			// (WC >= 10.5 keeps _sale_price and the dates after a sale ends).
+			'sale_price'          => $product->is_on_sale() ? $product->get_sale_price() : '',
 			'currency'            => get_woocommerce_currency(),
 			'sku'                 => $product->get_sku(),
 			'availability'            => 'onbackorder' === $product->get_stock_status() ? 'preorder' : ( $product->is_in_stock() ? 'in stock' : 'out of stock' ),
@@ -346,7 +349,8 @@ class MDFCFORWC_Feed {
 			'additional_images'   => $additional_images,
 			'price'               => $variation->get_price(),
 			'regular_price'       => $variation->get_regular_price(),
-			'sale_price'          => $variation->get_sale_price(),
+			// See normalise_product(): only export the sale price while the sale is active.
+			'sale_price'          => $variation->is_on_sale() ? $variation->get_sale_price() : '',
 			'currency'            => get_woocommerce_currency(),
 			'sku'                 => $variation->get_sku() ?: ( $parent->get_sku() . '-' . $variation->get_id() ),
 			'availability'            => 'onbackorder' === $variation->get_stock_status() ? 'preorder' : ( $variation->is_in_stock() ? 'in stock' : 'out of stock' ),
