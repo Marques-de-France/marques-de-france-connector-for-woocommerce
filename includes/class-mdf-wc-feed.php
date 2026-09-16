@@ -740,7 +740,9 @@ class MDFCFORWC_Feed {
 	/**
 	 * Convert rich HTML to a clean, feed-safe HTML snippet.
 	 *
-	 * Mirrors the sanitizeRichHtml() function in the Hub's shopify.js connector.
+	 * Mirrors the sanitizeRichHtml() function in the Hub's shopify.js connector, with one
+	 * WordPress-only addition up front: shortcodes ([vc_row], [et_pb_section], custom ones…)
+	 * are removed before any HTML rule runs, see strip_shortcodes_keep_content().
 	 * Preserves structure (p, ul, ol, li) and inline formatting (strong, b, u, em, i, br)
 	 * while stripping everything unsuitable for a product feed: links, emojis, inline
 	 * styles, CSS classes, and any HTML not in the Google Merchant Center allowed subset.
@@ -754,6 +756,9 @@ class MDFCFORWC_Feed {
 		if ( '' === $html ) {
 			return '';
 		}
+
+		// -1. Remove page-builder / theme / custom shortcodes (WordPress-specific, not in the Hub mirror).
+		$html = $this->strip_shortcodes_keep_content( $html );
 
 		// 0. Remove <style>, <script>, <noscript> blocks entirely (tag + content).
 		$html = preg_replace( '/<style[\s\S]*?<\/style>/i', '', $html );
@@ -798,6 +803,85 @@ class MDFCFORWC_Feed {
 
 		// 11. Trim.
 		return trim( $html );
+	}
+
+	/**
+	 * Remove WordPress shortcodes from product text while keeping the text they wrap.
+	 *
+	 * Page builders (WPBakery [vc_*], Divi [et_pb_*], Fusion, theme tabs…) and custom plugins
+	 * store raw shortcodes in the product description. Marques de France does not run them,
+	 * so `[vc_column_text]Texte[/vc_column_text]` must become `Texte` in the feed.
+	 *
+	 * WordPress' own strip_shortcodes() is not used because it deletes the content of
+	 * enclosing shortcodes and only knows the shortcodes registered at request time
+	 * (builders may not register theirs in a REST context).
+	 *
+	 * Rules:
+	 *  1. A short deny-list of "raw code" shortcodes is removed together with its content
+	 *     (filter `mdfcforwc_feed_shortcodes_remove_with_content`).
+	 *  2. Every other `[name …]` / `[/name]` token is dropped, content kept, when it is a
+	 *     registered shortcode, a closing token, carries a key="value" attribute, or has an
+	 *     underscore in its name. Plain bracketed prose such as `[Lot de 2]`, `[NOUVEAU]` or
+	 *     `[Pre-order]` matches none of these and is preserved. Escaped `[[tag]]` is preserved.
+	 *
+	 * The CDATA wrapper is added later by build_rss() and is never part of the input.
+	 *
+	 * @param string $html Raw product text.
+	 * @return string
+	 */
+	private function strip_shortcodes_keep_content( string $html ): string {
+		if ( false === strpos( $html, '[' ) ) {
+			return $html;
+		}
+
+		// 1. Shortcodes whose content is code rather than prose: remove tag + content.
+		$remove_with_content = apply_filters(
+			'mdfcforwc_feed_shortcodes_remove_with_content',
+			[ 'vc_raw_html', 'vc_raw_js', 'et_pb_code', 'fusion_code' ]
+		);
+		foreach ( (array) $remove_with_content as $tag ) {
+			$tag = preg_quote( (string) $tag, '/' );
+			if ( '' === $tag ) {
+				continue;
+			}
+			$html = preg_replace( '/\[' . $tag . '\b[^\]]*\][\s\S]*?\[\/' . $tag . '\]/i', '', $html );
+			$html = preg_replace( '/\[' . $tag . '\b[^\]]*\]/i', '', $html );
+		}
+
+		// 2. Every other shortcode token: drop the token, keep what it wraps.
+		global $shortcode_tags;
+		$registered = is_array( $shortcode_tags ) ? $shortcode_tags : [];
+
+		$html = preg_replace_callback(
+			'/(\[?)\[(\/?)([a-zA-Z_][\w-]*)((?:\s+[^\]]*?)?)\s*\/?\](\]?)/',
+			static function ( array $m ) use ( $registered ) {
+				// Escaped shortcode [[tag]] is literal text: leave it untouched.
+				if ( '[' === $m[1] && ']' === $m[5] ) {
+					return $m[0];
+				}
+
+				$name         = $m[3];
+				$is_closing   = '/' === $m[2];
+				$has_attrs    = (bool) preg_match( '/\s[\w-]+\s*=/', $m[4] );
+				$is_shortcode = $is_closing
+					|| $has_attrs
+					|| isset( $registered[ $name ] )
+					|| false !== strpos( $name, '_' );
+
+				if ( ! $is_shortcode ) {
+					return $m[0];
+				}
+
+				// Give back any stray bracket that was captured but is not part of an escape.
+				return $m[1] . $m[5];
+			},
+			$html
+		);
+
+		// 3. Tidy: collapse the blank lines left behind by removed tokens.
+		$html = preg_replace( '/(?:\r?\n[ \t]*){3,}/', "\n\n", $html );
+
+		return $html;
 	}
 }
 

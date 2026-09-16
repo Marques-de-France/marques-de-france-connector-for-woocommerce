@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -126,6 +126,9 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.4.3 =
+* Fix: the product feed no longer exports page-builder shortcodes (WPBakery, Divi, theme tabs, custom shortcodes) in product descriptions. The text they wrap is kept, raw HTML/JS blocks are removed entirely, and bracketed prose such as "[Lot de 2]" is left untouched.
 
 = 1.4.2 =
 * Fix: the product feed no longer exports a sale price whose scheduled dates have expired or not yet started. The sale price now follows the product's "Sale price dates" exactly as the storefront does, so Marques de France always receives the price in effect at fetch time.
