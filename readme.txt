@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -126,6 +126,9 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.4.4 =
+* Fix: pages of the product feed no longer overlap. Products sharing a publication date, for example after a bulk import, or reordered by a sorting plugin, could appear on two pages or on none; pages are now cut from one stable list of products, newest first. Marques de France can therefore read catalogues of more than 500 products in full.
 
 = 1.4.3 =
 * Fix: the product feed no longer exports page-builder shortcodes (WPBakery, Divi, theme tabs, custom shortcodes) in product descriptions. The text they wrap is kept, raw HTML/JS blocks are removed entirely, and bracketed prose such as "[Lot de 2]" is left untouched.

@@ -139,10 +139,8 @@ class MDFCFORWC_Feed {
 			$query_args = [
 				'post_type'      => 'product',
 				'post_status'    => 'publish',
-				'posts_per_page' => $per_page,
-				'paged'          => $page,
+				'posts_per_page' => -1,
 				'post__in'       => $feed_ids,
-				'orderby'        => 'post__in',
 				'no_found_rows'  => true,
 				'fields'         => 'ids',
 			];
@@ -155,10 +153,7 @@ class MDFCFORWC_Feed {
 			$query_args = [
 				'post_type'      => 'product',
 				'post_status'    => 'publish',
-				'posts_per_page' => $per_page,
-				'paged'          => $page,
-				'orderby'        => 'date',
-				'order'          => 'DESC',
+				'posts_per_page' => -1,
 				'no_found_rows'  => true,
 				'fields'         => 'ids',
 				'tax_query'      => [
@@ -171,11 +166,21 @@ class MDFCFORWC_Feed {
 			];
 		}
 
-		$wp_query = new WP_Query( $query_args );
+		// Pages are cut from the whole ID list here rather than with SQL LIMIT/OFFSET.
+		// Rows tied on the sort column (products bulk-imported in the same second, or
+		// a sorting plugin rewriting ORDER BY) can come back in a different order at
+		// each offset, so a product could land on two pages or on none. The list keeps
+		// the selection order in SERVERLIST mode, newest product first otherwise.
+		$product_ids = ( new WP_Query( $query_args ) )->posts;
+		if ( 'SERVERLIST' === $mode ) {
+			$product_ids = array_values( array_intersect( $feed_ids, $product_ids ) );
+		} else {
+			rsort( $product_ids, SORT_NUMERIC );
+		}
 
 		$items = [];
 
-		foreach ( $wp_query->posts as $post_id ) {
+		foreach ( array_slice( $product_ids, ( $page - 1 ) * $per_page, $per_page ) as $post_id ) {
 			$product = wc_get_product( $post_id );
 
 			if ( ! $product ) {
