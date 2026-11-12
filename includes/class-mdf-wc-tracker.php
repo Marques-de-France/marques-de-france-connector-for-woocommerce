@@ -33,7 +33,30 @@ class MDFCFORWC_Tracker {
 	const KEY_LANDING_REF   = 'mdf_landing_ref';
 	const KEY_CLICK_ID      = 'mdf_click_id';
 
+	// A campaign's click code (a Marques de France dedicated letter's link): it replaces an older
+	// code, the visitor came back through the campaign. Any other code stays first-touch.
+	const CAMPAIGN_CLICK_ID_PATTERN = '/^mdf-campagne-[1-9][0-9]{0,9}-[0-9a-f]{8,64}$/';
+
 	private static ?self $instance = null;
+
+	/**
+	 * Whether a click code is a campaign's (mdf-campagne-{id}-{hex}).
+	 */
+	public static function is_campaign_click_id( string $click_id ): bool {
+		return 1 === preg_match( self::CAMPAIGN_CLICK_ID_PATTERN, $click_id );
+	}
+
+	/**
+	 * Whether a new click code takes the session's place: none stored yet, or a campaign's
+	 * code different from the stored one.
+	 */
+	private function takes_click_id( string $click_id ): bool {
+		if ( '' === $click_id ) {
+			return false;
+		}
+		$stored = $this->get_session( self::KEY_CLICK_ID );
+		return ! $stored || ( self::is_campaign_click_id( $click_id ) && $stored !== $click_id );
+	}
 
 	public static function get_instance(): self {
 		if ( null === self::$instance ) {
@@ -156,7 +179,7 @@ class MDFCFORWC_Tracker {
 		if ( '' !== $landing_ref && ! $this->get_session( self::KEY_LANDING_REF ) ) {
 			$this->set_session( self::KEY_LANDING_REF, $landing_ref );
 		}
-		if ( '' !== $click_id && ! $this->get_session( self::KEY_CLICK_ID ) ) {
+		if ( $this->takes_click_id( $click_id ) ) {
 			$this->set_session( self::KEY_CLICK_ID, $click_id );
 		}
 		if ( ! $this->get_session( self::KEY_LANDING_SITE ) && ! empty( $_SERVER['REQUEST_URI'] ) ) {
@@ -232,8 +255,9 @@ class MDFCFORWC_Tracker {
 
 			$value = sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) );
 
-			// Don't overwrite an existing session value (first touch wins)
-			if ( $this->get_session( $key ) ) {
+			// Don't overwrite an existing session value (first touch wins), except with a
+			// campaign's click code
+			if ( self::KEY_CLICK_ID === $key ? ! $this->takes_click_id( $value ) : $this->get_session( $key ) ) {
 				continue;
 			}
 
@@ -266,6 +290,11 @@ class MDFCFORWC_Tracker {
 		];
 
 		foreach ( $cookie_map as $session_key => $cookie_name ) {
+			$cookie_value = ! empty( $_COOKIE[ $cookie_name ] ) ? sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ) : '';
+			if ( self::KEY_CLICK_ID === $session_key && $this->takes_click_id( $cookie_value ) ) {
+				$this->set_session( $session_key, $cookie_value ); // a campaign's code set by the tracker
+				continue;
+			}
 			if ( $this->get_session( $session_key ) ) {
 				continue; // already have it — don't overwrite
 			}
