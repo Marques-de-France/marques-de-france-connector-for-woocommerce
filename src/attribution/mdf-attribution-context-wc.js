@@ -114,6 +114,12 @@
 		return /^[A-Za-z0-9_-]{8,128}$/.test( trimmed ) ? trimmed : '';
 	}
 
+	// A campaign's click code (a Marques de France dedicated letter's link): it replaces an
+	// older code, the visitor came back through the campaign. Any other code stays first-touch.
+	function isCampaignClickId( value ) {
+		return /^mdf-campagne-[1-9][0-9]{0,9}-[0-9a-f]{8,64}$/.test( value || '' );
+	}
+
 	/**
 	 * Returns the stored click_id if it is still within TTL, otherwise purges
 	 * the expired LS entries and falls back to the cookie.
@@ -279,6 +285,20 @@
 				mdf_referring_site:referrerUrl,
 				mdf_landing_ref:   refParam,
 				mdf_click_id:      clickId,
+			} );
+
+		} else if ( isAttributed && isCampaignClickId( clickId ) && getStoredClickId() !== clickId ) {
+			// Already attributed, back through a campaign: its code replaces the older one
+			// (the rest of the first-touch context is kept) and the attribution is refreshed.
+			setLocalValue( 'mdf_attributed_at', String( Date.now() ) );
+			setCookie( 'mdf_attributed', '1', COOKIE_TTL_DAYS );
+			setLocalValue( 'mdf_click_id',    clickId );
+			setLocalValue( 'mdf_click_id_at', String( Date.now() ) );
+			setCookie( 'mdf_click_id', clickId, COOKIE_TTL_DAYS );
+
+			stampSession( runtime, {
+				mdf_attributed: '1',
+				mdf_click_id:   clickId,
 			} );
 
 		} else if ( ! isAttributed && alreadyAttributed ) {

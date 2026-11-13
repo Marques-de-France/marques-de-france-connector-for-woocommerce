@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.4.4
+Stable tag: 1.5.0
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.5.0 =
+Recommended for brands taking part in Marques de France campaigns, such as a newsletter dedicated to your brand: sales from a visitor who comes back through the campaign are now credited to it.
+
 = 1.4.2 =
 Recommended for stores using scheduled sale price dates: the product feed now exports a sale price only while the sale is in effect, so Marques de France no longer shows expired or upcoming promotions.
 
@@ -126,6 +129,9 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.5.0 =
+* Improvement: a visitor who comes back to your store through a Marques de France campaign, such as a newsletter dedicated to your brand, now has that campaign's click code recorded instead of the code of an earlier visit, so the sale is credited to the campaign. Any other click code still follows the first visit.
 
 = 1.4.4 =
 * Fix: pages of the product feed no longer overlap. Products sharing a publication date, for example after a bulk import, or reordered by a sorting plugin, could appear on two pages or on none; pages are now cut from one stable list of products, newest first. Marques de France can therefore read catalogues of more than 500 products in full.
