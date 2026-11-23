@@ -194,6 +194,21 @@ class MDFCFORWC_Attribution {
 		return in_array( $signals['source'], [ 'mdf_click', 'mdf_ref', 'utm', 'mdf_referral' ], true );
 	}
 
+	/**
+	 * Returns true if the customer really paid for the order.
+	 *
+	 * A zero-total order (typically the merchant's own test order, placed while the MDF
+	 * cookie was still in their browser, or a 100 % coupon) is not a sale. It is still
+	 * recorded and sent to Marques de France, which marks it and never counts it; the
+	 * plugin's screens (dashboard, sales list, order metabox) leave it out the same way.
+	 *
+	 * @param WC_Order $order The WooCommerce order.
+	 * @return bool
+	 */
+	public static function is_countable_order( WC_Order $order ): bool {
+		return (float) $order->get_total() > 0;
+	}
+
 	// ---------------------------------------------------------------------------
 	// Hook: attach attribution to order meta
 	// ---------------------------------------------------------------------------

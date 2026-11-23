@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.5.1 =
+Recommended for all stores: an order with a total of 0, such as a test order you place yourself, no longer appears as a Marques de France sale in the plugin's dashboard.
+
 = 1.5.0 =
 Recommended for brands taking part in Marques de France campaigns, such as a newsletter dedicated to your brand: sales from a visitor who comes back through the campaign are now credited to it.
 
@@ -129,6 +132,9 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.5.1 =
+* Improvement: an order whose total is 0, typically a test order placed by the store while the Marques de France cookie is still in the browser, or an order paid entirely with a 100% coupon, no longer appears as a Marques de France sale in the plugin's dashboard, sales chart, sales list or order screen. Such orders are still sent to Marques de France, which keeps them apart and never counts them as sales.
 
 = 1.5.0 =
 * Improvement: a visitor who comes back to your store through a Marques de France campaign, such as a newsletter dedicated to your brand, now has that campaign's click code recorded instead of the code of an earlier visit, so the sale is credited to the campaign. Any other click code still follows the first visit.

@@ -603,7 +603,7 @@ class MDFCFORWC_Admin {
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$count = (int) $wpdb->get_var(
 				$wpdb->prepare(
-					"SELECT COUNT(*) FROM `{$table}` WHERE hub_synced = 0 AND status = 'confirmed' AND created_at <= %s",
+					"SELECT COUNT(*) FROM `{$table}` WHERE hub_synced = 0 AND status = 'confirmed' AND amount > 0 AND created_at <= %s",
 					$threshold
 				)
 			);
@@ -744,30 +744,32 @@ class MDFCFORWC_Admin {
 		global $wpdb;
 		$table = esc_sql( $wpdb->prefix . 'mdfcforwc_sales' );
 
+		// amount > 0 everywhere: a zero-total order is not a sale
+		// (MDFCFORWC_Attribution::is_countable_order()).
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$total     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
-		$confirmed = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE status = 'confirmed'" );
-		$revenue   = (float) $wpdb->get_var( "SELECT COALESCE(SUM(amount), 0) FROM `{$table}` WHERE status = 'confirmed'" );
-		$commission = (float) $wpdb->get_var( "SELECT COALESCE(SUM(commission_amount), 0) FROM `{$table}` WHERE status = 'confirmed'" );
-		$unsynced  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE hub_synced = 0 AND status = 'confirmed'" );
+		$total     = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE amount > 0" );
+		$confirmed = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE status = 'confirmed' AND amount > 0" );
+		$revenue   = (float) $wpdb->get_var( "SELECT COALESCE(SUM(amount), 0) FROM `{$table}` WHERE status = 'confirmed' AND amount > 0" );
+		$commission = (float) $wpdb->get_var( "SELECT COALESCE(SUM(commission_amount), 0) FROM `{$table}` WHERE status = 'confirmed' AND amount > 0" );
+		$unsynced  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}` WHERE hub_synced = 0 AND status = 'confirmed' AND amount > 0" );
 
 		// This-month stats
 		$month_start = gmdate( 'Y-m-01 00:00:00' );
 		$month_rev   = (float) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(amount), 0) FROM `{$table}` WHERE status='confirmed' AND created_at >= %s",
+				"SELECT COALESCE(SUM(amount), 0) FROM `{$table}` WHERE status='confirmed' AND amount > 0 AND created_at >= %s",
 				$month_start
 			)
 		);
 		$month_commission = (float) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COALESCE(SUM(commission_amount), 0) FROM `{$table}` WHERE status='confirmed' AND created_at >= %s",
+				"SELECT COALESCE(SUM(commission_amount), 0) FROM `{$table}` WHERE status='confirmed' AND amount > 0 AND created_at >= %s",
 				$month_start
 			)
 		);
 		$month_count = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM `{$table}` WHERE status='confirmed' AND created_at >= %s",
+				"SELECT COUNT(*) FROM `{$table}` WHERE status='confirmed' AND amount > 0 AND created_at >= %s",
 				$month_start
 			)
 		);
@@ -816,7 +818,7 @@ class MDFCFORWC_Admin {
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT created_at, amount, commission_amount FROM `{$table}` WHERE status = 'confirmed' AND created_at BETWEEN %s AND %s ORDER BY created_at ASC",
+				"SELECT created_at, amount, commission_amount FROM `{$table}` WHERE status = 'confirmed' AND amount > 0 AND created_at BETWEEN %s AND %s ORDER BY created_at ASC",
 				$from_dt,
 				$to_dt
 			)
@@ -898,7 +900,8 @@ class MDFCFORWC_Admin {
 		$date_to_active   = ! empty( $date_to ) ? 1 : 0;
 		$date_to_val      = $date_to_active ? sanitize_text_field( $date_to ) . ' 23:59:59' : '';
 
-		$conditions = [];
+		// A zero-total order is not a sale (MDFCFORWC_Attribution::is_countable_order())
+		$conditions = [ 'amount > 0' ];
 		$params     = [];
 
 		if ( $status_active ) {
@@ -1252,8 +1255,9 @@ class MDFCFORWC_Admin {
 
 		$attr = MDFCFORWC_Attribution::get_order_attribution( $order );
 
-		// Only render for MDF-attributed orders
-		if ( $attr['attributed'] !== '1' || empty( $attr['source'] ) ) {
+		// Only render for MDF-attributed orders. A zero-total order is not a sale
+		// (MDFCFORWC_Attribution::is_countable_order()).
+		if ( $attr['attributed'] !== '1' || empty( $attr['source'] ) || ! MDFCFORWC_Attribution::is_countable_order( $order ) ) {
 			echo '<p style="color:#888;font-size:12px;margin:8px 0;">' . esc_html__( 'No attribution detected for this order.', 'marques-de-france-connector-for-woocommerce' ) . '</p>';
 			return;
 		}
