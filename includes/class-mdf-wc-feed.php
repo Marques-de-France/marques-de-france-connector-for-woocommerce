@@ -336,15 +336,19 @@ class MDFCFORWC_Feed {
 		$tag_terms = get_the_terms( $parent->get_id(), 'product_tag' );
 		$tags      = ( $tag_terms && ! is_wp_error( $tag_terms ) ) ? array_map( fn( $t ) => $t->name, $tag_terms ) : [];
 
-		$link = get_permalink( $parent->get_id() );
-		$gtin = (string) $variation->get_meta( '_wc_gtin' );
-		$mpn  = $variation->get_sku() ?: $parent->get_sku();
+		// The variation's own page: WooCommerce adds its attributes to the parent URL
+		// (?attribute_pa_size=m), which the product page reads to preselect the variation.
+		// Google expects this for a variant's <g:link>; <parent_link> stays the product page.
+		$parent_link = get_permalink( $parent->get_id() );
+		$link        = $variation->get_permalink();
+		$gtin        = (string) $variation->get_meta( '_wc_gtin' );
+		$mpn         = $variation->get_sku() ?: $parent->get_sku();
 
 		return [
 			'id'                  => $parent->get_id() . '_' . $variation->get_id(),
 			'title'               => $title,
 			'parent_title'        => wp_strip_all_tags( $parent->get_name() ),
-			'parent_link'         => $link,
+			'parent_link'         => $parent_link,
 			'description'         => $this->sanitize_rich_html( $parent->get_description() ?: $parent->get_short_description() ),
 			'short_description'   => $this->sanitize_rich_html( $parent->get_short_description() ),
 			'link'                => $link,
