@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,9 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.5.2 =
+Recommended for stores selling products with variations: a visitor who clicks a variation on Marques de France now lands on your product page with that variation already selected.
+
 = 1.5.1 =
 Recommended for all stores: an order with a total of 0, such as a test order you place yourself, no longer appears as a Marques de France sale in the plugin's dashboard.
 
@@ -132,6 +135,9 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.5.2 =
+* Improvement: in the product feed, each variation's link (`g:link`) now opens your product page with that variation already selected, using WooCommerce's own variation URL (for example `?attribute_pa_size=m`). The product page link (`parent_link`) is unchanged.
 
 = 1.5.1 =
 * Improvement: an order whose total is 0, typically a test order placed by the store while the Marques de France cookie is still in the browser, or an order paid entirely with a 100% coupon, no longer appears as a Marques de France sale in the plugin's dashboard, sales chart, sales list or order screen. Such orders are still sent to Marques de France, which keeps them apart and never counts them as sales.
