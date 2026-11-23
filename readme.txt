@@ -3,7 +3,7 @@ Contributors: marquesdefrance
 Tags: woocommerce, sales attribution, product feed
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.4.1
+Stable tag: 1.5.2
 Requires PHP: 7.4
 Requires Plugins: woocommerce
 License: GPLv2 or later
@@ -104,6 +104,18 @@ Yes. Go to **Marques de France > Dashboard** in WP Admin. The dashboard shows th
 
 == Upgrade Notice ==
 
+= 1.5.2 =
+Recommended for stores selling products with variations: a visitor who clicks a variation on Marques de France now lands on your product page with that variation already selected.
+
+= 1.5.1 =
+Recommended for all stores: an order with a total of 0, such as a test order you place yourself, no longer appears as a Marques de France sale in the plugin's dashboard.
+
+= 1.5.0 =
+Recommended for brands taking part in Marques de France campaigns, such as a newsletter dedicated to your brand: sales from a visitor who comes back through the campaign are now credited to it.
+
+= 1.4.2 =
+Recommended for stores using scheduled sale price dates: the product feed now exports a sale price only while the sale is in effect, so Marques de France no longer shows expired or upcoming promotions.
+
 = 1.4.1 =
 Important update. Recommended for all stores. Fixes attributed sales not being recorded on stores using the block-based checkout. Also a security fix: Stores without a stored secure token were serving their full product feed to anyone; the feed now always requires a valid token. Missing tokens are restored from Marques de France automatically. Also confirms compatibility with WordPress 7.1.
 
@@ -123,6 +135,24 @@ Improved partner-facing wording in admin notices and updated translations for cl
 Initial release.
 
 == Changelog ==
+
+= 1.5.2 =
+* Improvement: in the product feed, each variation's link (`g:link`) now opens your product page with that variation already selected, using WooCommerce's own variation URL (for example `?attribute_pa_size=m`). The product page link (`parent_link`) is unchanged.
+
+= 1.5.1 =
+* Improvement: an order whose total is 0, typically a test order placed by the store while the Marques de France cookie is still in the browser, or an order paid entirely with a 100% coupon, no longer appears as a Marques de France sale in the plugin's dashboard, sales chart, sales list or order screen. Such orders are still sent to Marques de France, which keeps them apart and never counts them as sales.
+
+= 1.5.0 =
+* Improvement: a visitor who comes back to your store through a Marques de France campaign, such as a newsletter dedicated to your brand, now has that campaign's click code recorded instead of the code of an earlier visit, so the sale is credited to the campaign. Any other click code still follows the first visit.
+
+= 1.4.4 =
+* Fix: pages of the product feed no longer overlap. Products sharing a publication date, for example after a bulk import, or reordered by a sorting plugin, could appear on two pages or on none; pages are now cut from one stable list of products, newest first. Marques de France can therefore read catalogues of more than 500 products in full.
+
+= 1.4.3 =
+* Fix: the product feed no longer exports page-builder shortcodes (WPBakery, Divi, theme tabs, custom shortcodes) in product descriptions. The text they wrap is kept, raw HTML/JS blocks are removed entirely, and bracketed prose such as "[Lot de 2]" is left untouched.
+
+= 1.4.2 =
+* Fix: the product feed no longer exports a sale price whose scheduled dates have expired or not yet started. The sale price now follows the product's "Sale price dates" exactly as the storefront does, so Marques de France always receives the price in effect at fetch time.
 
 = 1.4.1 =
 * Fix: attributed sales are now recorded on stores using the block-based checkout. The block checkout runs through the WooCommerce Store API, which never triggered the hooks the plugin relied on, so every attributed sale on those stores was silently lost.

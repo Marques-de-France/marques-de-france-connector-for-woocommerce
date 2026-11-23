@@ -1,6 +1,6 @@
 {
   "name": "marques-de-france-connector-for-woocommerce",
-  "version": "1.4.1",
+  "version": "1.5.2",
   "description": "Marques de France WooCommerce Connector",
   "scripts": {
     "build": "wp-scripts build",
